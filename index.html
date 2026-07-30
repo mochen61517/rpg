@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人生 RPG · Mochen 版 v5.3</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --txt:#e6e9ef; --dim:#9aa3b2; --accent:#7c9cff; --gold:#f3c969; --warn:#ff7a7a;
+    --bm:#ff9f43; --career:#5fd0a0; --body:#ff7a7a; --mind:#9b8cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.5}
+  .wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:18px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  .panel h2{font-size:14px;margin:0 0 12px;color:var(--dim);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+  .top{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  .avatar{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#7c9cff,#9b8cff);display:flex;align-items:center;justify-content:center;font-size:30px;flex:0 0 auto}
+  .lvlbox{flex:1 1 240px}
+  .lvlrow{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--dim)}
+  .lvlnum{font-size:22px;color:var(--gold);font-weight:700}
+  .xpbar{height:12px;background:var(--panel2);border-radius:8px;overflow:hidden;margin-top:6px;border:1px solid var(--line)}
+  .xpfill{height:100%;background:linear-gradient(90deg,#7c9cff,#9b8cff);width:0%;transition:width .4s}
+  .streak{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim)}
+  .today{margin-left:auto;text-align:right;line-height:1.25;flex:0 0 auto;padding-left:8px}
+  .today .d{font-size:19px;font-weight:700;color:var(--txt)}
+  .today .w{font-size:12px;color:var(--dim)}
+  .qdate{color:var(--accent);font-size:12px}
+  .flame{color:var(--con);font-size:18px}
+  /* 记录于（补录入口） */
+  .recbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 4px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+  .reclabel{font-size:13px;color:var(--dim)}
+  .recinput{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:4px 8px;font-size:13px;font-family:inherit}
+  .rechint{font-size:12px;color:var(--dim)}
+  .recbadge{display:inline-block;margin-top:2px;font-size:12px;color:#fff;background:var(--warn);padding:2px 8px;border-radius:8px}
+  .btn.xs{padding:3px 9px;font-size:12px}
+  /* tier overview */
+  .tiers{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .tier{font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:5px 10px;border-radius:10px}
+  .tier.on{border-color:var(--grw);color:var(--grw)}
+  .wtag{font-size:10px;color:var(--dim);border:1px solid var(--line);padding:0 5px;border-radius:8px;margin-left:4px}
+  /* quest blocks (year/month/week checklists) */
+  .qblock{margin-bottom:14px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .qblock.paused{opacity:.5;filter:grayscale(.6)}
+  .qbtop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .qbtop .qt{font-size:14px;font-weight:600;flex:1;cursor:pointer}
+  .qbtop .qt .ptag{font-size:10px;background:var(--panel);border:1px solid var(--line);color:var(--dim);padding:1px 7px;border-radius:10px;font-weight:500;margin-left:8px}
+  .qbp{font-size:12px;color:var(--gold);white-space:nowrap}
+  .qbbar{height:10px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+  .qbf{height:100%;background:linear-gradient(90deg,var(--gold),#ffd98a);width:0%;transition:width .4s}
+  .qbstep{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+  .qbstep .note{font-size:11px;color:var(--dim);cursor:pointer}
+  /* main daily */
+  .mainq{background:linear-gradient(135deg,#1d2330,#232a3a);border:1px solid var(--accent);border-radius:14px;padding:16px;margin-bottom:16px}
+  .mainq .tag{display:inline-block;font-size:11px;color:#0f1115;background:var(--gold);padding:2px 8px;border-radius:20px;font-weight:700;margin-bottom:8px}
+  .mainq .q{font-size:16px;font-weight:600}
+  .mainq .pick{margin-top:10px;font-size:12px;color:var(--dim)}
+  /* attrs */
+  .attrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+  .attr{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;overflow:hidden}
+  .attr .name{font-size:13px;font-weight:600}
+  .attr .lv{position:absolute;top:10px;right:12px;font-size:12px;color:var(--dim)}
+  .attr .bar{height:8px;background:#11141a;border-radius:6px;margin-top:10px;overflow:hidden}
+  .attr .bf{height:100%;width:0%;transition:width .4s}
+  .attr .xp{font-size:11px;color:var(--dim);margin-top:6px}
+  /* badminton */
+  .bmcard{background:linear-gradient(135deg,#2a1d14,#1f1610);border:1px solid var(--bm);border-radius:12px;padding:14px}
+  .bmtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .bmlevel{font-size:24px;font-weight:700;color:var(--bm)}
+  .bmhours{font-size:13px;color:var(--dim)}
+  .bmbar{height:10px;background:#11141a;border-radius:6px;overflow:hidden;margin-bottom:8px}
+  .bmbar .bf{height:100%;background:linear-gradient(90deg,var(--bm),#ffd9a0);width:0%;transition:width .4s}
+  .bmweek{font-size:13px;display:flex;justify-content:space-between}
+  /* quests checklist */
+  .qitem{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .qitem:last-child{border-bottom:none}
+  .qitem .chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .qitem.done .chk{background:var(--grw);border-color:var(--grw);color:#0f1115}
+  .qitem.done .qt{text-decoration:line-through;color:var(--dim)}
+  .qt{flex:1;font-size:14px}
+  .qmeta{font-size:12px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
+  .qxp{color:var(--gold)}
+  .qmin{color:var(--dim)}
+  .qtag{font-size:10px;background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:10px}
+  .qdel{color:var(--dim);cursor:pointer;font-size:16px;line-height:1;padding:0 4px}
+  .qdel:hover{color:var(--vit)}
+  .addrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+  .addrow input,.addrow select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 10px;font-size:13px}
+  .addrow input[type=text]{flex:1 1 160px}
+  .addrow input[type=number]{width:70px}
+  .btn{background:var(--accent);color:#0f1115;border:none;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:13px}
+  .btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .btn.sm{padding:4px 10px;font-size:12px}
+  .btn.warn{background:var(--warn);color:#0f1115}
+  .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+  .ach{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;opacity:.45;filter:grayscale(1)}
+  .ach.un{opacity:1;filter:none;border-color:var(--gold)}
+  .ach .ic{font-size:24px}
+  .ach .an{font-size:12px;font-weight:600;margin-top:4px}
+  .ach .ad{font-size:10px;color:var(--dim);margin-top:2px}
+  .ach .claim{margin-top:6px;font-size:11px}
+  .foot{color:var(--dim);font-size:12px;text-align:center;margin-top:10px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .hint{color:var(--dim);font-size:12px;margin-top:6px;line-height:1.6}
+  .savewarn{color:var(--warn);font-size:11px;margin-top:6px;display:none}
+  .suppwrap{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+  .subh{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px}
+  /* goals */
+  .goal{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  .goal.paused{opacity:.5;filter:grayscale(.6)}
+  .gtop{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px}
+  .gic{font-size:18px}
+  .gn{font-weight:600;flex:1}
+  .gcur{font-size:12px;color:var(--gold);cursor:pointer;white-space:nowrap}
+  .gbar{height:12px;background:#11141a;border-radius:8px;overflow:hidden}
+  .gbf{height:100%;background:linear-gradient(90deg,var(--grw),#9be7c4);width:0%;transition:width .4s}
+  .gms{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .ms{font-size:11px;background:var(--bg);border:1px solid var(--line);color:var(--dim);padding:3px 9px;border-radius:20px}
+  .ms.reached{background:var(--grw);border-color:var(--grw);color:#0f1115;font-weight:600}
+  .ms.skill:not(.reached){cursor:pointer;border-style:dashed}
+  .gacts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+  /* history */
+  .hist{font-size:12px;color:var(--dim);display:flex;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);align-items:baseline}
+  .hist:last-child{border-bottom:none}
+  .hist .ts{color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .hist .ht{flex:1}
+  .hist .xp{color:var(--gold);white-space:nowrap}
+  /* ---------- 移动端响应式（手机竖屏优先） ---------- */
+  @media(max-width:640px){
+    .wrap{padding:14px 12px 56px}
+    h1{font-size:22px}
+    .sub{font-size:12px;margin-bottom:14px}
+    .panel{padding:14px 12px;margin-bottom:12px}
+    .panel h2{font-size:13px}
+    .attrs{grid-template-columns:1fr 1fr;gap:10px}
+    .attr{padding:11px}
+    .attr .name{font-size:13px}
+    .mainq{padding:14px}
+    .mainq .q{font-size:17px}
+    .qblock{padding:13px 11px;margin-bottom:12px}
+    .qbtop .qt{font-size:15px}
+    .qitem{padding:13px 0;gap:12px}
+    .qitem .chk{width:26px;height:26px;font-size:15px}
+    .qt{font-size:15px}
+    .qmeta{font-size:11px;gap:8px}
+    .achs{grid-template-columns:repeat(2,1fr)}
+    .ach{padding:12px 8px}
+    .ach .ic{font-size:26px}
+    .btn{padding:11px 16px;font-size:14px;min-height:44px}
+    .btn.sm{padding:8px 12px;font-size:13px;min-height:38px}
+    .row{gap:8px}
+    .addrow{gap:8px}
+    .addrow input,.addrow select{padding:11px 10px;font-size:15px;width:100%}
+    .addrow input[type=text]{flex:1 1 100%;width:100%}
+    .addrow input[type=number]{width:84px}
+    .goal{padding:13px 11px}
+    .gtop{font-size:15px}
+    .gcur{font-size:13px}
+    .foot{font-size:11px}
+    .savewarn{font-size:11px}
+  }
+  @media(max-width:380px){
+    .attrs{grid-template-columns:1fr}
+  }
+
+  /* ---------- 动效：勾选飘字 / 闪光 / 升级庆祝 ---------- */
+  #fxLayer{position:fixed;inset:0;pointer-events:none;z-index:90}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(4px) scale(.9)}15%{opacity:1}100%{opacity:0;transform:translateY(-34px) scale(1)}}
+  .floatxp{position:fixed;color:var(--gold);font-weight:700;font-size:14px;text-shadow:0 1px 4px #000;animation:floatUp 1.2s ease-out forwards}
+  @keyframes flashHi{0%{background:rgba(95,208,160,.42)}100%{background:transparent}}
+  .qitem.flash{animation:flashHi .7s ease-out}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+  @keyframes luShow{0%{opacity:0;transform:scale(.5)}18%{opacity:1;transform:scale(1.08)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
+  .levelup-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  .lu-card{background:linear-gradient(135deg,#2a2348,#3a2d63);border:2px solid var(--gold);border-radius:18px;padding:22px 42px;text-align:center;box-shadow:0 12px 44px rgba(0,0,0,.6);animation:luShow 2s ease-out forwards}
+  .lu-card .big{font-size:34px;font-weight:800;color:var(--gold);text-shadow:0 0 16px rgba(243,201,105,.6);line-height:1.15}
+  .lu-card .sub{font-size:13px;color:var(--txt);margin-top:6px}
+  .lu-particle{position:fixed;width:9px;height:9px;border-radius:2px;animation:luFly .9s ease-out forwards}
+  @keyframes luFly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>人生 RPG · Mochen 版</h1>
+  <div class="sub">v5.3 —— 完成状态按日期存储：补录历史某天 / 切回今天，各自勾选互不干扰，已勾选项自动复原。羽毛球视频学习 / 打球 / 力量训练归日任务按时间累积；周任务仅保留投递 / 面试 / 体检等离散行动。四大领域，打开页面自动结算连击。总等级继承 iHour 终身 4234h 历史底分。</div>
+
+  <!-- 总进度 -->
+  <div class="panel top">
+    <div class="avatar">🎮</div>
+    <div class="lvlbox">
+      <div class="lvlrow"><span>总等级</span><span class="lvlnum" id="lvlNum">Lv.1</span></div>
+      <div class="xpbar"><div class="xpfill" id="xpFill"></div></div>
+      <div class="lvlrow" style="margin-top:4px"><span id="xpText">0 / 50 XP</span><span id="nextPerk"></span></div>
+    </div>
+    <div class="streak"><span class="flame">🔥</span><span>连续 <b id="streakNum" style="color:var(--txt)">0</b> 天</span></div>
+    <div class="today" id="todayDate"></div>
+  </div>
+  <div class="recbar">
+    <span class="reclabel">记录于</span>
+    <input id="recDate" type="date" class="recinput" onchange="setRecDate(this.value)">
+    <button class="btn ghost xs" onclick="setRecDate('')">今天</button>
+    <span class="rechint" id="recHint">默认记今天；要补录过去某天，先选日期再勾任务。</span>
+  </div>
+  <div class="panel" style="margin-top:-8px">
+    <h2>总进度 · 四层主线概览</h2>
+    <div class="tiers" id="tierOverview"></div>
+    <div class="hint" id="histInherit" style="margin-top:8px"></div>
+    <div class="hint" id="weightHint"></div>
+  </div>
+
+  <!-- 每日主线 -->
+  <div class="mainq" id="mainQBox">
+    <span class="tag">每日主线</span>
+    <div class="q" id="mainQText">还没选。选一个今天最想赢的任务。</div>
+    <div class="pick" id="mainQPick"></div>
+  </div>
+
+  <!-- 每日任务 + 补剂 -->
+  <div class="panel">
+    <h2>✅ 每日任务 · 每日重置</h2>
+    <div id="dailyList"></div>
+    <div class="addrow">
+      <input type="text" id="dText" placeholder="新日常任务…">
+      <select id="dAttr"></select>
+      <input type="number" id="dMin" value="30" min="0" title="分钟">
+      <input type="number" id="dXp" value="15" min="1" title="XP">
+      <button class="btn sm" onclick="addQuest('daily')">+ 添加</button>
+    </div>
+    <div class="suppwrap">
+      <div class="subh">💊 每日补剂 <span class="qmin">（勾选已服用，每日重置）</span></div>
+      <div id="suppList"></div>
+      <div class="addrow">
+        <input type="text" id="sText" placeholder="新补剂…">
+        <select id="sAttr"></select>
+        <input type="number" id="sXp" value="5" min="1" title="XP">
+        <button class="btn sm" onclick="addQuest('supps')">+ 添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周常任务 -->
+  <div class="panel">
+    <h2>📅 周常任务 · 每周一重置</h2>
+    <div id="weeklyList"></div>
+    <div class="addrow">
+      <input type="text" id="wText" placeholder="新周常任务…">
+      <select id="wAttr"></select>
+      <input type="number" id="wMin" value="60" min="0" title="分钟">
+      <input type="number" id="wXp" value="30" min="1" title="XP">
+      <button class="btn sm" onclick="addQuest('weekly')">+ 添加</button>
+    </div>
+  </div>
+
+  <!-- 周主线 -->
+  <div class="panel">
+    <h2>📅 周主线 · 本周聚焦</h2>
+    <div id="weekBox"></div>
+  </div>
+
+  <!-- 月主线 -->
+  <div class="panel">
+    <h2>🌙 月主线 · 本月聚焦</h2>
+    <div id="monthBox"></div>
+  </div>
+
+  <!-- 年主线 -->
+  <div class="panel">
+    <h2>🗓️ 年主线 · 今年要拿下的大目标</h2>
+    <div id="yearList"></div>
+    <div class="addrow">
+      <input type="text" id="yText" placeholder="新的一年主线目标…" style="flex:1 1 200px">
+      <button class="btn sm" onclick="addYear()">+ 添加年主线</button>
+    </div>
+    <div class="hint">年 / 月 / 周主线都是「大任务」清单：每条拆成可勾选的关键步骤，经验值高（≈周 / 月任务难度）。步骤分两种模式——<b>时间驱动</b>：填本次实际分钟数，经验 = 分钟 × 版块权重（做多久给多少）；<b>固定 XP</b>：勾了给固定经验（用于「拿到 offer」「入职」这类事件型步骤）。点击文字重命名；休眠项（生涯教练）默认折叠、不计入进度，展开后可自行勾选（不加分）。周 / 月主线每周一 / 每月初自动清零步骤进度。</div>
+  </div>
+
+  <!-- 四大领域 -->
+  <div class="panel">
+    <h2>四大领域 · 即时等级</h2>
+    <div class="attrs" id="attrs"></div>
+  </div>
+
+  <!-- 羽毛球专精 -->
+  <div class="panel">
+    <h2>🏸 羽毛球专精 · 你的人生主题</h2>
+    <div class="bmcard">
+      <div class="bmtop">
+        <div class="bmlevel">Lv.<span id="bmLvl">1</span></div>
+        <div class="bmhours">终身累计 <span id="bmHours">1649</span> 小时 · 占记录总时间 39%</div>
+      </div>
+      <div class="bmbar"><div class="bf" id="bmFill"></div></div>
+      <div class="bmweek"><span>本周羽毛球时间</span><span id="bmWeek">0 / 15h</span></div>
+    </div>
+    <div class="hint">羽毛球实战/基本功计入体魄，视频复盘/学习计入成长，但都汇总到这里。目标不是再加量，是让你看见这笔巨额投入。</div>
+  </div>
+
+  <!-- 长期目标 -->
+  <div class="panel">
+    <h2>🎯 长期目标 · 人生里程碑</h2>
+    <div id="goalsBox"></div>
+    <div class="hint">进度条按你 iHour 终身数据初始化（羽毛球 1649h / 身体健康 898h / 职业发展 1017h / 生涯教练 474h / 精神享受 670h / 云南探索 0/30 天）。每月从 iHour 同步一次当前累计，或点 +15min/+1h 手动累加。技能类里程碑（如「水平达 3.5」）随对应年目标自动达成，无需手动认领。</div>
+  </div>
+
+  <!-- 成就 -->
+  <div class="panel">
+    <h2>成就徽章</h2>
+    <div class="achs" id="achs"></div>
+  </div>
+
+  <!-- 历史记录 -->
+  <div class="panel">
+    <h2>📜 历史记录 <span class="note" style="cursor:pointer" onclick="toggleHistory()">[展开/收起]</span></h2>
+    <div id="histBox" style="display:block"></div>
+  </div>
+
+  <!-- 微信推送 -->
+  <div class="panel">
+    <h2>📲 微信推送（pushplus）</h2>
+    <div class="addrow">
+      <input type="text" id="pushToken" placeholder="pushplus token（一次填入即记住）" style="flex:1 1 200px">
+      <button class="btn sm" onclick="pushWechat()">推送今日打卡到微信</button>
+    </div>
+    <div class="hint">静态网页无法自动定时推送；点此按钮把你今日的主线+清单发到微信。每天 9:00 的通用打卡提醒已通过 WorkBuddy 定时任务启用。</div>
+  </div>
+
+  <div class="row" style="gap:10px;margin-bottom:8px">
+    <button class="btn ghost sm" onclick="newDay()">🌅 新的一天（结算连击）</button>
+    <button class="btn ghost sm" onclick="resetAll()">♻ 清空重来</button>
+  </div>
+  <div class="row" style="gap:10px;margin-bottom:8px">
+    <button class="btn ghost sm" onclick="exportSave()">💾 导出存档</button>
+    <button class="btn ghost sm" onclick="document.getElementById('impFile').click()">📂 导入存档</button>
+    <button class="btn ghost sm" onclick="chooseSaveFile()">📁 选择存档文件</button>
+    <input id="impFile" type="file" accept="application/json,.json" style="display:none" onchange="importSave(this.files[0]);this.value=''">
+  </div>
+  <details class="gitee" style="margin-bottom:8px">
+    <summary style="cursor:pointer;font-size:13px;color:var(--dim)">☁ Gitee 云备份（防丢 / 跨设备，可选）</summary>
+    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <input type="text" id="gOwner" value="desire-deeply" placeholder="仓库 owner（你的用户名）" style="width:150px">
+      <input type="text" id="gRepo" value="mochen-rpg" placeholder="仓库名" style="width:120px">
+      <input type="password" id="gToken" placeholder="Gitee 私人令牌（projects 权限）" style="width:210px">
+      <input type="text" id="gPath" value="data/save.json" style="width:130px">
+      <button class="btn sm" onclick="saveGiteeCfg()">保存配置</button>
+      <button class="btn sm" onclick="backupToGitee()">☁ 备份</button>
+      <button class="btn sm" onclick="restoreFromGitee()">☁ 恢复</button>
+    </div>
+    <div class="hint" style="margin-top:6px">token 仅存你本机浏览器（明文，勿泄露账号）。点「备份」把存档写入仓库 <code>data/save.json</code>（首次会自动创建文件）；换设备点「恢复」即可拉回。令牌在 Gitee「设置 → 私人令牌」生成，勾选 <code>projects</code> 权限。若浏览器报 CORS 错误，多为 Gitee 接口限制，可改用「导出存档」+ 手动上传仓库兜底。</div>
+  </details>
+  <div class="savewarn" id="fsBanner" style="display:none">📁 <b>建议启用本地文件存档</b>：点「📁 选择存档文件」选一个本地 <code>lifeRPG_save.json</code>，以后每次保存自动写入该文件，清缓存 / 换浏览器都不丢。当前仅用浏览器临时存储（不稳定）。</div>
+  <div class="foot">数据自动存浏览器；可用「📁 选择存档文件」落盘到本机 json（清缓存 / 换浏览器都不丢），或用「☁ Gitee 云备份」上云、换设备一键恢复。每天首次打开会自动结算连击并重置日常/补剂。（v5.4 云备份）</div>
+  <div class="savewarn" id="saveWarn">⚠ 当前环境无法本地存档（沙箱/隐私模式/预览面板），进度仅本次有效，刷新会丢失。请用本地浏览器打开本文件，或点「导出存档」手动备份。</div>
+</div>
+<div id="fxLayer"></div>
+
+<script>
+/* ---------- 安全存储：避免沙箱/隐私模式下 setItem 抛错导致整页无响应 ---------- */
+const SAVE_KEY = 'lifeRPG_mochen_v4';
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+};
+let SAVE_OK = false;
+let REC_DATE = '';            // 当前「记录于」日期（补录入口），空=今天
+
+/* ---------- 本地文件持久化（File System Access API，仅 localhost/https 可用） ----------
+   解决 file:// + localStorage 易丢失的问题：授权一次本地 save.json 后，每次保存自动落盘，
+   清缓存 / 换浏览器都不丢。file:// 或不支持的浏览器自动降级为 localStorage 兜底。 */
+const FS_AVAILABLE = ('showSaveFilePicker' in window);
+let saveFileHandle = null;
+
+const _idb = {
+  _db:null,
+  open(){ return new Promise((res,rej)=>{
+    const r = indexedDB.open('lifeRPG_fs',1);
+    r.onupgradeneeded = ()=>{ try{ r.result.createObjectStore('handles'); }catch(e){} };
+    r.onsuccess = ()=>{ this._db=r.result; res(); };
+    r.onerror = ()=>rej(r.error);
+  });},
+  async put(h){ try{ await this.open(); }catch(e){ return; }
+    return new Promise((res,rej)=>{ try{
+      const tx=this._db.transaction('handles','readwrite');
+      tx.objectStore('handles').put(h,'save');
+      tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);
+    }catch(e){ rej(e); } }); },
+  async get(){ try{ await this.open(); }catch(e){ return null; }
+    return new Promise((res)=>{ try{
+      const tx=this._db.transaction('handles','readonly');
+      const rq=tx.objectStore('handles').get('save');
+      rq.onsuccess=()=>res(rq.result||null); rq.onerror=()=>res(null);
+    }catch(e){ res(null); } }); }
+};
+
+async function chooseSaveFile(){
+  if(!FS_AVAILABLE){ alert('当前环境不支持本地文件存档（需通过 http://localhost 或 https 打开）。请改用「导出存档」手动备份。'); return; }
+  try{
+    saveFileHandle = await window.showSaveFilePicker({
+      suggestedName:'lifeRPG_save.json',
+      types:[{description:'JSON 存档',accept:{'application/json':['.json']}}]
+    });
+    await _idb.put(saveFileHandle);
+    await fsWrite();
+    const b=document.getElementById('fsBanner'); if(b) b.remove();
+    render();
+    alert('已启用本地文件存档 ✅ 以后每次保存自动写入该文件，清缓存 / 换浏览器都不丢。');
+  }catch(e){ if(e.name!=='AbortError') alert('选择失败：'+e.message); }
+}
+
+async function fsWrite(){
+  if(!saveFileHandle) return false;
+  try{
+    const w = await saveFileHandle.createWritable();
+    await w.write(JSON.stringify(S,null,2));
+    await w.close();
+    return true;
+  }catch(e){ console.warn('写存档文件失败',e); return false; }
+}
+
+async function fsRead(){
+  if(!saveFileHandle) return null;
+  try{ const f = await saveFileHandle.getFile(); return await f.text(); }
+  catch(e){ return null; }
+}
+
+
+const ATTRS = {
+  BADMINTON:{name:'羽毛球',color:'var(--bm)',icon:'🏸',desc:'实战/基本功/视频复盘/专项训练'},
+  CAREER:{name:'职业',color:'var(--career)',icon:'💼',desc:'求职/事业编/央企/文职/面试'},
+  BODY:{name:'身体健康',color:'var(--body)',icon:'💪',desc:'力量/拉伸/补剂/早睡/身体保养'},
+  MIND:{name:'精神享受',color:'var(--mind)',icon:'🎹',desc:'唱歌/钢琴/阅读/播客/纪录片/云南探索'},
+};
+const BADMINTON_LIFETIME_HOURS = 1649;
+
+/* ---------- 历史继承（方案 B）：iHour 终身 4234h 折算为总等级底分 ---------- */
+// 拆分口径（与 time-analysis.md 一致，按四大领域聚合）：
+// 羽毛球 1649h → BADMINTON
+// 身体/心理健康 881h + 体态教练 17h → BODY
+// 职业发展 495h + 生涯教练转行 474h + 海外 48h → CAREER
+// 艺术爱好 488h + 阅读 182h → MIND
+// 四大领域之和 = 4234h。
+const HISTORY_HOURS = { BADMINTON:1649, BODY:898, CAREER:1017, MIND:670 };
+// 历史折算系数：每历史小时 × 版块权重 × 此系数 = 继承加权经验。调大→总等级更高。
+// 为避免历史淹没每日打卡，历史作压缩折算（不与当前「分钟×1×权重」同口径，否则等级会爆到 Lv70+）。
+const HISTORY_RATE = 2.5;
+function inheritedXP(){
+  let s=0; for(const k in HISTORY_HOURS) s += (HISTORY_HOURS[k]||0)*(S.weights[k]||1);
+  return s*HISTORY_RATE;
+}
+
+
+function id(){return Math.random().toString(36).slice(2,9)}
+function todayStr(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); } // 本地日期 YYYY-MM-DD
+function fmtMD(s){ if(!s||s.length<10) return ''; const m=parseInt(s.slice(5,7),10), d=parseInt(s.slice(8,10),10); return m+'月'+d+'日'; } // 2026-07-30 → 7月30日
+function fmtFull(d){ if(!(d instanceof Date)) d=new Date(); const wd=['周日','周一','周二','周三','周四','周五','周六'][d.getDay()]; return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 · '+wd; }
+function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function monday(){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10)}
+function thisMonth(){return new Date().toISOString().slice(0,7)}
+function lvlOf(xp){return Math.floor(Math.sqrt(xp/50))+1}
+function xpInLvl(xp){const L=lvlOf(xp);const cur=(L-1)*(L-1)*50;const nxt=L*L*50;return{xp:xp-cur,need:nxt-cur,pct:(xp-cur)/(nxt-cur)*100}}
+function h(m){return (m/60).toFixed(1)+'h'}
+function safeAttr(a){return (a&&ATTRS[a])?a:'BODY';}  // 兜底：脏数据也不让渲染崩
+/* 任务完成状态改为「按日期」存储：donedates=[日期], mins={日期:分钟}。
+   这样补录历史某天、再切回今天，各自勾选互不干扰，已勾选会被自动复原。 */
+function isDone(x,d){ d=d||REC_DATE||todayStr(); return !!(x&&Array.isArray(x.donedates)&&x.donedates.includes(d)); }
+function setDone(x,d,val){ d=d||REC_DATE||todayStr(); if(!x.donedates)x.donedates=[]; if(!x.mins)x.mins={}; const i=x.donedates.indexOf(d); if(val&&i<0)x.donedates.push(d); if(!val&&i>=0)x.donedates.splice(i,1); }
+function isDoneEver(x){ return !!(x&&Array.isArray(x.donedates)&&x.donedates.length>0); }   // 历史是否做过（用于进度条/里程碑，一次性步骤）
+function lastDoneDate(x){ if(x&&Array.isArray(x.donedates)&&x.donedates.length) return [...x.donedates].sort().pop(); return ''; }
+function itemXpAt(it,d){ d=d||REC_DATE||todayStr(); if(!it)return 0; return it.mode==='time'?((it.mins&&it.mins[d])||0)*RATE:(it.xp||0); }
+function weightedXpAt(it,d){ return itemXpAt(it,d)*(S.weights[safeAttr(it.a)]||1); }
+function itemXp(it){ return itemXpAt(it, REC_DATE||todayStr()); }
+function weightedXp(it){ return weightedXpAt(it, REC_DATE||todayStr()); }
+function overallXP(){
+  let s=0;
+  for(const k of Object.keys(ATTRS)) s += (S.attrs[k]||0)*(S.weights[k]||1);
+  s += (S.bonusXP||0);
+  s += inheritedXP();
+  return s;
+}
+const RATE = 1; // 时间驱动型：每投入 1 分钟 = 1 原始经验（整体汇总时再乘版块权重）
+function itemXp(it){ return it.mode==='time' ? (it.min||0)*RATE : (it.xp||0); }
+function weightedXp(it){ return itemXp(it)*(S.weights[it.a]||1); }
+function bmLevel(hours){return Math.floor(Math.sqrt(hours/50))+1}
+function bmXpInLvl(hours){const L=bmLevel(hours);const cur=(L-1)*(L-1)*50;const nxt=L*L*50;return{pct:(hours-cur)/(nxt-cur)*100}}
+
+function defaultGoals(){
+  return [
+    {id:id(),ic:'🏸',n:'羽毛球',cur:1649,total:10000,paused:false,milestones:[
+      {label:'基本功 300h',thr:300},{label:'千小时',thr:1000},{label:'1500h',thr:1500},
+      {label:'水平达 3.5',skill:true,reached:false,auto:()=>!!(S.year[1]&&yearDone(1))},{label:'5000h',thr:5000},{label:'万小时大师',thr:10000}]},
+    {id:id(),ic:'💪',n:'身体健康',cur:898,total:3000,paused:false,milestones:[
+      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'2000h',thr:2000},{label:'3000h',thr:3000}]},
+    {id:id(),ic:'💼',n:'职业发展',cur:1017,total:2000,paused:false,milestones:[
+      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'2000h',thr:2000}]},
+    {id:id(),ic:'🎤',n:'生涯教练转行',cur:474,total:2000,paused:true,milestones:[
+      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'2000h',thr:2000}]},
+    {id:id(),ic:'🎹',n:'精神享受（钢琴/唱歌/阅读/播客）',cur:670,total:1500,paused:false,milestones:[
+      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'1500h',thr:1500}]},
+    {id:id(),ic:'🏔',n:'云南探索',cur:0,total:30,paused:false,milestones:[
+      {label:'7天',thr:7},{label:'15天',thr:15},{label:'30天',thr:30}]},
+  ];
+}
+function defaultSupps(){
+  const base=['维生素D','镁','鱼油','维生素C','氨糖','姜黄饮','姜黄奶','羽衣甘蓝粉','奇亚籽','甜菜根粉','电解质粉'];
+  return base.map(t=>({id:id(),t,a:'BODY',xp:5,min:0,mode:'fixed',donedates:[],mins:{}}));
+}
+
+function defaultState(){
+  const d = new Date().toISOString().slice(0,10);
+  return {
+    bonusXP:0, streak:0, lastActiveDay:'', activeDays:[], history:[], pushToken:'',
+    weights:{BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0},
+    attrs:{BADMINTON:0,CAREER:0,BODY:0,MIND:0},
+    daily:[
+      {id:id(),t:'力量训练（按课表）',a:'BODY',xp:0,min:20,mode:'time',done:false,rec:20},
+      {id:id(),t:'羽毛球基本功',a:'BADMINTON',xp:0,min:15,mode:'time',done:false,rec:15},
+      {id:id(),t:'羽毛球视频学习',a:'BADMINTON',xp:0,min:15,mode:'time',done:false,rec:15},
+      {id:id(),t:'羽毛球训练/打球',a:'BADMINTON',xp:0,min:30,mode:'time',done:false,rec:30},
+      {id:id(),t:'拉伸（身体放松/恢复）',a:'BODY',xp:0,min:10,mode:'time',done:false,rec:10},
+      {id:id(),t:'精神充电（唱歌/钢琴/阅读任选，不强制钢琴）',a:'MIND',xp:0,min:15,mode:'time',done:false,rec:15},
+      {id:id(),t:'职业行动（AI/求职/事业编/央企/文职）',a:'CAREER',xp:0,min:30,mode:'time',done:false,rec:30},
+      {id:id(),t:'23:30 前睡觉',a:'BODY',xp:10,min:0,mode:'fixed',done:false,rec:'每日'},
+    ],
+    supps: defaultSupps(),
+    weekly:[
+      // 一次性离散行动（投递 / 面试 / 体检 / 里程碑），不放每日重复的时间累积型活动
+      // 说明：力量训练 / 羽毛球（基本功·视频·打球）/ 职业行动 / 精神充电 / 拉伸 都是日任务按时间累积，不进周任务
+      // 职业（一次性）
+      {id:id(),t:'完成 1 次简历投递/网申',a:'CAREER',xp:0,min:60,mode:'time',done:false,rec:60},
+      {id:id(),t:'完成 1 次面试/笔面',a:'CAREER',xp:0,min:90,mode:'time',done:false,rec:90},
+      // 身体健康（一次性）
+      {id:id(),t:'完成 1 次体检/理疗/体态评估',a:'BODY',xp:0,min:60,mode:'time',done:false,rec:60},
+      // 精神享受（一次性）
+      {id:id(),t:'完成 1 首钢琴曲完整练习/录音',a:'MIND',xp:0,min:30,mode:'time',done:false,rec:30},
+      {id:id(),t:'看完 1 部电影/纪录片',a:'MIND',xp:0,min:120,mode:'time',done:false,rec:120},
+    ],
+    year:[
+      {id:id(),t:'拿到一个「够大够稳」的平台（央企 / 体制内 / 文职）',paused:false,done:false,items:[]},
+      {id:id(),t:'羽毛球水平达到 3.5（可稳定对抗、步法/战术成型）',paused:false,done:false,items:[
+        {id:id(),t:'找教练或 3.5 球友评估当前短板',a:'BADMINTON',xp:0,min:60,mode:'time',done:false},
+        {id:id(),t:'完成 4 周步法/多球专项训练',a:'BADMINTON',xp:0,min:120,mode:'time',done:false},
+        {id:id(),t:'每周至少 1 次对抗并录像复盘',a:'BADMINTON',xp:0,min:90,mode:'time',done:false},
+        {id:id(),t:'参加 1 次俱乐部/业余比赛验证水平',a:'BADMINTON',xp:120,min:0,mode:'fixed',done:false},
+      ]},
+      {id:id(),t:'云南探索：实地住满一个月，深度验证定居感',paused:false,items:[
+        {id:id(),t:'选定候选城市（昆明 / 大理 / 丽江）并做功课',a:'MIND',xp:0,min:60,mode:'time',done:false},
+        {id:id(),t:'订好 30 天住宿',a:'BODY',xp:0,min:30,mode:'time',done:false},
+        {id:id(),t:'实地住满 30 天，感受定居气场',a:'MIND',xp:60,min:0,mode:'fixed',done:false},
+        {id:id(),t:'写一份定居感复盘',a:'MIND',xp:0,min:60,mode:'time',done:false},
+      ]},
+      {id:id(),t:'生涯教练转行：跑通第一个付费客户或稳定副业收入',paused:true,items:[
+        {id:id(),t:'完成 1 次教练对话实践',a:'CAREER',xp:0,min:60,mode:'time',done:false},
+        {id:id(),t:'跑通第一个付费客户',a:'CAREER',xp:100,min:0,mode:'fixed',done:false},
+        {id:id(),t:'建立稳定副业收入流',a:'CAREER',xp:100,min:0,mode:'fixed',done:false},
+      ]},
+    ],
+    month:{t:'本月主线：推进求职 / 体制内进度（执行动作，非结果）',items:[
+      {id:id(),t:'完成 1 次网申 / 投递',a:'CAREER',xp:0,min:60,mode:'time',done:false},
+      {id:id(),t:'完成 1 次笔试 / 测评准备',a:'CAREER',xp:0,min:120,mode:'time',done:false},
+      {id:id(),t:'完成 1 次面试（或面试模拟）',a:'CAREER',xp:0,min:90,mode:'time',done:false},
+      {id:id(),t:'完善简历 / 梳理目标岗位与报考条件',a:'CAREER',xp:0,min:60,mode:'time',done:false},
+      {id:id(),t:'体制内专项准备（行测 / 申论 / 时政 / 事考科目）',a:'CAREER',xp:0,min:90,mode:'time',done:false},
+    ]},
+    week:{t:'本周主线：完成 1 次求职 / 事业编 / AI 实质行动',items:[
+      {id:id(),t:'完成 1 次求职/事业编/AI 实质行动',a:'CAREER',xp:0,min:60,mode:'time',done:false},
+    ]},
+    ach:[
+      {id:'s7',ic:'🔥',n:'七日节律',d:'连续打卡 7 天',un:false,auto:q=>computeStreak()>=7},
+      {id:'s30',ic:'⚡',n:'三十日律',d:'连续打卡 30 天',un:false,auto:q=>computeStreak()>=30},
+      {id:'careerCrown',ic:'💼',n:'职业推进',d:'连续 4 周职业 ≥9h（主观认领）',un:false,auto:null},
+      {id:'mindGuard',ic:'🎹',n:'心流守护',d:'连续 4 周精神享受 ≥3h（主观认领）',un:false,auto:null},
+      {id:'mindBound',ic:'🎧',n:'输入有边',d:'连续 4 周精神享受 ≤4h（主观认领）',un:false,auto:null},
+      {id:'bm1k',ic:'🏸',n:'羽毛球专精·千小时',d:'羽毛球终身累计 ≥1700h（主观认领）',un:false,auto:null},
+      {id:'ashore',ic:'⚓',n:'上岸',d:'完成年主线一（全部步骤）',un:false,auto:q=>S.year[0]&&yearDone(0)},
+      {id:'coachOpen',ic:'🎤',n:'教练开张',d:'生涯教练年主线（休眠中）· 复活并完成即解锁',un:false,auto:q=>S.year[2]&&!S.year[2].paused&&yearDone(2)},
+      {id:'yunnan',ic:'🏔',n:'云南初体验',d:'实地住满 7 天（主观认领）',un:false,auto:null},
+    ],
+    goals: defaultGoals(),
+    mainQ:null,
+    lastDaily:d, lastWeekly:monday(), lastMonth:thisMonth(),
+  };
+}
+
+let S = defaultState();
+let lastLevel = 0;     // 上次渲染时的总等级，用于检测升级并触发庆祝
+let newlyDone = [];    // 本帧刚完成的任务 id，用于触发闪光动效
+function migrate(){
+  // 兼容旧存档：五维 → 四大领域（v4.7 及以前）
+  if(S.attrs && ('VIT' in S.attrs || 'FLOW' in S.attrs || 'GRW' in S.attrs || 'CON' in S.attrs || 'ORD' in S.attrs)){
+    const map={VIT:'BODY',FLOW:'MIND',GRW:'CAREER',CON:'MIND',ORD:'BODY'};
+    const merged={BADMINTON:0,CAREER:0,BODY:0,MIND:0};
+    for(const k in map) merged[map[k]] += (S.attrs[k]||0);
+    S.attrs = Object.assign(merged, S.attrs); // 保留新键若已存在
+    for(const k of ['VIT','FLOW','GRW','CON','ORD']) delete S.attrs[k];
+    if(S.weights && ('VIT' in S.weights)) S.weights = {BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0};
+    if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'存档迁移：五维属性 → 四大领域',xp:0});
+  }
+  // 兼容旧存档：任务 a 字段（五维键 → 四大领域）。每次加载都跑但幂等：已是新键则原样保留。
+  const AXMAP={VIT:'BODY',FLOW:'MIND',GRW:'CAREER',CON:'MIND',ORD:'BODY'};
+  const remapA=(a,tags)=>{
+    if(tags && tags.includes('badminton')) return 'BADMINTON';  // 羽毛球标签优先归羽毛球
+    if(a && ATTRS[a]) return a;                 // 已是新键
+    if(AXMAP[a]) return AXMAP[a];               // 旧五维键 → 对应领域
+    return 'BODY';
+  };
+  const remapList=arr=>{ if(Array.isArray(arr)) arr.forEach(x=>{ x.a=remapA(x.a, x.tags); }); };
+  remapList(S.daily); remapList(S.weekly); remapList(S.supps);
+  (S.year||[]).forEach(c=>remapList(c.items));
+  remapList(S.month&&S.month.items); remapList(S.week&&S.week.items);
+  // 兼容旧存档：把旧版身体/羽毛球/拉伸合并项彻底拆成三项
+  // 用 v2 标记：之前 patch1 已设 bodySplitMigrated=true 的用户，需要再跑一遍才能彻底拆开。
+  if(!S.bodySplitMigrated_v2 && Array.isArray(S.daily)){
+    let changed = false;
+    for(let i=S.daily.length-1;i>=0;i--){
+      const t = S.daily[i].t || '';
+      const hasPower = /力量/.test(t);
+      const hasBmBasic = /羽毛球基本功|羽毛球基本/.test(t);
+      const hasStretch = /拉伸/.test(t);
+      // 旧 v4.8 合并项：力量 + 羽毛球 + 拉伸
+      if(hasPower && hasBmBasic && hasStretch){
+        S.daily.splice(i, 1,
+          {id:id(),t:'力量训练（按课表）',a:'BODY',xp:0,min:20,mode:'time',done:false,rec:20},
+          {id:id(),t:'羽毛球基本功',a:'BADMINTON',xp:0,min:15,mode:'time',done:false,rec:15},
+          {id:id(),t:'拉伸（身体放松/恢复）',a:'BODY',xp:0,min:10,mode:'time',done:false,rec:10}
+        );
+        changed = true;
+      }
+      // v4.8-patch1 合并项：羽毛球基本功 + 拉伸（不含力量）
+      else if(hasBmBasic && hasStretch){
+        S.daily.splice(i, 1,
+          {id:id(),t:'羽毛球基本功',a:'BADMINTON',xp:0,min:15,mode:'time',done:false,rec:15},
+          {id:id(),t:'拉伸（身体放松/恢复）',a:'BODY',xp:0,min:10,mode:'time',done:false,rec:10}
+        );
+        changed = true;
+      }
+    }
+    if(changed){
+      if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'任务拆分 v2：羽毛球基本功/拉伸 合并项 → 羽毛球基本功(BADMINTON) + 拉伸(BODY)',xp:0});
+      S.bodySplitMigrated_v2 = true;
+    }
+  }
+  // 兼容旧存档：替换旧版默认每日任务名称/属性
+  if(Array.isArray(S.daily)){
+    S.daily.forEach(x=>{
+      if(/成长行动/.test(x.t||'')){
+        x.t='职业行动（AI/求职/事业编/央企/文职）'; x.a='CAREER'; x.min=30; x.mode='time'; x.rec=30; x.xp=0;
+      } else if(/心流创作/.test(x.t||'')){
+        x.t='精神充电（唱歌/钢琴/阅读任选，不强制钢琴）'; x.a='MIND'; x.min=15; x.mode='time'; x.rec=15; x.xp=0;
+      }
+    });
+  }
+  // 兼容旧存档：周常里的羽毛球视频学习应归羽毛球领域
+  if(Array.isArray(S.weekly)){
+    S.weekly.forEach(x=>{
+      if(/羽毛球视频|羽毛球复盘/.test(x.t||'')){ x.a='BADMINTON'; x.t='羽毛球视频复盘/学习'; if(!x.tags||!x.tags.includes('badminton')) x.tags=['badminton']; }
+    });
+  }
+  // 兼容旧存档：周任务重设计为「一次性离散行动」，去掉与每日重复的唱歌/阅读等
+  if(!S.weeklyRedesign_v1 && Array.isArray(S.weekly)){
+    const oldWeekly = /唱歌解压|沉浸阅读|播客|AI 学习|求职\/事业编\/央企行动|羽毛球对抗\/专项训练/;
+    if(S.weekly.some(x=>oldWeekly.test(x.t||''))){
+      S.weekly = defaultState().weekly;
+      if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'周任务重设计：改为一次性离散行动（投递/面试/对抗等），移除每日重复项',xp:0});
+    }
+    S.weeklyRedesign_v1 = true;
+  }
+  // 兼容旧存档：羽毛球视频学习 / 打球 不是周常一次性，移回日任务按时间累积
+  if(!S.bmToDaily_v1){
+    if(Array.isArray(S.weekly)){
+      S.weekly = S.weekly.filter(x=>!/羽毛球对抗|羽毛球视频|羽毛球复盘|羽毛球比赛/.test(x.t||''));
+    }
+    if(Array.isArray(S.daily)){
+      const has = t=>S.daily.some(x=>(x.t||'').includes(t));
+      const add = (t,min,rec)=>{ if(!has(t)) S.daily.push({id:id(),t,a:'BADMINTON',xp:0,min,mode:'time',done:false,rec}); };
+      add('羽毛球视频学习',15,15);
+      add('羽毛球训练/打球',30,30);
+    }
+    if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'羽毛球视频学习 / 打球 从周任务移回日任务（按时间累积，非一次性）',xp:0});
+    S.bmToDaily_v1 = true;
+  }
+  // 兼容旧存档：力量训练已是日任务按时间累积，移除周任务里的「力量进阶」一次性项
+  if(!S.weeklyStrengthClean_v1){
+    if(Array.isArray(S.weekly)){
+      const before = S.weekly.length;
+      S.weekly = S.weekly.filter(x=>!/力量进阶|力量新重量|力量新动作/.test(x.t||''));
+      if(S.weekly.length!==before && Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'周任务移除「力量进阶」：力量训练已是日任务按时间累积，无需周常里程碑',xp:0});
+    }
+    S.weeklyStrengthClean_v1 = true;
+  }
+  // 兼容旧存档：年主线改为 checklist 结构
+  if(Array.isArray(S.year)){
+    S.year = S.year.map(c=>({id:c.id||id(),t:c.t||'未命名年主线',paused:!!c.paused,done:!!c.done,items:Array.isArray(c.items)?c.items:[]}));
+  } else { S.year = defaultState().year; }
+  // 兼容旧存档：月/周主线从 {t,p,target} 进度条改为 checklist
+  function toChecklist(o, fallbackT){
+    if(o && Array.isArray(o.items)) return o;
+    return {t:(o&&o.t)||fallbackT, items:[]};
+  }
+  S.month = toChecklist(S.month, '本月主线');
+  S.week  = toChecklist(S.week,  '本周主线');
+  // 兼容旧存档：补剂数组缺失时补默认
+  if(!Array.isArray(S.supps) || !S.supps.length) S.supps = defaultSupps();
+  // 兼容旧存档：补 mode 字段（无 mode 的旧任务按是否填了分钟推断）
+  const fixMode = o => { if(o && o.items) o.items.forEach(x=>{ if(x.mode===undefined) x.mode=(x.min>0)?'time':'fixed'; }); };
+  (S.daily||[]).forEach(x=>{ if(x.mode===undefined) x.mode=(x.min>0)?'time':'fixed'; });
+  (S.weekly||[]).forEach(x=>{ if(x.mode===undefined) x.mode=(x.min>0)?'time':'fixed'; });
+  (S.supps||[]).forEach(x=>{ if(x.mode===undefined) x.mode='fixed'; });
+  (S.year||[]).forEach(fixMode); fixMode(S.month); fixMode(S.week);
+  // 兼容旧存档：把「够大够稳平台」年主线的执行步骤拆到月主线，年目标本身保留为完整大目标
+  if(!S.yearCareerCompact_v1){
+    const careerYear = (S.year||[]).find(c=>/够大够稳|平台|央企|体制内|文职/.test(c.t||''));
+    if(careerYear && Array.isArray(careerYear.items) && careerYear.items.length){
+      const norm = s => (s||'').replace(/\s+/g,'').replace(/[\/\\]/g,'/');
+      const existing = new Set(S.month.items.map(x=>norm(x.t)));
+      // 结果型步骤（拿到 offer / 体检 / 背调 / 入职等）属年目标终局，不搬到月主线
+      const isOutcome = t => /offer|录用|体检|背调|入职|签约|报到/.test(t||'');
+      const totalItems = careerYear.items.length;
+      let moved = 0, filtered = 0;
+      careerYear.items.forEach(it=>{
+        if(isOutcome(it.t)){ filtered++; return; }
+        if(!existing.has(norm(it.t))){ S.month.items.push({...it, id:it.id||id()}); moved++; }
+      });
+      careerYear.items = [];
+      careerYear.done = false;
+      if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:`年主线「${careerYear.t}」的执行步骤已拆到月主线（移入 ${moved} 项，过滤结果型 ${filtered} 项，去重跳过 ${totalItems-moved-filtered} 项），年目标保留为完整目标`,xp:0});
+    }
+    S.yearCareerCompact_v1 = true;
+  }
+  // 兼容旧存档：清理月主线中不应存在的结果型项目（offer/体检/背调/入职等），并去重
+  if(!S.monthOutcomeClean_v1){
+    if(S.month && Array.isArray(S.month.items)){
+      const norm = s => (s||'').replace(/\s+/g,'').replace(/[\/\\]/g,'/');
+      const isOutcome = t => /offer|录用|体检|背调|入职|签约|报到/.test(t||'');
+      const seen = new Set();
+      const before = S.month.items.length;
+      const removed = [];
+      S.month.items = S.month.items.filter(x=>{
+        if(!x || typeof x.t !== 'string') return false;
+        if(isOutcome(x.t)){ removed.push(x.t); return false; }
+        const key = norm(x.t);
+        if(seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      const after = S.month.items.length;
+      if(Array.isArray(S.history) && (before!==after || removed.length)){
+        S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:`月主线清理：移除结果型项目 ${removed.join('、')||'无'}，去重后从 ${before} 项变为 ${after} 项`,xp:0});
+      }
+    }
+    S.monthOutcomeClean_v1 = true;
+  }
+  // 兼容旧存档：把 done(bool) + doneDate 改为按日期存储 donedates[] + mins{}
+  // 旧模型只有一个 done 布尔，无法区分「今天勾的」和「补录历史勾的」；新模型每个日期独立记录，
+  // 切回今天时各自已勾选会被自动复原，互不覆盖。
+  const convDates=(x)=>{
+    if(!x||typeof x!=='object') return;
+    if(!Array.isArray(x.donedates)){
+      x.donedates=(x.done===true)?[(x.doneDate||todayStr())]:[];
+    }
+    if(x.mins===undefined) x.mins={};
+    if(x.mode==='time' && x.donedates.length && (!x.mins||!Object.keys(x.mins).length) && x.min){ x.mins[x.donedates[0]]=x.min; }
+    delete x.done; delete x.doneDate;
+  };
+  [S.daily,S.weekly,S.supps].forEach(arr=>{ if(Array.isArray(arr)) arr.forEach(convDates); });
+  (S.year||[]).forEach(c=>{ if(c.items) c.items.forEach(convDates); });
+  if(S.month&&S.month.items) S.month.items.forEach(convDates);
+  if(S.week&&S.week.items) S.week.items.forEach(convDates);
+  // 年主线简单目标（无步骤，如「够大够稳平台」）的 c.done 是终局达成标记，不参与日期勾选，保留不动。
+}
+async function load(){
+  let loaded=false;
+  if(FS_AVAILABLE){
+    try{ saveFileHandle = await _idb.get(); }catch(e){}
+    if(saveFileHandle){
+      const txt = await fsRead();
+      if(txt){ try{ S = Object.assign(defaultState(), JSON.parse(txt)); loaded=true; }catch(e){} }
+    }
+  }
+  if(!loaded){
+    const raw = store.get(SAVE_KEY);
+    if(raw){ try{ S = Object.assign(defaultState(), JSON.parse(raw)); }catch(e){} }
+  }
+  migrate();
+  if(S.lastActiveDay===undefined) S.lastActiveDay = S.lastDaily || new Date().toISOString().slice(0,10);
+  if(!Array.isArray(S.activeDays)) S.activeDays=[];
+  if(S.lastActiveDay && !S.activeDays.includes(S.lastActiveDay)) S.activeDays.push(S.lastActiveDay); // 旧存档连击日并入集合
+  store.set(SAVE_KEY, JSON.stringify(S)); // localStorage 兜底备份
+}
+async function save(){ SAVE_OK = store.set(SAVE_KEY, JSON.stringify(S)); if(saveFileHandle) await fsWrite(); }
+
+// 导出/导入存档：环境无关兜底（预览面板 localStorage 不持久时用）
+function exportSave(){
+  try{
+    const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    const d = new Date(), p = n=>String(n).padStart(2,'0');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'lifeRPG_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+    addHist('导出存档备份');
+    save(); render();
+  }catch(e){ alert('导出失败：'+e.message); }
+}
+function importSave(file){
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = e=>{
+    try{
+      const obj = JSON.parse(e.target.result);
+      if(!obj || typeof obj!=='object' || !obj.attrs || !obj.daily) throw new Error('不是有效的存档文件');
+      S = Object.assign(defaultState(), obj);
+      migrate();
+      lastLevel = lvlOf(overallXP());   // 避免导入时误触发 LEVEL UP 庆祝
+      addHist('导入存档');
+      save(); render();
+      alert('导入成功 ✅');
+    }catch(err){ alert('导入失败：'+err.message); }
+  };
+  r.readAsText(file);
+}
+
+// ---------- Gitee 云备份（防丢 / 跨设备，可选） ----------
+function utf8ToBase64(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin=''; for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function utf8FromBase64(b64){
+  const bin = atob((b64||'').replace(/\s/g,''));
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function ensureGiteeCfg(){
+  const o=document.getElementById('gOwner'), rp=document.getElementById('gRepo'),
+        t=document.getElementById('gToken'), p=document.getElementById('gPath');
+  if(o&&rp&&t&&p){
+    S.gitee = { owner:o.value.trim(), repo:rp.value.trim(),
+                token:t.value.trim(), path:(p.value.trim()||'data/save.json') };
+  }
+  if(!S.gitee || !S.gitee.owner || !S.gitee.repo || !S.gitee.token){
+    alert('请先在「☁ Gitee 云备份」面板填写：仓库 owner（用户名）/ 仓库名 / 私人令牌（Gitee 设置 → 私人令牌，勾 projects 权限）。');
+    return null;
+  }
+  return S.gitee;
+}
+function saveGiteeCfg(){
+  const c = ensureGiteeCfg(); if(!c) return;
+  save(); render(); alert('Gitee 配置已保存 ✅');
+}
+async function backupToGitee(){
+  const cfg = ensureGiteeCfg(); if(!cfg) return;
+  const {owner, repo, token, path} = cfg;
+  const base = 'https://gitee.com/api/v5/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/'+encodeURIComponent(path);
+  const auth = '?access_token='+encodeURIComponent(token);
+  try{
+    const content = utf8ToBase64(JSON.stringify(S,null,2));
+    let sha=null;                                   // 取已有文件的 sha 用于更新；不存在则 404
+    const r1 = await fetch(base+auth);
+    if(r1.ok){ const j=await r1.json().catch(()=>({})); sha = j.sha||null; }
+    else if(r1.status!==404){ const e=await r1.json().catch(()=>({})); alert('读取仓库失败：'+(e.message||r1.status)); return; }
+    const body = { message:'lifeRPG backup '+new Date().toISOString().slice(0,10), content };
+    if(sha) body.sha = sha;
+    const r2 = await fetch(base+auth, { method:'PUT',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if(r2.ok){ addHist('备份到 Gitee'); save(); render(); alert('☁ 已备份到 Gitee ✅'); }
+    else{ const e=await r2.json().catch(()=>({})); alert('备份失败：'+(e.message||r2.status)); }
+  }catch(err){ alert('备份出错（可能浏览器跨域 CORS 或网络问题）：'+err.message); }
+}
+async function restoreFromGitee(){
+  const cfg = ensureGiteeCfg(); if(!cfg) return;
+  const {owner, repo, token, path} = cfg;
+  const base = 'https://gitee.com/api/v5/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/'+encodeURIComponent(path);
+  const auth = '?access_token='+encodeURIComponent(token);
+  try{
+    const r = await fetch(base+auth);
+    if(!r.ok){ alert('拉取失败：'+(r.status===404?'仓库里还没有备份文件（先点一次备份）':r.status)); return; }
+    const j = await r.json();
+    const obj = JSON.parse(utf8FromBase64(j.content));
+    if(!obj || !obj.attrs || !obj.daily) throw new Error('不是有效的存档文件');
+    if(!confirm('将从 Gitee 恢复存档，覆盖当前本地数据，确定继续？')) return;
+    S = Object.assign(defaultState(), obj);
+    migrate();
+    lastLevel = lvlOf(overallXP());                 // 避免恢复时误触发 LEVEL UP 庆祝
+    addHist('从 Gitee 恢复');
+    save(); render();
+    alert('☁ 已从 Gitee 恢复 ✅');
+  }catch(err){ alert('恢复出错：'+err.message); }
+}
+
+function fillGiteeInputs(){
+  if(!S.gitee) return;
+  const map={gOwner:S.gitee.owner, gRepo:S.gitee.repo, gToken:S.gitee.token, gPath:S.gitee.path||'data/save.json'};
+  for(const id in map){ const el=document.getElementById(id); if(el && !el.value) el.value=map[id]||''; }
+}
+
+function grant(attr,xp,neg){
+  const d=neg?-xp:xp;
+  S.attrs[attr]+=d; if(S.attrs[attr]<0)S.attrs[attr]=0;
+}
+function addHist(text,xp,dateStr){
+  const d = dateStr || todayStr();
+  const now=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  const ts = d+' '+p(now.getHours())+':'+p(now.getMinutes());
+  S.history.push({ts,text,xp:xp||0});
+  if(S.history.length>500) S.history=S.history.slice(-500);
+}
+
+function toggle(list,idv){
+  const item=list.find(x=>x.id===idv); if(!item)return;
+  const d=REC_DATE||todayStr();
+  const was=isDone(item,d);
+  if(item.mode==='time' && !was){
+    const mv=parseInt(document.getElementById('min_'+idv)?.value)||0;
+    if(mv<=0){ alert('先填这次的时长（分钟）'); return; }
+    item.mins=item.mins||{}; item.mins[d]=mv;
+  }
+  setDone(item,d,!was);
+  const nowDone=!was;
+  if(nowDone) touchActivity(d);
+  const xp=itemXpAt(item,d);
+  grant(item.a, xp, !nowDone);
+  if(nowDone && S.mainQ===idv) S.bonusXP=(S.bonusXP||0)+10;
+  if(!nowDone && S.mainQ===idv) S.bonusXP=Math.max(0,(S.bonusXP||0)-10);
+  addHist((nowDone?'✔ ':'✘ ')+item.t+(item.mode==='time'&&item.mins&&item.mins[d]?(' '+h(item.mins[d])):''), nowDone?xp:-xp, d);
+  if(nowDone){ newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); }
+  save();checkAch();render();
+}
+function addQuest(kind){
+  const txt=document.getElementById(kind[0]+'Text').value.trim();
+  const a=document.getElementById(kind[0]+'Attr').value;
+  const min=parseInt(document.getElementById(kind[0]+'Min')?.value)||0;
+  const xp=parseInt(document.getElementById(kind[0]+'Xp').value)||10;
+  if(!txt)return;
+  const mode = min>0 ? 'time':'fixed';
+  S[kind].push({id:id(),t:txt,a,xp:mode==='fixed'?xp:0,min,mode,donedates:[],mins:{}});
+  document.getElementById(kind[0]+'Text').value='';
+  save();render();
+}
+function delQuest(kind,idv){
+  S[kind]=S[kind].filter(x=>x.id!==idv); save();render();
+}
+function addYear(){
+  const t=document.getElementById('yText').value.trim(); if(!t)return;
+  S.year.push({id:id(),t,paused:false,done:false,items:[]});
+  document.getElementById('yText').value=''; save();render();
+}
+function renameQuest(kind,idx){
+  const o = kind==='year'?S.year[idx]:(kind==='month'?S.month:S.week);
+  const nv=prompt('重命名：',o.t);
+  if(nv!==null && nv.trim()){ o.t=nv.trim(); save();render(); }
+}
+function pickMain(){
+  const open=S.daily.filter(x=>!isDone(x, todayStr()) && (x.a==='CAREER'||x.a==='MIND'));
+  if(!open.length){S.mainQ=null;save();render();return;}
+  const pick=open[Math.floor(Math.random()*open.length)];
+  S.mainQ=pick.id; addHist('锁定每日主线：'+pick.t); save();render();
+}
+function claimAch(i){S.ach[i].un=true;save();render();}
+function checkAch(){ S.ach.forEach((a,i)=>{ if(a.auto && !a.un && a.auto()) a.un=true; }); }
+// 连击：以「天」为粒度的活跃计数（基于活跃日期集合，支持补录历史日期）
+// 完成任意一项（含年/月/周主线，休眠项不计）即把「记录日期」写入 activeDays；
+// 连续天数 = 从最近活跃日（今天或昨天，链未断）向前连续的活跃天数。
+function touchActivity(dateStr){
+  if(!S.activeDays) S.activeDays=[];
+  const d = dateStr || todayStr();
+  if(!S.activeDays.includes(d)) S.activeDays.push(d);
+}
+function computeStreak(){
+  if(!S.activeDays || !S.activeDays.length) return 0;
+  const set = new Set(S.activeDays);
+  const sorted=[...set].sort();
+  const last=sorted[sorted.length-1];
+  const today=todayStr(), y=yesterdayStr();
+  if(last!==today && last!==y) return 0;          // 链已断（最近活跃早于昨天）
+  let n=0;
+  let [Y,M,D] = last.split('-').map(Number);
+  const key=(Y,M,D)=>`${Y}-${String(M).padStart(2,'0')}-${String(D).padStart(2,'0')}`;
+  while(set.has(key(Y,M,D))){
+    n++;
+    const d=new Date(Y, M-1, D); d.setDate(d.getDate()-1);   // 纯本地回退，避免 toISOString 时区偏移
+    Y=d.getFullYear(); M=d.getMonth()+1; D=d.getDate();
+  }
+  return n;
+}
+// 补录入口：切换「记录于」日期。空字符串=今天；切到过去日期后，所有勾选都会记到那天（含 doneDate、活跃日期、历史时间戳）。
+function setRecDate(v){
+  REC_DATE = v || '';
+  const inp=document.getElementById('recDate'); if(inp) inp.value = REC_DATE || todayStr();
+  const hint=document.getElementById('recHint');
+  if(hint) hint.textContent = REC_DATE
+    ? ('正在补录 '+fmtMD(REC_DATE)+'：勾选的任务会记到这一天。补完点「今天」切回正常记录。')
+    : '默认记今天；要补录过去某天，先选日期再勾任务。';
+  save();render();
+}
+
+function newDay(){
+  const today=new Date().toISOString().slice(0,10);
+  if(S.lastDaily===today) return;
+  S.lastDaily=today; S.mainQ=null;
+  // 日常/补剂改为按日期存储，新的一天天然为空（昨天勾的只在昨天的日期下，不会显示到今天），无需清空；
+  // 但每周一 / 每月初仍需把周 / 月主线进度整体重置（本周 / 本月重新做）。
+  if(S.lastWeekly!==monday()){
+    S.weekly.forEach(x=>{ x.donedates=[]; x.mins={}; });
+    if(S.week.items) S.week.items.forEach(x=>{ x.donedates=[]; x.mins={}; });   // 周主线重置
+    S.lastWeekly=monday();
+  }
+  if(S.lastMonth!==thisMonth()){
+    if(S.month.items) S.month.items.forEach(x=>{ x.donedates=[]; x.mins={}; }); // 月主线重置
+    S.lastMonth=thisMonth();
+  }
+  addHist('🌅 新的一天');
+  save();checkAch();render();
+}
+function resetAll(){
+  if(confirm('确定清空所有进度，从头开始？')){ S=defaultState(); save(); render(); }
+}
+
+function recordHours(gi,min){
+  const g=S.goals[gi]; if(!g)return;
+  g.cur=Math.max(0,+(g.cur+min/60).toFixed(2));
+  addHist('长期目标 '+g.n+' '+(min>0?'+':'')+(min>=0?h(min):'-'+h(-min)));
+  save();render();
+}
+function claimMilestone(gi,mi){
+  const g=S.goals[gi]; if(!g)return;
+  const m=g.milestones[mi];
+  if(m&&m.skill){ m.reached=true; addHist('达成里程碑：'+g.n+' · '+m.label); save();render(); }
+}
+function editGoalTotal(gi){
+  const g=S.goals[gi]; if(!g)return;
+  const nv=prompt('修改总目标（小时）：',g.total);
+  const v=parseFloat(nv);
+  if(nv!==null && v>0){ g.total=v; save();render(); }
+}
+function toggleHistory(){
+  const b=document.getElementById('histBox');
+  b.style.display = b.style.display==='none'?'block':'none';
+}
+function pushWechat(){
+  let token=S.pushToken || prompt('输入 pushplus token（一次填入即记住）：');
+  if(!token) return;
+  S.pushToken=token; save();
+  const today=todayStr();
+  const mq=[...S.daily,...S.weekly].find(x=>x.id===S.mainQ);
+  const lines=['🎯 每日主线：'+(mq?(isDone(mq,today)?'✔ ':'')+mq.t:'未锁定'),'— 每日任务 —'];
+  S.daily.forEach(x=>lines.push((isDone(x,today)?'✔':'○')+' '+x.t));
+  lines.push('— 每日补剂 —');
+  S.supps.forEach(x=>lines.push((isDone(x,today)?'✔':'○')+' '+x.t));
+  lines.push('— 周常 —');
+  S.weekly.forEach(x=>lines.push((isDone(x,today)?'✔':'○')+' '+x.t));
+  lines.push('📱 手机随时打卡：http://192.168.1.76:8000 （同 WiFi 打开）');
+  const url='https://www.pushplus.plus/send?token='+encodeURIComponent(token)+'&title='+encodeURIComponent('人生RPG·今日打卡')+'&content='+encodeURIComponent(lines.join('\n'));
+  fetch(url).then(r=>r.json()).then(j=>{ addHist('推送今日打卡到微信'); alert(j&&j.code===200?'已推送到微信 ✅':'推送失败：'+(j&&j.msg||'未知错误')); }).catch(e=>alert('推送出错（检查网络/token）：'+e.message));
+}
+
+function optAttrs(sel){
+  return Object.keys(ATTRS).map(k=>`<option value="${k}" ${sel===k?'selected':''}>${ATTRS[k].name}</option>`).join('');
+}
+function bmWeekHours(){
+  let m=0;
+  const wkStart=monday();
+  [...S.daily,...S.weekly].forEach(q=>{
+    if(q.tags && q.tags.includes('badminton') && Array.isArray(q.donedates)){
+      q.donedates.forEach(dt=>{ if(dt>=wkStart && q.mins && q.mins[dt]) m+=q.mins[dt]; });
+    }
+  });
+  return m;
+}
+function recText(x){
+  if(x.rec===undefined) return '';
+  if(typeof x.rec==='number') return `<span class="qmin">推荐 ${x.rec}min</span>`;
+  return `<span class="qmin">${x.rec}</span>`;
+}
+function listHtml(arr,kind){
+  if(!arr.length) return '<div style="color:var(--dim);font-size:13px">暂无，下面加一个。</div>';
+  const d=REC_DATE||todayStr();
+  // 已完成（当前查看日期）排到末尾，未完成的保持原顺序在前，列表更清爽
+  const sorted=[...arr].sort((a,b)=>(isDone(a,d)?1:0)-(isDone(b,d)?1:0));
+  return sorted.map(x=>{
+    const done=isDone(x,d);
+    if(x.mode==='time'){
+      const am=done?((x.mins&&x.mins[d])||x.min||0):0;
+      const predMin=(!done&&x.mode==='time')?(x.rec||x.min||0):0;
+      const predW=predMin*RATE*(S.weights[safeAttr(x.a)]||1);
+      const mins=(x.mins&&x.mins[d])||'';
+      return `<div class="qitem ${done?'done':''}" id="qi_${x.id}">
+        <div class="chk"></div>
+        <div class="qt">${x.t}</div>
+        <div class="qmeta">
+          ${recText(x)}
+          <input type="number" id="min_${x.id}" value="${done?mins:''}" placeholder="分钟" min="1" style="width:58px" ${done?'disabled':''}>
+          ${done?`<span class="qxp">+${am*RATE} XP（${ATTRS[safeAttr(x.a)].name}）</span>`:`<span class="qxp dim">预计 +${predW.toFixed(0)} 加权</span>`}
+          <span style="color:${ATTRS[safeAttr(x.a)].color}">${ATTRS[safeAttr(x.a)].name}</span>
+          ${x.tags&&x.tags.includes('badminton')?'<span class="qtag">🏸羽毛球</span>':''}
+          ${done?`<span class="qdate">📅 ${fmtMD(lastDoneDate(x))}</span>`:''}
+        </div>
+        <button class="btn ghost sm" onclick="toggle(S.${kind},'${x.id}')">${done?'撤销':'完成'}</button>
+        <div class="qdel" onclick="delQuest('${kind}','${x.id}')" title="删除">×</div>
+      </div>`;
+    }
+    return `<div class="qitem ${done?'done':''}" id="qi_${x.id}">
+      <div class="chk" onclick="toggle(S.${kind},'${x.id}')">${done?'✔':''}</div>
+      <div class="qt">${x.t}</div>
+      <div class="qmeta">
+        <span class="qxp">+${x.xp} XP</span>
+        ${x.min?`<span class="qmin">${x.min}min</span>`:''}
+        ${recText(x)}
+        <span style="color:${ATTRS[safeAttr(x.a)].color}">${ATTRS[safeAttr(x.a)].name}</span>
+        ${x.tags&&x.tags.includes('badminton')?'<span class="qtag">🏸羽毛球</span>':''}
+        ${done?`<span class="qdate">📅 ${fmtMD(lastDoneDate(x))}</span>`:''}
+      </div>
+      <div class="qdel" onclick="delQuest('${kind}','${x.id}')" title="删除">×</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- 通用 checklist 渲染（年/月/周主线共用） ---------- */
+let yearOpen = new Set();
+function yearDone(i){ const c=S.year[i]; if(!c) return false; if(Array.isArray(c.items) && c.items.length>0) return c.items.every(x=>isDoneEver(x)); return !!c.done; }
+function toggleYearOpen(i){ if(yearOpen.has(i))yearOpen.delete(i); else yearOpen.add(i); render(); }
+function toggleYearDone(i){
+  const c=S.year[i]; if(!c) return;
+  c.done = !c.done;
+  if(c.done) touchActivity(REC_DATE);
+  addHist((c.done?'✔ ':'✘ ')+'[year]'+c.t, 0, REC_DATE);
+  save(); checkAch(); render();
+}
+function checklistBlock(c,i,kind){
+  const paused = !!c.paused && kind==='year';   // 仅年主线支持休眠折叠
+  const d=REC_DATE||todayStr();
+  const items = c.items||[];
+  const doneEv = items.filter(x=>isDoneEver(x)).length;
+  const total = items.length;
+  const pct = total? doneEv/total*100 : 0;
+  const collapsed = paused && !yearOpen.has(i);
+  const isSimpleYear = kind==='year' && items.length===0;
+  const head = paused
+    ? `<span class="qt" onclick="toggleYearOpen(${i})">${c.t}<span class="ptag">⏸ 休眠</span></span>`
+    : (isSimpleYear
+        ? `<span style="display:inline-flex;align-items:center;cursor:pointer" onclick="toggleYearDone(${i})"><span style="display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-radius:5px;text-align:center;line-height:15px;margin-right:8px">${c.done?'✔':''}</span><span class="qt">${c.t}</span></span>`
+        : `<span class="qt" onclick="renameQuest('${kind}',${i})">${c.t}</span>`);
+  const prog = paused?'—':(total?doneEv+'/'+total+' 项':(isSimpleYear?(c.done?'✅ 完成':'目标'):'暂无'));
+
+  if(collapsed){
+    return `<div class="qblock paused">
+      <div class="qbtop">${head}<span class="qbp">${prog}</span></div>
+      <div class="qbstep"><span class="note" onclick="toggleYearOpen(${i})">▶ 展开（休眠中 · 不计入当前进度，随时可复活）</span></div>
+    </div>`;
+  }
+  if(items.length) items.sort((a,b)=>(isDone(a,d)?1:0)-(isDone(b,d)?1:0)); // 已完成（当前查看日期）排末尾（原地排序，保证 ii 与 c.items 对齐）
+  const list=(total?items.map((x,ii)=>{
+    const done=isDone(x,d);
+    if(x.mode==='time'){
+      const am=done?((x.mins&&x.mins[d])||x.min||0):0;
+      const predMin=(!done&&x.mode==='time')?(x.rec||x.min||0):0;
+      const predW=predMin*RATE*(S.weights[safeAttr(x.a)]||1);
+      const mins=(x.mins&&x.mins[d])||'';
+      return `<div class="qitem ${done?'done':''}" id="qi_${x.id}">
+        <div class="chk"></div>
+        <div class="qt">${x.t}</div>
+        <div class="qmeta">
+          ${recText(x)}
+          <input type="number" id="min_${kind}_${i}_${ii}" value="${done?mins:''}" placeholder="分钟" min="1" style="width:58px" ${done?'disabled':''}>
+          ${done?`<span class="qxp">+${am*RATE} XP（${ATTRS[safeAttr(x.a)].name}）</span>`:`<span class="qxp dim">预计 +${predW.toFixed(0)} 加权</span>`}
+          <span style="color:${ATTRS[safeAttr(x.a)].color}">${ATTRS[safeAttr(x.a)].name}</span>
+          ${done?`<span class="qdate">📅 ${fmtMD(lastDoneDate(x))}</span>`:''}
+        </div>
+        <button class="btn ghost sm" onclick="toggleChecklistItem('${kind}',${i},${ii})">${done?'撤销':'完成'}</button>
+        <div class="qdel" onclick="delChecklistItem('${kind}',${i},${ii})" title="删除">×</div>
+      </div>`;
+    }
+    return `<div class="qitem ${done?'done':''}" id="qi_${x.id}">
+      <div class="chk" onclick="toggleChecklistItem('${kind}',${i},${ii})">${done?'✔':''}</div>
+      <div class="qt">${x.t}</div>
+      <div class="qmeta">
+        <span class="qxp">+${x.xp} XP</span>
+        ${x.min?`<span class="qmin">${x.min}min</span>`:''}
+        ${recText(x)}
+        <span style="color:${ATTRS[safeAttr(x.a)].color}">${ATTRS[safeAttr(x.a)].name}</span>
+        ${done?`<span class="qdate">📅 ${fmtMD(lastDoneDate(x))}</span>`:''}
+      </div>
+      <div class="qdel" onclick="delChecklistItem('${kind}',${i},${ii})" title="删除">×</div>
+    </div>`;
+  }).join('') : '<div style="color:var(--dim);font-size:13px">暂无步骤，下面加一个。</div>');
+  const add=`<div class="addrow">
+    <input type="text" id="${kind}Text${i}" placeholder="新步骤…" style="flex:1 1 140px">
+    <select id="${kind}Attr${i}">${optAttrs('CAREER')}</select>
+    <select id="${kind}Mode${i}"><option value="time">时间驱动</option><option value="fixed">固定XP</option></select>
+    <input type="number" id="${kind}Min${i}" value="30" min="0" title="分钟(时间驱动)" style="width:60px">
+    <input type="number" id="${kind}Xp${i}" value="50" min="1" title="XP(固定)" style="width:60px">
+    <button class="btn sm" onclick="addChecklistItem('${kind}',${i})">+ 步骤</button>
+  </div>`;
+  return `<div class="qblock ${paused?'paused':''}">
+    <div class="qbtop">${head}<span class="qbp">${prog}</span></div>
+    <div class="qbbar"><div class="qbf" style="width:${pct}%"></div></div>
+    <div style="margin-top:8px">${list}</div>
+    ${add}
+  </div>`;
+}
+function toggleChecklistItem(kind,i,ii){
+  const list = kind==='year'?S.year:(kind==='month'?S.month:S.week);
+  const c = kind==='year'?list[i]:list; if(!c||!c.items||!c.items[ii])return;
+  const x=c.items[ii]; const d=REC_DATE||todayStr();
+  const was=isDone(x,d);
+  if(x.mode==='time' && !was){
+    const mv=parseInt(document.getElementById('min_'+kind+'_'+i+'_'+ii)?.value)||0;
+    if(mv<=0){ alert('先填这次的时长（分钟）'); return; }
+    x.mins=x.mins||{}; x.mins[d]=mv;
+  }
+  setDone(x,d,!was);
+  const nowDone=!was;
+  if(nowDone && !c.paused) touchActivity(d);
+  const xp=itemXpAt(x,d);
+  if(!c.paused){
+    grant(x.a, xp, !nowDone);
+  }
+  addHist((nowDone?'✔ ':'✘ ')+'['+kind+']'+x.t+(c.paused?'（休眠·不计入进度）':'')+(x.mode==='time'&&x.mins&&x.mins[d]?(' '+h(x.mins[d])):''), c.paused?0:(nowDone?xp:-xp), d);
+  if(nowDone && !c.paused){ newlyDone.push(x.id); floatXP('+'+weightedXpAt(x,d)+' XP','qi_'+x.id); }
+  save();checkAch();render();
+}
+function addChecklistItem(kind,i){
+  const t=document.getElementById(kind+'Text'+i).value.trim(); if(!t)return;
+  const a=document.getElementById(kind+'Attr'+i).value;
+  const mode=document.getElementById(kind+'Mode'+i).value;
+  const min=parseInt(document.getElementById(kind+'Min'+i)?.value)||0;
+  const xp=parseInt(document.getElementById(kind+'Xp'+i).value)||0;
+  const list = kind==='year'?S.year:(kind==='month'?S.month:S.week);
+  const c = kind==='year'?list[i]:list;
+  if(!c.items) c.items=[];
+  c.items.push({id:id(),t,a,xp:mode==='fixed'?xp:0,min:mode==='time'?min:0,mode,donedates:[],mins:{}});
+  document.getElementById(kind+'Text'+i).value=''; save();render();
+}
+function delChecklistItem(kind,i,ii){
+  const list = kind==='year'?S.year:(kind==='month'?S.month:S.week);
+  const c = kind==='year'?list[i]:list;
+  if(c&&c.items) c.items.splice(ii,1);
+  save();render();
+}
+
+function render(){
+  // header
+  const gxp=overallXP();
+  const gL=lvlOf(gxp);
+  if(gL>lastLevel){ const up=gL; setTimeout(()=>celebrate(up),80); }
+  lastLevel=gL;
+  document.getElementById('lvlNum').textContent='Lv.'+gL;
+  const gi=xpInLvl(gxp);
+  document.getElementById('xpFill').style.width=gi.pct+'%';
+  document.getElementById('xpText').textContent=`${gi.xp} / ${gi.need} 加权经验`;
+  const _td=new Date().toISOString().slice(0,10);
+  const _y=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  document.getElementById('streakNum').textContent=computeStreak();
+  const recLabel = REC_DATE ? `<span class="recbadge">补录 ${fmtMD(REC_DATE)}</span>` : '';
+  document.getElementById('todayDate').innerHTML=`<div class="d">${fmtFull(new Date())}</div><div class="w">${_td}</div>${recLabel}`;
+  document.getElementById('nextPerk').textContent=`升级特权：Lv.${gL+1}`;
+  if(!SAVE_OK) document.getElementById('saveWarn').style.display='block';
+  const inh=inheritedXP();
+  document.getElementById('histInherit').innerHTML='含历史继承底分 ≈ <b style="color:var(--gold)">'+inh.toFixed(0)+'</b> 加权XP（iHour 终身 4234h 折算 · 羽毛球 '+HISTORY_HOURS.BADMINTON+'h / 职业 '+HISTORY_HOURS.CAREER+'h / 身体健康 '+HISTORY_HOURS.BODY+'h / 精神享受 '+HISTORY_HOURS.MIND+'h）。每日打卡在此基础上继续累加。';
+  document.getElementById('weightHint').innerHTML='整体等级 = 四大领域活跃经验（按权重汇总）+ 历史继承底分：'+Object.keys(ATTRS).map(k=>`${ATTRS[k].name} ×${S.weights[k]}`).join(' ＞ ')+'。优先做高权重版块升得更快；历史底分来自你已投入的 4234 小时，不随每日打卡变化。';
+
+  // tier overview
+  const mq=[...S.daily,...S.weekly].find(x=>x.id===S.mainQ);
+  const dayDone = mq? isDone(mq, todayStr()) : false;
+  let yearTotal=0, yearDoneCount=0;
+  S.year.forEach((c,i)=>{ if(!c.paused){ yearTotal++; if(yearDone(i)) yearDoneCount++; } });
+  const wk=S.week.items||[], wkDone=wk.filter(x=>isDoneEver(x)).length;
+  const mo=S.month.items||[], moDone=mo.filter(x=>isDoneEver(x)).length;
+  const tiers=[
+    {ic:'🎯',n:'日主线',s:S.mainQ?(dayDone?'✅ 已赢':'进行中'):'未锁定',on:dayDone},
+    {ic:'📅',n:'周主线',s:wkDone+'/'+wk.length+(wk.length&&wkDone===wk.length?' ✅':''),on:wk.length&&wkDone===wk.length},
+    {ic:'🌙',n:'月主线',s:moDone+'/'+mo.length+(mo.length&&moDone===mo.length?' ✅':''),on:mo.length&&moDone===mo.length},
+    {ic:'🗓️',n:'年主线',s:yearDoneCount+'/'+yearTotal+(yearDoneCount===yearTotal&&yearTotal?' ✅':''),on:yearDoneCount===yearTotal&&yearTotal>0},
+  ];
+  document.getElementById('tierOverview').innerHTML=tiers.map(t=>`
+    <span class="tier ${t.on?'on':''}">${t.ic} ${t.n} · ${t.s}</span>`).join('');
+
+  // checklists: 周 / 月 / 年
+  document.getElementById('weekBox').innerHTML=checklistBlock(S.week,0,'week');
+  document.getElementById('monthBox').innerHTML=checklistBlock(S.month,0,'month');
+  document.getElementById('yearList').innerHTML=S.year.map((c,i)=>checklistBlock(c,i,'year')).join('');
+
+  // daily main
+  document.getElementById('mainQText').textContent = mq? mq.t : '还没选。选一个今天最想赢的任务。';
+  document.getElementById('mainQPick').innerHTML = mq
+    ? `<span style="color:var(--grw)">✔ 每日主线已锁定${isDone(mq, todayStr())?'（今日已完成 +10 XP）':''}</span> · <a class="btn ghost sm" onclick="pickMain()">换一个</a>`
+    : `<button class="btn sm" onclick="pickMain()">🎯 随机锁定一个每日主线</button>`;
+
+  // attrs
+  document.getElementById('attrs').innerHTML=Object.keys(ATTRS).map(k=>{
+    const L=lvlOf(S.attrs[k]); const r=xpInLvl(S.attrs[k]);
+    return `<div class="attr">
+      <div class="name">${ATTRS[k].icon} ${ATTRS[k].name} <span class="wtag">×${S.weights[k]||1}</span></div>
+      <div class="lv">Lv.${L}</div>
+      <div class="bar"><div class="bf" style="width:${r.pct}%;background:${ATTRS[k].color}"></div></div>
+      <div class="xp">${r.xp} / ${r.need} → Lv.${L+1}</div>
+      <div class="xp" style="margin-top:2px;color:var(--dim)">${ATTRS[k].desc}</div>
+    </div>`;
+  }).join('');
+
+  // lists: 日常 / 补剂 / 周常
+  document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
+  document.getElementById('suppList').innerHTML=listHtml(S.supps,'supps');
+  document.getElementById('weeklyList').innerHTML=listHtml(S.weekly,'weekly');
+  document.getElementById('dAttr').innerHTML=optAttrs('BODY');
+  document.getElementById('wAttr').innerHTML=optAttrs('CAREER');
+  document.getElementById('sAttr').innerHTML=optAttrs('BODY');
+
+  // badminton
+  const bL=bmLevel(BADMINTON_LIFETIME_HOURS);
+  const bP=bmXpInLvl(BADMINTON_LIFETIME_HOURS);
+  document.getElementById('bmLvl').textContent=bL;
+  document.getElementById('bmHours').textContent=BADMINTON_LIFETIME_HOURS;
+  document.getElementById('bmFill').style.width=bP.pct+'%';
+  document.getElementById('bmWeek').textContent=`${h(bmWeekHours())} / 15h`;
+
+  // goals
+  document.getElementById('goalsBox').innerHTML=S.goals.map((g,i)=>{
+    const pct=Math.min(100,g.cur/g.total*100);
+    const ms=g.milestones.map((m,mi)=>{
+      const reached=m.skill?(m.auto?!!m.auto():!!m.reached):(g.cur>=m.thr);
+      const tag=m.skill?(m.auto?'随年目标自动达成':'技能'):m.thr+'h';
+      const clk=(m.skill&&!m.auto&&!reached)?`onclick="claimMilestone(${i},${mi})"`:'';
+      const cls='ms '+(m.skill&&!m.auto?'skill ':'')+(reached?'reached':'');
+      return `<span class="${cls}" ${clk} title="${tag}">${reached?'✔ ':''}${m.label}</span>`;
+    }).join('');
+    return `<div class="goal ${g.paused?'paused':''}">
+      <div class="gtop"><span class="gic">${g.ic}</span><span class="gn">${g.n}${g.paused?'<span class="ptag">⏸ 休眠</span>':''}</span>
+        <span class="gcur" onclick="editGoalTotal(${i})" title="点此修改总目标">${g.cur} / ${g.total}h · ${pct.toFixed(1)}%</span></div>
+      <div class="gbar"><div class="gbf" style="width:${pct}%"></div></div>
+      <div class="gms">${ms}</div>
+      <div class="gacts">
+        <button class="btn ghost sm" onclick="recordHours(${i},15)">+15min</button>
+        <button class="btn ghost sm" onclick="recordHours(${i},60)">+1h</button>
+        <button class="btn ghost sm" onclick="recordHours(${i},-60)">-1h</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // achievements
+  document.getElementById('achs').innerHTML=S.ach.map((a,i)=>`
+    <div class="ach ${a.un?'un':''}">
+      <div class="ic">${a.ic}</div>
+      <div class="an">${a.n}</div>
+      <div class="ad">${a.d}</div>
+      ${a.un?'<div class="claim" style="color:var(--grw)">✔ 已解锁</div>':(a.auto?'':'<button class="btn ghost sm claim" onclick="claimAch('+i+')">认领</button>')}
+    </div>`).join('');
+  document.getElementById('pushToken').value=S.pushToken||'';
+  const hb=document.getElementById('histBox');
+  if(S.history.length){
+    hb.innerHTML=S.history.slice(-50).reverse().map(e=>`<div class="hist"><span class="ts">${e.ts}</span><span class="ht">${e.text}</span>${e.xp?'<span class="xp">'+(e.xp>0?'+':'')+e.xp+'XP</span>':''}</div>`).join('');
+  } else { hb.innerHTML='<div style="color:var(--dim);font-size:13px">还没有记录，打卡后这里会显示历史。</div>'; }
+  newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
+  newlyDone=[];
+}
+
+/* ---------- 动效函数：飘字 + 升级庆祝 ---------- */
+function floatXP(text, anchorId){
+  const fx=document.getElementById('fxLayer'); if(!fx)return;
+  const a=document.getElementById(anchorId);
+  const r=a?a.getBoundingClientRect():{right:innerWidth/2,top:120};
+  const el=document.createElement('div'); el.className='floatxp'; el.textContent=text;
+  el.style.left=(r.right+8)+'px'; el.style.top=(r.top+4)+'px';
+  fx.appendChild(el); setTimeout(()=>el.remove(),1250);
+}
+function celebrate(level){
+  const fx=document.getElementById('fxLayer'); if(!fx)return;
+  const ov=document.createElement('div'); ov.className='levelup-overlay';
+  ov.innerHTML='<div class="lu-card"><div class="big">LEVEL UP!</div><div class="big">Lv.'+level+'</div><div class="sub">升级特权已解锁</div></div>';
+  fx.appendChild(ov);
+  const cx=innerWidth/2, cy=innerHeight/2;
+  const colors=['#7c9cff','#9b8cff','#5fd0a0','#ffb15e','#ff7a7a','#6cc5ff','#f3c969'];
+  for(let i=0;i<36;i++){
+    const p=document.createElement('div'); p.className='lu-particle';
+    const ang=Math.random()*Math.PI*2, dist=110+Math.random()*230;
+    p.style.left=cx+'px'; p.style.top=cy+'px';
+    p.style.background=colors[i%colors.length];
+    p.style.setProperty('--dx',(Math.cos(ang)*dist).toFixed(0)+'px');
+    p.style.setProperty('--dy',(Math.sin(ang)*dist).toFixed(0)+'px');
+    p.style.setProperty('--rot',(Math.random()*720-360).toFixed(0)+'deg');
+    fx.appendChild(p); setTimeout(()=>p.remove(),950);
+  }
+  setTimeout(()=>ov.remove(),2000);
+  const ln=document.getElementById('lvlNum'); if(ln){ ln.style.animation='none'; void ln.offsetWidth; ln.style.animation='pop .5s ease-out'; }
+}
+
+// init
+(async ()=>{
+try{
+  await load();
+  newDay();                       // 日期变化时自动结算连击、重置日常/周/月
+  REC_DATE='';                   // 默认记今天
+  const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
+  lastLevel = lvlOf(overallXP());
+  checkAch();
+  render();
+  fillGiteeInputs();
+  if(FS_AVAILABLE && !saveFileHandle){
+    const b=document.getElementById('fsBanner'); if(b) b.style.display='block';
+  }
+}catch(e){
+  document.body.insertAdjacentHTML('afterbegin','<div style="color:var(--warn);padding:12px">初始化出错：'+e.message+'</div>');
+}
+})();
+</script>
+</body>
+</html>
