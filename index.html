@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v5.12.1</title>
+<title>人生修行录 · v5.12.2</title>
 <style>
   :root{
     --bg:#161412; --panel:#221e1a; --panel2:#2c2622; --line:#4a3f36;
@@ -496,6 +496,18 @@
   .month-cell .t{font-size:13px;font-weight:600;margin-bottom:4px}
   .month-cell .n{font-size:11px;color:var(--dim);line-height:1.5}
 
+  /* ===== 访问口令门 ===== */
+  #pwdGate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}
+  #pwdGate .pg-title{font-size:24px;font-weight:800;letter-spacing:2px;color:var(--txt)}
+  #pwdGate .pg-sub{font-size:13px;color:var(--dim);margin-top:-6px}
+  #pwdGate .pg-box{display:flex;gap:8px;align-items:center;margin-top:6px}
+  #pwdInput{font-size:15px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);width:220px;outline:none}
+  #pwdInput:focus{border-color:var(--accent)}
+  #pwdErr{color:var(--warn);font-size:13px;min-height:18px}
+  #pwdHint{font-size:11px;color:var(--dim);max-width:300px;text-align:center;line-height:1.6}
+  .shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+
 </style>
 </head>
 <body>
@@ -928,6 +940,11 @@
         <button class="btn ghost sm" onclick="chooseSaveFile()">📁 选择存档文件</button>
         <input id="impFile" type="file" accept="application/json,.json" style="display:none" onchange="importSave(this.files[0]);this.value=''">
       </div>
+      <div class="row" style="gap:10px;margin-bottom:8px">
+        <input type="password" id="pwdNew" placeholder="🔐 新访问口令（留空=恢复默认，≥6 位）" style="width:300px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)">
+        <button class="btn sm" onclick="setPwd()">🔐 更新口令</button>
+        <span id="pwdCur" style="font-size:12px;color:var(--dim)"></span>
+      </div>
       <details class="gitee" style="margin-bottom:8px">
         <summary style="cursor:pointer;font-size:13px;color:var(--dim)">☁ GitHub 云备份（防丢 / 跨设备，可选）</summary>
         <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
@@ -953,6 +970,18 @@
   </main>
 </div>
 <div id="fxLayer"></div>
+
+<!-- ===== 访问口令门（挡随手浏览；纯前端，不挡查看源码） ===== -->
+<div id="pwdGate">
+  <div class="pg-title">🔐 人生修行录</div>
+  <div class="pg-sub">请输入访问口令</div>
+  <div class="pg-box">
+    <input id="pwdInput" type="password" autocomplete="off" placeholder="访问口令" autofocus>
+    <button class="btn" id="pwdBtn">进入</button>
+  </div>
+  <div id="pwdErr"></div>
+  <div id="pwdHint"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
@@ -986,6 +1015,11 @@ const DECADE_PLAN=[
 
 /* ---------- 安全存储：避免沙箱/隐私模式下 setItem 抛错导致整页无响应 ---------- */
 const SAVE_KEY = 'lifeRPG_mochen_v4';
+const PWD_KEY = 'lifeRPG_pwd';
+// 访问口令：默认强口令（纯前端，只挡随手浏览，不挡查看源码）。可在设置页修改，修改后只存本机浏览器。
+const PAGE_PWD_DEFAULT = 'mR9#pQ2$xL7!kVbN';
+function effectivePwd(){ return (store.get(PWD_KEY) || '').trim() || PAGE_PWD_DEFAULT; }
+let _dirty = false; // 是否有未落盘本地的更新（用于轮询自动备份）
 const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
@@ -1591,7 +1625,53 @@ async function load(){
   if(S.lastActiveDay && !S.activeDays.includes(S.lastActiveDay)) S.activeDays.push(S.lastActiveDay); // 旧存档连击日并入集合
   store.set(SAVE_KEY, JSON.stringify(S)); // localStorage 兜底备份
 }
-async function save(){ SAVE_OK = store.set(SAVE_KEY, JSON.stringify(S)); if(saveFileHandle) await fsWrite(); }
+async function save(){ SAVE_OK = store.set(SAVE_KEY, JSON.stringify(S)); _dirty = true; if(saveFileHandle) await fsWrite(); }
+
+// ---------- 访问口令门 ----------
+function setupPwdGate(){
+  const gate=document.getElementById('pwdGate');
+  const inp=document.getElementById('pwdInput');
+  const btn=document.getElementById('pwdBtn');
+  const err=document.getElementById('pwdErr');
+  const hint=document.getElementById('pwdHint');
+  if(!gate) return;
+  const changed = (store.get(PWD_KEY)||'').trim()!=='';
+  if(hint) hint.innerHTML = changed
+    ? '已自定义口令。忘记口令？清浏览器站点数据即可恢复为默认口令。'
+    : '默认口令见下方提示 / 设置页「🔐 更新口令」可改。';
+  const tryPwd=()=>{
+    if(inp.value===effectivePwd()){
+      gate.style.display='none'; inp.value=''; err.style.display='none';
+    } else {
+      err.textContent='口令错误，请重试';
+      err.style.display='block';
+      gate.classList.remove('shake'); void gate.offsetWidth; gate.classList.add('shake');
+    }
+  };
+  btn.addEventListener('click', tryPwd);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') tryPwd(); });
+  setTimeout(()=>{ try{ inp.focus(); }catch(e){} }, 60);
+}
+function setPwd(){
+  const v=(document.getElementById('pwdNew').value||'').trim();
+  if(v && v.length<6){ alert('口令至少 6 位'); return; }
+  store.set(PWD_KEY, v); // 留空 → 恢复默认口令
+  document.getElementById('pwdNew').value='';
+  if(document.getElementById('pwdCur')) document.getElementById('pwdCur').textContent = v? '当前：自定义口令' : '当前：默认口令';
+  alert('口令已更新 ✅'+(v?'（新口令已生效）':'（已恢复默认口令）'));
+}
+
+// ---------- 自动备份：轮询 + 关闭/隐藏页面前落盘（防丢，随时可恢复） ----------
+let _autoBackupStarted=false;
+function startAutoBackup(){
+  if(_autoBackupStarted) return; _autoBackupStarted=true;
+  // 每 30 秒：若有更新且已授权本地存档文件，则把最新存档写入本机 save.json
+  setInterval(()=>{ try{ if(_dirty && saveFileHandle){ fsWrite(); _dirty=false; } }catch(e){} }, 30000);
+  // 关闭 / 切到后台前强制保存一次（localStorage 同步可靠；本地文件异步尽力）
+  const flush=()=>{ try{ store.set(SAVE_KEY, JSON.stringify(S)); if(saveFileHandle) fsWrite(); }catch(e){} };
+  window.addEventListener('beforeunload', flush);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flush(); });
+}
 
 // 导出/导入存档：环境无关兜底（预览面板 localStorage 不持久时用）
 function exportSave(){
@@ -2800,6 +2880,9 @@ try{
   if(FS_AVAILABLE && !saveFileHandle){
     const b=document.getElementById('fsBanner'); if(b) b.style.display='block';
   }
+  const _pc=document.getElementById('pwdCur'); if(_pc) _pc.textContent = ((store.get(PWD_KEY)||'').trim()!=='')? '当前：自定义口令' : '当前：默认口令';
+  setupPwdGate();
+  startAutoBackup();
 }catch(e){
   document.body.insertAdjacentHTML('afterbegin','<div style="color:var(--warn);padding:12px">初始化出错：'+e.message+'</div>');
 }
