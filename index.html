@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v5.15.0</title>
+<title>人生修行录 · v5.15.2</title>
 <style>
   :root{
     --bg:#161412; --panel:#221e1a; --panel2:#2c2622; --line:#4a3f36;
@@ -97,6 +97,7 @@
   .qmin{color:var(--dim)}
   .qtag{font-size:10px;background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:10px}
   .qdel{color:var(--dim);cursor:pointer;font-size:16px;line-height:1;padding:0 4px}
+  .qcool{font-size:11px;color:#f0b24c;background:rgba(240,178,76,.12);border:1px solid rgba(240,178,76,.4);border-radius:6px;padding:1px 6px}
   .qdel:hover{color:var(--vit)}
   .addrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
   .addrow input,.addrow select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 10px;font-size:13px}
@@ -577,6 +578,12 @@
   .maptab.add:hover{background:#1d4a2c}
   .maptab.add.active{background:#2f7d4f; border-color:#4fd98a; color:#fff}
   .addtip{font-size:12px; color:#9be0b0; margin:0 0 8px; padding:6px 10px; background:rgba(47,125,79,.12); border:1px dashed #2f7d4f; border-radius:8px}
+  .city-cands{max-height:300px; overflow:auto; margin-top:6px}
+  .city-cand{display:flex; flex-direction:column; gap:2px; padding:9px 12px; border-radius:9px; cursor:pointer; border:1px solid #ccc; margin-bottom:6px; background:#fff; transition:.15s}
+  .city-cand:hover{border-color:#2f7d4f; background:#f1faf4}
+  .city-cand .cc-name{font-weight:700; font-size:15px; color:#243b2e}
+  .city-cand .cc-region{font-size:12px; color:#6b7c84}
+  .city-cand .cc-coord{font-size:11px; color:#9aa7ad}
   .cm-coord{font-size:12px; color:var(--dim); margin:2px 0 6px}
   .btn.danger{background:#5a2330; border-color:#a14a5e; color:#ffd9e0}
   .btn.danger:hover{background:#6e2c3c}
@@ -598,12 +605,14 @@
   .eq-desc{font-size:12px;color:var(--dim);margin:2px 0}
   .eq-meta{font-size:12px;color:var(--bm)}
   .reward-list{display:flex;flex-direction:column;gap:10px}
-  .reward{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--dim)}
+  .reward{position:relative;overflow:hidden;display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--dim)}
   .reward.t-big{border-left-color:#f3c969}
   .reward.t-medium{border-left-color:#c08bff}
   .reward.t-small{border-left-color:#7c9cff}
   .reward.t-micro{border-left-color:#5fd0a0}
-  .reward.claimed{opacity:.6}
+  .reward.claimed{opacity:.55;filter:grayscale(.7)}
+  .reward.claimed::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,18,30,.42),rgba(10,18,30,.18));pointer-events:none;border-radius:12px}
+  .reward.claimed::before{content:'已享用';position:absolute;top:50%;right:14px;transform:translateY(-50%) rotate(-12deg);z-index:2;font-size:13px;font-weight:800;letter-spacing:2px;color:#ff9a9a;border:2px solid #ff9a9a;border-radius:8px;padding:2px 8px;background:rgba(20,10,12,.35);opacity:.9;pointer-events:none}
   .rw-ic{font-size:26px}
   .rw-main{flex:1}
   .rw-name{font-weight:700}
@@ -618,7 +627,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic">🕯️</div>
-      <div class="brand-t">人生修行录<span>v5.15.0 · 战利品·装备&嘉奖</span></div>
+      <div class="brand-t">人生修行录<span>v5.15.2 · 疗愈间隔约束</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -1029,7 +1038,7 @@
       <div class="phead">旅行地图<span class="psub">用脚步解锁世界 · 到访后写下你的感受</span></div>
       <div class="lifemap">
         <div class="maptabs" id="mapTabs"></div>
-        <div class="addtip" id="addTip" style="display:none">📍 点击地图任意位置放置新地点（再点一次「＋新增地点」可取消）</div>
+        <div class="addtip" id="addTip" style="display:none">📍 点击地图任意位置放置新地点（位置会在对应区域自动点亮）</div>
         <div id="worldmap"></div>
         <div class="mapbar">
           <span class="stat">我的足迹 <b id="fpCount">0</b> / <span id="fpTotal">0</span></span>
@@ -1044,7 +1053,7 @@
           <div class="gfield"><label>🎯 今年旅行目标</label><select id="goalYear" onchange="setTravelGoal('year',this.value)"></select><span class="gach" id="goalYearAch"></span></div>
           <div class="gfield"><label>🌙 本月旅行目标</label><select id="goalMonth" onchange="setTravelGoal('month',this.value)"></select><span class="gach" id="goalMonthAch"></span></div>
         </div>
-        <div class="hint" style="margin-top:12px">点击地图上的圆点，标记「我去过了」并写下感受；预设之外的地方，点左上角「＋新增地点」再点地图任意处即可打点。你点亮的人生愿望里那些远方会在这里等你解锁。年/月旅行目标可在上方设定，达成后自动显示 ✅。</div>
+        <div class="hint" style="margin-top:12px">点击地图上的圆点，标记「我去过了」并写下感受；预设之外的地方，点左上角「＋新增地点」→ 输入地名（如大理、冰岛、巴黎），系统会自动在地图对应位置点亮。年/月旅行目标可在上方设定，达成后自动显示 ✅。</div>
         <h3 style="margin:16px 0 4px; font-size:14px">📍 我的足迹</h3>
         <div class="footprints" id="footprints"></div>
       </div>
@@ -1079,6 +1088,21 @@
           <label>我的感受</label><textarea id="cmRefl" rows="3" placeholder="写写感受、记忆…"></textarea>
         </div>
         <div class="modal-actions"><button class="btn sm danger" id="cmDelete" style="display:none" onclick="deleteCustomPlace()">删除</button><button class="btn sm" onclick="closeCustomModal()">取消</button><button class="btn sm primary" onclick="saveCustomPlace()">保存</button></div>
+      </div>
+    </div>
+
+    <!-- ===== 新增地点：输入地名自动定位 ===== -->
+    <div id="addSearchModal" class="modal-mask" style="display:none" onclick="if(event.target===this)closeAddSearch()">
+      <div class="modal">
+        <div class="modal-h"><span>新增地点 · 输入地名自动定位</span><span class="modal-x" onclick="closeAddSearch()">×</span></div>
+        <label>输入城市 / 景点名称</label>
+        <input id="citySearch" placeholder="例如：大理、东京、冰岛、巴黎、马尔代夫…" oninput="renderCityCands()">
+        <div id="cityCands" class="city-cands"></div>
+        <div id="cityFallback" style="display:none">
+          <div class="hint" style="margin:6px 0 10px">库里没有这个地名。也可以直接在地图上手动点选位置：</div>
+          <button class="btn sm" onclick="manualAddMode()">📍 在地图上手动点选</button>
+        </div>
+        <div class="modal-actions"><button class="btn sm" onclick="closeAddSearch()">关闭</button></div>
       </div>
     </div>
 
@@ -1369,6 +1393,21 @@ function isDone(x,d){ d=d||REC_DATE||todayStr(); return !!(x&&Array.isArray(x.do
 function setDone(x,d,val){ d=d||REC_DATE||todayStr(); if(!x.donedates)x.donedates=[]; if(!x.mins)x.mins={}; const i=x.donedates.indexOf(d); if(val&&i<0)x.donedates.push(d); if(!val&&i>=0)x.donedates.splice(i,1); }
 function isDoneEver(x){ return !!(x&&Array.isArray(x.donedates)&&x.donedates.length>0); }   // 历史是否做过（用于进度条/里程碑，一次性步骤）
 function lastDoneDate(x){ if(x&&Array.isArray(x.donedates)&&x.donedates.length) return [...x.donedates].sort().pop(); return ''; }
+// 低频疗愈类任务（头疗/按摩/康复理疗）：间隔约束，不连续两周
+function lfGapDays(item){
+  if(item.minGapDays && item.minGapDays>0) return item.minGapDays;
+  const t=item.t||'';
+  if(/头疗|按摩|康复|理疗/.test(t)) return 21;
+  return 0;
+}
+function lastLfDate(item){ const ds=item.lfDates||[]; return ds.length?[...ds].sort().pop():''; }
+function lfDaysLeft(item,d){
+  const g=lfGapDays(item); if(!g) return 0;
+  const last=lastLfDate(item); if(!last) return 0;
+  const A=new Date(last+'T00:00:00'), B=new Date(d+'T00:00:00');
+  const diff=Math.round((B-A)/86400000);
+  return diff>=g?0:(g-diff);
+}
 function itemXpAt(it,d){ d=d||REC_DATE||todayStr(); if(!it)return 0; return it.mode==='time'?((it.mins&&it.mins[d])||0)*RATE:(it.xp||0); }
 function weightedXpAt(it,d){ return itemXpAt(it,d)*(S.weights[safeAttr(it.a)]||1); }
 function itemXp(it){ return itemXpAt(it, REC_DATE||todayStr()); }
@@ -1515,31 +1554,42 @@ const TRAVEL_PLACES = [
 // 旅行地图分区（顶部切换）：用 viewBox 放大世界投影对应的子区域，引脚只显示本区地点
 const MAP_TABS = [
   {id:'cn', name:'中国',   bounds:[[80,125],[18,50]]},
-  {id:'sea',name:'东南亚', bounds:[[95,150],[-12,48]], note:'含东亚'},
-  {id:'eu', name:'欧洲',   bounds:[[-25,50],[34,72]]},
-  {id:'am', name:'美洲',   bounds:[[-170,-30],[-55,78]]},
-  {id:'au', name:'澳洲',   bounds:[[108,180],[-50,0]]},
+  {id:'sea',name:'东南亚', bounds:[[-20,160],[-40,60]], note:'含东亚/南亚/中亚/非洲/大洋洲'},
+  {id:'eu', name:'欧洲',   bounds:[[-30,55],[30,80]]},
+  {id:'am', name:'美洲',   bounds:[[-175,-25],[-60,80]]},
+  {id:'au', name:'澳洲',   bounds:[[105,185],[-55,5]]},
   {id:'n',  name:'北极洲', pole:'N'},
   {id:'s',  name:'南极洲', pole:'S'},
 ];
+const CITY_COORDS = [{"n":"北京","py":"beijing|bj","en":"beijing","lng":116.4,"lat":39.9,"zone":"cn","region":"中国·北京"},{"n":"上海","py":"shanghai|sh","en":"shanghai","lng":121.47,"lat":31.23,"zone":"cn","region":"中国·上海"},{"n":"天津","py":"tianjin|tj","en":"tianjin","lng":117.2,"lat":39.13,"zone":"cn","region":"中国·天津"},{"n":"重庆","py":"chongqing|cq","en":"chongqing","lng":106.55,"lat":29.56,"zone":"cn","region":"中国·重庆"},{"n":"石家庄","py":"shijiazhuang|sjz","en":"shijiazhuang","lng":114.51,"lat":38.04,"zone":"cn","region":"中国·河北"},{"n":"太原","py":"taiyuan|ty","en":"taiyuan","lng":112.55,"lat":37.87,"zone":"cn","region":"中国·山西"},{"n":"呼和浩特","py":"huhehaote|hhht","en":"hohhot","lng":111.75,"lat":40.84,"zone":"cn","region":"中国·内蒙古"},{"n":"沈阳","py":"shenyang|sy","en":"shenyang","lng":123.43,"lat":41.8,"zone":"cn","region":"中国·辽宁"},{"n":"长春","py":"changchun|cc","en":"changchun","lng":125.32,"lat":43.82,"zone":"sea","region":"中国·吉林"},{"n":"哈尔滨","py":"haerbin|heb","en":"harbin","lng":126.53,"lat":45.8,"zone":"sea","region":"中国·黑龙江"},{"n":"南京","py":"nanjing|nj","en":"nanjing","lng":118.78,"lat":32.06,"zone":"cn","region":"中国·江苏"},{"n":"杭州","py":"hangzhou|hz","en":"hangzhou","lng":120.15,"lat":30.27,"zone":"cn","region":"中国·浙江"},{"n":"合肥","py":"hefei|hf","en":"hefei","lng":117.27,"lat":31.86,"zone":"cn","region":"中国·安徽"},{"n":"福州","py":"fuzhou|fz","en":"fuzhou","lng":119.3,"lat":26.08,"zone":"cn","region":"中国·福建"},{"n":"南昌","py":"nanchang|nc","en":"nanchang","lng":115.86,"lat":28.68,"zone":"cn","region":"中国·江西"},{"n":"济南","py":"jinan|jn","en":"jinan","lng":117,"lat":36.65,"zone":"cn","region":"中国·山东"},{"n":"郑州","py":"zhengzhou|zz","en":"zhengzhou","lng":113.62,"lat":34.75,"zone":"cn","region":"中国·河南"},{"n":"武汉","py":"wuhan|wh","en":"wuhan","lng":114.3,"lat":30.59,"zone":"cn","region":"中国·湖北"},{"n":"长沙","py":"changsha|cs","en":"changsha","lng":112.94,"lat":28.23,"zone":"cn","region":"中国·湖南"},{"n":"广州","py":"guangzhou|gz","en":"guangzhou","lng":113.26,"lat":23.13,"zone":"cn","region":"中国·广东"},{"n":"南宁","py":"nanning|nn","en":"nanning","lng":108.37,"lat":22.82,"zone":"cn","region":"中国·广西"},{"n":"海口","py":"haikou|hk","en":"haikou","lng":110.2,"lat":20.04,"zone":"cn","region":"中国·海南"},{"n":"成都","py":"chengdu|cd","en":"chengdu","lng":104.07,"lat":30.57,"zone":"cn","region":"中国·四川"},{"n":"贵阳","py":"guiyang|gy","en":"guiyang","lng":106.63,"lat":26.65,"zone":"cn","region":"中国·贵州"},{"n":"昆明","py":"kunming|km","en":"kunming","lng":102.83,"lat":24.88,"zone":"cn","region":"中国·云南"},{"n":"拉萨","py":"lasa|ls","en":"lhasa","lng":91.13,"lat":29.65,"zone":"cn","region":"中国·西藏"},{"n":"西安","py":"xian|xa","en":"xian","lng":108.94,"lat":34.34,"zone":"cn","region":"中国·陕西"},{"n":"兰州","py":"lanzhou|lz","en":"lanzhou","lng":103.83,"lat":36.06,"zone":"cn","region":"中国·甘肃"},{"n":"西宁","py":"xining|xn","en":"xining","lng":101.78,"lat":36.62,"zone":"cn","region":"中国·青海"},{"n":"银川","py":"yinchuan|yc","en":"yinchuan","lng":106.27,"lat":38.47,"zone":"cn","region":"中国·宁夏"},{"n":"乌鲁木齐","py":"wulumuqi|wlmq","en":"urumqi","lng":87.62,"lat":43.83,"zone":"cn","region":"中国·新疆"},{"n":"香港","py":"xianggang|xg","en":"hongkong","lng":114.17,"lat":22.32,"zone":"cn","region":"中国·香港"},{"n":"澳门","py":"aomen|am","en":"macau","lng":113.55,"lat":22.2,"zone":"cn","region":"中国·澳门"},{"n":"台北","py":"taibei|tb","en":"taipei","lng":121.56,"lat":25.04,"zone":"cn","region":"中国·台湾"},{"n":"深圳","py":"shenzhen|sz","en":"shenzhen","lng":114.06,"lat":22.54,"zone":"cn","region":"中国·广东"},{"n":"苏州","py":"suzhou|sz","en":"suzhou","lng":120.62,"lat":31.3,"zone":"cn","region":"中国·江苏"},{"n":"无锡","py":"wuxi|wx","en":"wuxi","lng":120.3,"lat":31.57,"zone":"cn","region":"中国·江苏"},{"n":"常州","py":"changzhou|cz","en":"changzhou","lng":119.95,"lat":31.79,"zone":"cn","region":"中国·江苏"},{"n":"宁波","py":"ningbo|nb","en":"ningbo","lng":121.55,"lat":29.87,"zone":"cn","region":"中国·浙江"},{"n":"温州","py":"wenzhou|wz","en":"wenzhou","lng":120.7,"lat":28,"zone":"cn","region":"中国·浙江"},{"n":"绍兴","py":"shaoxing|sx","en":"shaoxing","lng":120.58,"lat":30.01,"zone":"cn","region":"中国·浙江"},{"n":"厦门","py":"xiamen|xm","en":"xiamen","lng":118.09,"lat":24.48,"zone":"cn","region":"中国·福建"},{"n":"泉州","py":"quanzhou|qz","en":"quanzhou","lng":118.58,"lat":24.91,"zone":"cn","region":"中国·福建"},{"n":"珠海","py":"zhuhai|zh","en":"zhuhai","lng":113.55,"lat":22.27,"zone":"cn","region":"中国·广东"},{"n":"中山","py":"zhongshan|zs","en":"zhongshan","lng":113.39,"lat":22.52,"zone":"cn","region":"中国·广东"},{"n":"东莞","py":"dongguan|dg","en":"dongguan","lng":113.75,"lat":23.02,"zone":"cn","region":"中国·广东"},{"n":"佛山","py":"foshan|fs","en":"foshan","lng":113.12,"lat":23.02,"zone":"cn","region":"中国·广东"},{"n":"桂林","py":"guilin|gl","en":"guilin","lng":110.29,"lat":25.27,"zone":"cn","region":"中国·广西"},{"n":"三亚","py":"sanya|sy","en":"sanya","lng":109.51,"lat":18.25,"zone":"cn","region":"中国·海南"},{"n":"大理","py":"dali|dl","en":"dali","lng":100.23,"lat":25.6,"zone":"cn","region":"中国·云南"},{"n":"丽江","py":"lijiang|lj","en":"lijiang","lng":100.23,"lat":26.86,"zone":"cn","region":"中国·云南"},{"n":"香格里拉","py":"xianggelila|xgll","en":"shangri-la","lng":99.71,"lat":27.83,"zone":"cn","region":"中国·云南"},{"n":"腾冲","py":"tengchong|tc","en":"tengchong","lng":98.51,"lat":25.02,"zone":"cn","region":"中国·云南"},{"n":"西双版纳","py":"xishuangbanna|xsbn","en":"xishuangbanna","lng":100.8,"lat":22,"zone":"cn","region":"中国·云南"},{"n":"青岛","py":"qingdao|qd","en":"qingdao","lng":120.38,"lat":36.07,"zone":"cn","region":"中国·山东"},{"n":"烟台","py":"yantai|yt","en":"yantai","lng":121.39,"lat":37.54,"zone":"cn","region":"中国·山东"},{"n":"威海","py":"weihai|wh","en":"weihai","lng":122.12,"lat":37.51,"zone":"cn","region":"中国·山东"},{"n":"泰安","py":"taian|ta","en":"taian","lng":117.13,"lat":36.25,"zone":"cn","region":"中国·山东"},{"n":"曲阜","py":"qufu|qf","en":"qufu","lng":116.99,"lat":35.58,"zone":"cn","region":"中国·山东"},{"n":"蓬莱","py":"penglai|pl","en":"penglai","lng":120.75,"lat":37.8,"zone":"cn","region":"中国·山东"},{"n":"黄山","py":"huangshan|hs","en":"huangshan","lng":118.34,"lat":30.13,"zone":"cn","region":"中国·安徽"},{"n":"九华山","py":"jiuhuashan|jhs","en":"jiuhuashan","lng":117.8,"lat":30.48,"zone":"cn","region":"中国·安徽"},{"n":"庐山","py":"lushan|ls","en":"lushan","lng":115.97,"lat":29.55,"zone":"cn","region":"中国·江西"},{"n":"井冈山","py":"jinggangshan|jgs","en":"jinggangshan","lng":114.17,"lat":26.57,"zone":"cn","region":"中国·江西"},{"n":"武夷山","py":"wuyishan|wys","en":"wuyishan","lng":118.03,"lat":27.72,"zone":"cn","region":"中国·福建"},{"n":"张家界","py":"zhangjiajie|zjj","en":"zhangjiajie","lng":110.48,"lat":29.12,"zone":"cn","region":"中国·湖南"},{"n":"凤凰","py":"fenghuang|fh","en":"fenghuang","lng":109.6,"lat":27.95,"zone":"cn","region":"中国·湖南"},{"n":"岳阳","py":"yueyang|yy","en":"yueyang","lng":113.13,"lat":29.37,"zone":"cn","region":"中国·湖南"},{"n":"韶山","py":"shaoshan|ss","en":"shaoshan","lng":112.53,"lat":27.92,"zone":"cn","region":"中国·湖南"},{"n":"衡山","py":"hengshan|hs","en":"hengshan","lng":112.74,"lat":27.31,"zone":"cn","region":"中国·湖南"},{"n":"敦煌","py":"dunhuang|dh","en":"dunhuang","lng":94.66,"lat":40.14,"zone":"cn","region":"中国·甘肃"},{"n":"嘉峪关","py":"jiayuguan|jyg","en":"jiayuguan","lng":98.29,"lat":39.77,"zone":"cn","region":"中国·甘肃"},{"n":"张掖","py":"zhangye|zy","en":"zhangye","lng":100.45,"lat":38.93,"zone":"cn","region":"中国·甘肃"},{"n":"天水","py":"tianshui|ts","en":"tianshui","lng":105.72,"lat":34.58,"zone":"cn","region":"中国·甘肃"},{"n":"酒泉","py":"jiuquan|jq","en":"jiuquan","lng":98.51,"lat":39.74,"zone":"cn","region":"中国·甘肃"},{"n":"武威","py":"wuwei|ww","en":"wuwei","lng":102.63,"lat":37.93,"zone":"cn","region":"中国·甘肃"},{"n":"青海湖","py":"qinghaihu|qhh","en":"qinghaihu","lng":100.2,"lat":36.9,"zone":"cn","region":"中国·青海"},{"n":"茶卡盐湖","py":"chakayanhu|ckyh","en":"chakasalt","lng":99.08,"lat":36.78,"zone":"cn","region":"中国·青海"},{"n":"呼伦贝尔","py":"hulunbeier|hlbe","en":"hulunbuir","lng":119.77,"lat":49.21,"zone":"cn","region":"中国·内蒙古"},{"n":"满洲里","py":"manzhouli|mzl","en":"manzhouli","lng":117.43,"lat":49.58,"zone":"cn","region":"中国·内蒙古"},{"n":"漠河","py":"mohe|mh","en":"mohe","lng":122.37,"lat":52.97,"zone":"sea","region":"中国·黑龙江"},{"n":"延吉","py":"yanji|yj","en":"yanji","lng":129.51,"lat":42.91,"zone":"sea","region":"中国·吉林"},{"n":"长白山","py":"changbaishan|cbs","en":"changbaishan","lng":128.06,"lat":42.07,"zone":"sea","region":"中国·吉林"},{"n":"北戴河","py":"beidaihe|bdh","en":"beidaihe","lng":119.48,"lat":39.83,"zone":"cn","region":"中国·河北"},{"n":"承德","py":"chengde|cd","en":"chengde","lng":117.96,"lat":40.95,"zone":"cn","region":"中国·河北"},{"n":"大同","py":"datong|dt","en":"datong","lng":113.3,"lat":40.08,"zone":"cn","region":"中国·山西"},{"n":"平遥","py":"pingyao|py","en":"pingyao","lng":112.18,"lat":37.2,"zone":"cn","region":"中国·山西"},{"n":"开封","py":"kaifeng|kf","en":"kaifeng","lng":114.34,"lat":34.8,"zone":"cn","region":"中国·河南"},{"n":"洛阳","py":"luoyang|ly","en":"luoyang","lng":112.45,"lat":34.62,"zone":"cn","region":"中国·河南"},{"n":"景德镇","py":"jingdezhen|jdz","en":"jingdezhen","lng":117.18,"lat":29.27,"zone":"cn","region":"中国·江西"},{"n":"婺源","py":"wuyuan|wy","en":"wuyuan","lng":117.85,"lat":29.25,"zone":"cn","region":"中国·江西"},{"n":"三清山","py":"sanqingshan|sqs","en":"sanqingshan","lng":118.07,"lat":28.95,"zone":"cn","region":"中国·江西"},{"n":"龙虎山","py":"longhushan|lhs","en":"longhushan","lng":116.96,"lat":28.07,"zone":"cn","region":"中国·江西"},{"n":"千岛湖","py":"qiandaohu|qdh","en":"qiandaohu","lng":119.07,"lat":29.61,"zone":"cn","region":"中国·浙江"},{"n":"普陀山","py":"putuoshan|pts","en":"putuoshan","lng":122.4,"lat":30.02,"zone":"cn","region":"中国·浙江"},{"n":"莫干山","py":"moganshan|mgs","en":"moganshan","lng":119.84,"lat":30.61,"zone":"cn","region":"中国·浙江"},{"n":"乌镇","py":"wuzhen|wz","en":"wuzhen","lng":120.49,"lat":30.74,"zone":"cn","region":"中国·浙江"},{"n":"西塘","py":"xitang|xt","en":"xitang","lng":120.89,"lat":30.95,"zone":"cn","region":"中国·浙江"},{"n":"南浔","py":"nanxun|nx","en":"nanxun","lng":120.42,"lat":30.88,"zone":"cn","region":"中国·浙江"},{"n":"同里","py":"tongli|tl","en":"tongli","lng":120.72,"lat":31.16,"zone":"cn","region":"中国·江苏"},{"n":"周庄","py":"zhouzhuang|zz","en":"zhouzhuang","lng":120.85,"lat":31.11,"zone":"cn","region":"中国·江苏"},{"n":"都江堰","py":"doujiangyan|djy","en":"dujiangyan","lng":103.62,"lat":31,"zone":"cn","region":"中国·四川"},{"n":"峨眉山","py":"emeishan|ems","en":"emeishan","lng":103.34,"lat":29.52,"zone":"cn","region":"中国·四川"},{"n":"乐山","py":"leshan|ls","en":"leshan","lng":103.77,"lat":29.55,"zone":"cn","region":"中国·四川"},{"n":"九寨沟","py":"jiuzhaigou|jzg","en":"jiuzhaigou","lng":103.92,"lat":33.26,"zone":"cn","region":"中国·四川"},{"n":"黄龙","py":"huanglong|hl","en":"huanglong","lng":103.82,"lat":32.75,"zone":"cn","region":"中国·四川"},{"n":"稻城亚丁","py":"daochengyading|dcyd","en":"daocheng","lng":100.3,"lat":29,"zone":"cn","region":"中国·四川"},{"n":"色达","py":"seda|sd","en":"seda","lng":100,"lat":32.3,"zone":"cn","region":"中国·四川"},{"n":"林芝","py":"linzhi|lz","en":"linzhi","lng":94.36,"lat":29.65,"zone":"cn","region":"中国·西藏"},{"n":"日喀则","py":"rikaze|rkz","en":"shigatse","lng":88.88,"lat":29.27,"zone":"cn","region":"中国·西藏"},{"n":"喀什","py":"kashi|ks","en":"kashgar","lng":75.99,"lat":39.47,"zone":"sea","region":"中国·新疆"},{"n":"吐鲁番","py":"tulufan|tlf","en":"turpan","lng":89.18,"lat":42.95,"zone":"cn","region":"中国·新疆"},{"n":"伊宁","py":"yining|yn","en":"yining","lng":81.33,"lat":43.92,"zone":"cn","region":"中国·新疆"},{"n":"布尔津","py":"buerjin|bej","en":"burqin","lng":86.85,"lat":47.7,"zone":"cn","region":"中国·新疆"},{"n":"克拉玛依","py":"kelamayi|klmy","en":"karamay","lng":84.89,"lat":45.6,"zone":"cn","region":"中国·新疆"},{"n":"和田","py":"hetian|ht","en":"hotan","lng":79.92,"lat":37.11,"zone":"sea","region":"中国·新疆"},{"n":"阿克苏","py":"akesu|aks","en":"aksu","lng":80.27,"lat":41.17,"zone":"cn","region":"中国·新疆"},{"n":"库尔勒","py":"kuerle|kel","en":"korla","lng":86.15,"lat":41.76,"zone":"cn","region":"中国·新疆"},{"n":"哈密","py":"hami|hm","en":"hami","lng":93.51,"lat":42.83,"zone":"cn","region":"中国·新疆"},{"n":"包头","py":"baotou|bt","en":"baotou","lng":109.84,"lat":40.66,"zone":"cn","region":"中国·内蒙古"},{"n":"鄂尔多斯","py":"eerduosi|eeds","en":"ordos","lng":109.78,"lat":39.61,"zone":"cn","region":"中国·内蒙古"},{"n":"东京","py":"dongjing|dj","en":"tokyo","lng":139.69,"lat":35.68,"zone":"sea","region":"日本"},{"n":"大阪","py":"daban|db","en":"osaka","lng":135.5,"lat":34.69,"zone":"sea","region":"日本"},{"n":"京都","py":"jingdu|jd","en":"kyoto","lng":135.77,"lat":35.01,"zone":"sea","region":"日本"},{"n":"北海道","py":"beihaidao|bhd","en":"hokkaido","lng":141.35,"lat":43.06,"zone":"sea","region":"日本"},{"n":"札幌","py":"zhahuang|zh","en":"sapporo","lng":141.35,"lat":43.06,"zone":"sea","region":"日本"},{"n":"富士山","py":"fushishan|fss","en":"fuji","lng":138.73,"lat":35.36,"zone":"sea","region":"日本"},{"n":"冲绳","py":"chongsheng|cs","en":"okinawa","lng":127.68,"lat":26.21,"zone":"sea","region":"日本"},{"n":"名古屋","py":"mingguwu|mgw","en":"nagoya","lng":136.91,"lat":35.18,"zone":"sea","region":"日本"},{"n":"横滨","py":"hengbin|hb","en":"yokohama","lng":139.64,"lat":35.44,"zone":"sea","region":"日本"},{"n":"奈良","py":"nailiang|nl","en":"nara","lng":135.8,"lat":34.69,"zone":"sea","region":"日本"},{"n":"福冈","py":"fugang|fg","en":"fukuoka","lng":130.4,"lat":33.59,"zone":"sea","region":"日本"},{"n":"首尔","py":"shouer|se","en":"seoul","lng":126.98,"lat":37.57,"zone":"sea","region":"韩国"},{"n":"釜山","py":"fushan|bs","en":"busan","lng":129.08,"lat":35.18,"zone":"sea","region":"韩国"},{"n":"济州岛","py":"jizhudao|jzd","en":"jeju","lng":126.49,"lat":33.49,"zone":"sea","region":"韩国"},{"n":"乌兰巴托","py":"wulanbatuo|wlbt","en":"ulaanbaatar","lng":106.91,"lat":47.92,"zone":"cn","region":"蒙古"},{"n":"河内","py":"henei|hn","en":"hanoi","lng":105.83,"lat":21.03,"zone":"cn","region":"越南"},{"n":"胡志明市","py":"huzhimingshi|hzms","en":"hochiminh","lng":106.66,"lat":10.82,"zone":"sea","region":"越南"},{"n":"芽庄","py":"yazhuang|yz","en":"nhatrang","lng":109.22,"lat":12.25,"zone":"sea","region":"越南"},{"n":"岘港","py":"xiangang|xg","en":"danang","lng":108.22,"lat":16.05,"zone":"sea","region":"越南"},{"n":"金边","py":"jinbian|jb","en":"phnompenh","lng":104.92,"lat":11.56,"zone":"sea","region":"柬埔寨"},{"n":"吴哥窟","py":"wugeku|wgk","en":"angkorter","lng":103.86,"lat":13.41,"zone":"sea","region":"柬埔寨"},{"n":"万象","py":"wanxiang|wx","en":"vientiane","lng":102.61,"lat":17.97,"zone":"sea","region":"老挝"},{"n":"曼谷","py":"mangu|mg","en":"bangkok","lng":100.5,"lat":13.75,"zone":"sea","region":"泰国"},{"n":"清迈","py":"qingmai|qm","en":"chiangmai","lng":98.99,"lat":18.79,"zone":"cn","region":"泰国"},{"n":"普吉岛","py":"pujidao|pjd","en":"phuket","lng":98.34,"lat":7.88,"zone":"sea","region":"泰国"},{"n":"苏梅岛","py":"sumeidao|smd","en":"samui","lng":99.96,"lat":9.51,"zone":"sea","region":"泰国"},{"n":"新加坡","py":"xinjiapo|xjp","en":"singapore","lng":103.82,"lat":1.35,"zone":"sea","region":"新加坡"},{"n":"吉隆坡","py":"jilongpo|jlp","en":"kualalumpur","lng":101.69,"lat":3.14,"zone":"sea","region":"马来西亚"},{"n":"槟城","py":"bincheng|bc","en":"penang","lng":100.33,"lat":5.41,"zone":"sea","region":"马来西亚"},{"n":"兰卡威","py":"lankawei|lkw","en":"langkawi","lng":99.83,"lat":6.31,"zone":"sea","region":"马来西亚"},{"n":"巴厘岛","py":"balidao|bld","en":"bali","lng":115.17,"lat":-8.65,"zone":"au","region":"印尼"},{"n":"雅加达","py":"yajiada|yjd","en":"jakarta","lng":106.85,"lat":-6.21,"zone":"au","region":"印尼"},{"n":"日惹","py":"riye|ry","en":"yogyakarta","lng":110.36,"lat":-7.78,"zone":"au","region":"印尼"},{"n":"泗水","py":"sishui|ss","en":"surabaya","lng":112.75,"lat":-7.26,"zone":"au","region":"印尼"},{"n":"马尼拉","py":"manila|mnl","en":"manila","lng":120.98,"lat":14.6,"zone":"sea","region":"菲律宾"},{"n":"宿务","py":"suwu|sw","en":"cebu","lng":123.89,"lat":10.31,"zone":"sea","region":"菲律宾"},{"n":"仰光","py":"yangguang|yg","en":"yangon","lng":96.2,"lat":16.87,"zone":"sea","region":"缅甸"},{"n":"蒲甘","py":"pugan|pg","en":"bagan","lng":94.86,"lat":21.17,"zone":"cn","region":"缅甸"},{"n":"文莱","py":"wenlai|wl","en":"brunei","lng":114.94,"lat":4.94,"zone":"au","region":"文莱"},{"n":"东帝汶","py":"dongdimu|ddm","en":"timor","lng":125.57,"lat":-8.56,"zone":"au","region":"东帝汶"},{"n":"加德满都","py":"jiademandu|gdmd","en":"kathmandu","lng":85.32,"lat":27.72,"zone":"cn","region":"尼泊尔"},{"n":"博克拉","py":"bokela|bkl","en":"pokhara","lng":83.99,"lat":28.21,"zone":"cn","region":"尼泊尔"},{"n":"廷布","py":"tingbu|tb","en":"thimphu","lng":89.64,"lat":27.47,"zone":"cn","region":"不丹"},{"n":"新德里","py":"xindeli|xdl","en":"newdelhi","lng":77.21,"lat":28.61,"zone":"sea","region":"印度"},{"n":"孟买","py":"mengmai|mm","en":"mumbai","lng":72.83,"lat":19.08,"zone":"sea","region":"印度"},{"n":"班加罗尔","py":"banjialuoer|bjle","en":"bangalore","lng":77.59,"lat":12.97,"zone":"sea","region":"印度"},{"n":"加尔各答","py":"jiaerjieda|jejd","en":"kolkata","lng":88.36,"lat":22.57,"zone":"cn","region":"印度"},{"n":"斋普尔","py":"zhaipuer|zpe","en":"jaipur","lng":75.79,"lat":26.91,"zone":"sea","region":"印度"},{"n":"阿格拉","py":"agela|agl","en":"agra","lng":78.01,"lat":27.18,"zone":"sea","region":"印度"},{"n":"科伦坡","py":"kelunpo|klp","en":"colombo","lng":79.86,"lat":6.93,"zone":"sea","region":"斯里兰卡"},{"n":"马尔代夫","py":"maerdaifu|medf","en":"maldives","lng":73.51,"lat":4.18,"zone":"sea","region":"马尔代夫"},{"n":"达卡","py":"daka|dk","en":"dhaka","lng":90.41,"lat":23.81,"zone":"cn","region":"孟加拉"},{"n":"阿拉木图","py":"alamutu|almt","en":"almaty","lng":76.89,"lat":43.24,"zone":"sea","region":"哈萨克斯坦"},{"n":"塔什干","py":"tashen|tsg","en":"tashkent","lng":69.24,"lat":41.31,"zone":"sea","region":"乌兹别克斯坦"},{"n":"撒马尔罕","py":"samuerhan|smeh","en":"samarkand","lng":66.97,"lat":39.65,"zone":"sea","region":"乌兹别克斯坦"},{"n":"比什凯克","py":"bishikaike|bskk","en":"bishkek","lng":74.6,"lat":42.87,"zone":"sea","region":"吉尔吉斯斯坦"},{"n":"阿什哈巴德","py":"ashihabade|ashbd","en":"ashgabat","lng":58.38,"lat":37.95,"zone":"sea","region":"土库曼斯坦"},{"n":"迪拜","py":"dibai|db","en":"dubai","lng":55.27,"lat":25.2,"zone":"sea","region":"阿联酋"},{"n":"阿布扎比","py":"abuzhabi|abzb","en":"abudhabi","lng":54.37,"lat":24.45,"zone":"sea","region":"阿联酋"},{"n":"多哈","py":"duoha|dh","en":"doha","lng":51.53,"lat":25.29,"zone":"sea","region":"卡塔尔"},{"n":"利雅得","py":"liyade|lyd","en":"riyadh","lng":46.72,"lat":24.69,"zone":"sea","region":"沙特"},{"n":"麦加","py":"maijia|mj","en":"mecca","lng":39.83,"lat":21.39,"zone":"sea","region":"沙特"},{"n":"伊斯坦布尔","py":"yisitanbao|ystb","en":"istanbul","lng":28.98,"lat":41.01,"zone":"eu","region":"土耳其"},{"n":"安卡拉","py":"ankala|ank","en":"ankara","lng":32.85,"lat":39.93,"zone":"eu","region":"土耳其"},{"n":"伦敦","py":"londun|ld","en":"london","lng":-0.13,"lat":51.51,"zone":"eu","region":"英国"},{"n":"爱丁堡","py":"aidingbao|adb","en":"edinburgh","lng":-3.19,"lat":55.95,"zone":"eu","region":"英国"},{"n":"曼彻斯特","py":"manchest","en":"manchester","lng":-2.24,"lat":53.48,"zone":"eu","region":"英国"},{"n":"都柏林","py":"dubolin|dbl","en":"dublin","lng":-6.26,"lat":53.35,"zone":"eu","region":"爱尔兰"},{"n":"巴黎","py":"bali|bl","en":"paris","lng":2.35,"lat":48.86,"zone":"eu","region":"法国"},{"n":"尼斯","py":"nisi|ns","en":"nice","lng":7.27,"lat":43.7,"zone":"eu","region":"法国"},{"n":"里昂","py":"liang|ly","en":"lyon","lng":4.83,"lat":45.76,"zone":"eu","region":"法国"},{"n":"阿姆斯特丹","py":"amustedan|amstd","en":"amsterdam","lng":4.9,"lat":52.37,"zone":"eu","region":"荷兰"},{"n":"布鲁塞尔","py":"bulusaier|blse","en":"brussels","lng":4.35,"lat":50.85,"zone":"eu","region":"比利时"},{"n":"卢森堡","py":"lusenbao|lsb","en":"luxembourg","lng":6.13,"lat":49.61,"zone":"eu","region":"卢森堡"},{"n":"柏林","py":"bailin|bl","en":"berlin","lng":13.4,"lat":52.52,"zone":"eu","region":"德国"},{"n":"慕尼黑","py":"munnihe|mnh","en":"munich","lng":11.58,"lat":48.14,"zone":"eu","region":"德国"},{"n":"法兰克福","py":"falankfu|flkf","en":"frankfurt","lng":8.68,"lat":50.11,"zone":"eu","region":"德国"},{"n":"汉堡","py":"hanbao|hb","en":"hamburg","lng":9.99,"lat":53.55,"zone":"eu","region":"德国"},{"n":"科隆","py":"kelong|kl","en":"cologne","lng":6.96,"lat":50.94,"zone":"eu","region":"德国"},{"n":"维也纳","py":"weiyena|wyn","en":"vienna","lng":16.37,"lat":48.21,"zone":"eu","region":"奥地利"},{"n":"萨尔茨堡","py":"saercibao|secb","en":"salzburg","lng":13.05,"lat":47.8,"zone":"eu","region":"奥地利"},{"n":"苏黎世","py":"sulishi|sls","en":"zurich","lng":8.54,"lat":47.37,"zone":"eu","region":"瑞士"},{"n":"日内瓦","py":"rineiwa|rnw","en":"geneva","lng":6.14,"lat":46.2,"zone":"eu","region":"瑞士"},{"n":"巴塞尔","py":"basaier|bse","en":"basel","lng":7.59,"lat":47.56,"zone":"eu","region":"瑞士"},{"n":"罗马","py":"luoma|lm","en":"rome","lng":12.5,"lat":41.9,"zone":"eu","region":"意大利"},{"n":"米兰","py":"milan|ml","en":"milan","lng":9.19,"lat":45.46,"zone":"eu","region":"意大利"},{"n":"威尼斯","py":"weinisi|wns","en":"venice","lng":12.34,"lat":45.44,"zone":"eu","region":"意大利"},{"n":"佛罗伦萨","py":"fuluolunsa|flls","en":"florence","lng":11.26,"lat":43.77,"zone":"eu","region":"意大利"},{"n":"那不勒斯","py":"nabulesi|nbls","en":"naples","lng":14.27,"lat":40.85,"zone":"eu","region":"意大利"},{"n":"马德里","py":"madili|mdl","en":"madrid","lng":-3.7,"lat":40.42,"zone":"eu","region":"西班牙"},{"n":"巴塞罗那","py":"basailuona|bsln","en":"barcelona","lng":2.17,"lat":41.39,"zone":"eu","region":"西班牙"},{"n":"塞维利亚","py":"saiweiliya|swly","en":"seville","lng":-5.99,"lat":37.39,"zone":"eu","region":"西班牙"},{"n":"里斯本","py":"lisben|lsb","en":"lisbon","lng":-9.14,"lat":38.72,"zone":"eu","region":"葡萄牙"},{"n":"波尔图","py":"boertu|bet","en":"porto","lng":-8.61,"lat":41.15,"zone":"eu","region":"葡萄牙"},{"n":"哥本哈根","py":"gebenhagen|gbhg","en":"copenhagen","lng":12.57,"lat":55.68,"zone":"eu","region":"丹麦"},{"n":"奥斯陆","py":"aosilu|asl","en":"oslo","lng":10.75,"lat":59.91,"zone":"eu","region":"挪威"},{"n":"斯德哥尔摩","py":"sidegeermo|sdgelm","en":"stockholm","lng":18.07,"lat":59.33,"zone":"eu","region":"瑞典"},{"n":"哥德堡","py":"gedebao|gdb","en":"gothenburg","lng":11.97,"lat":57.71,"zone":"eu","region":"瑞典"},{"n":"赫尔辛基","py":"heerxinji|hexj","en":"helsinki","lng":24.94,"lat":60.17,"zone":"eu","region":"芬兰"},{"n":"雷克雅未克","py":"leikeyaweike|lkywk","en":"reykjavik","lng":-21.94,"lat":64.15,"zone":"eu","region":"冰岛"},{"n":"卑尔根","py":"beiergen|beg","en":"bergen","lng":5.32,"lat":60.39,"zone":"eu","region":"挪威"},{"n":"莫斯科","py":"mosike|msk","en":"moscow","lng":37.62,"lat":55.75,"zone":"eu","region":"俄罗斯"},{"n":"圣彼得堡","py":"shengbidebao|spdb","en":"stpetersburg","lng":30.34,"lat":59.93,"zone":"eu","region":"俄罗斯"},{"n":"喀山","py":"kashan|ks","en":"kazan","lng":49.1,"lat":55.79,"zone":"eu","region":"俄罗斯"},{"n":"索契","py":"suochi|sc","en":"sochi","lng":39.73,"lat":43.6,"zone":"eu","region":"俄罗斯"},{"n":"明斯克","py":"mingsike|msk","en":"minsk","lng":27.56,"lat":53.9,"zone":"eu","region":"白俄罗斯"},{"n":"基辅","py":"jiufu|jf","en":"kyiv","lng":30.52,"lat":50.45,"zone":"eu","region":"乌克兰"},{"n":"华沙","py":"huasha|hs","en":"warsaw","lng":21.01,"lat":52.23,"zone":"eu","region":"波兰"},{"n":"克拉科夫","py":"kelakufu|klkf","en":"krakow","lng":19.94,"lat":50.06,"zone":"eu","region":"波兰"},{"n":"布拉格","py":"bulage|bld","en":"prague","lng":14.42,"lat":50.08,"zone":"eu","region":"捷克"},{"n":"布达佩斯","py":"budapeisi|bdps","en":"budapest","lng":19.04,"lat":47.5,"zone":"eu","region":"匈牙利"},{"n":"雅典","py":"yadian|yd","en":"athens","lng":23.73,"lat":37.98,"zone":"eu","region":"希腊"},{"n":"圣托里尼","py":"shengtuolinen|stln","en":"santorini","lng":25.43,"lat":36.39,"zone":"eu","region":"希腊"},{"n":"开罗","py":"kailuo|kl","en":"cairo","lng":31.24,"lat":30.04,"zone":"eu","region":"埃及"},{"n":"亚历山大","py":"yalishanda|ylsd","en":"alexandria","lng":29.92,"lat":31.2,"zone":"eu","region":"埃及"},{"n":"卡萨布兰卡","py":"kasabulanka|ksblk","en":"casablanca","lng":-7.59,"lat":33.57,"zone":"eu","region":"摩洛哥"},{"n":"马拉喀什","py":"malakesi|mlks","en":"marrakech","lng":-8.01,"lat":31.63,"zone":"eu","region":"摩洛哥"},{"n":"突尼斯","py":"tunisi|tns","en":"tunis","lng":10.19,"lat":36.8,"zone":"eu","region":"突尼斯"},{"n":"阿尔及尔","py":"aerjier|aeje","en":"algiers","lng":3.06,"lat":36.75,"zone":"eu","region":"阿尔及利亚"},{"n":"纽约","py":"niuyue|ny","en":"newyork","lng":-74.01,"lat":40.71,"zone":"am","region":"美国"},{"n":"华盛顿","py":"huashengdun|hsd","en":"washington","lng":-77.04,"lat":38.91,"zone":"am","region":"美国"},{"n":"波士顿","py":"boshidun|bsd","en":"boston","lng":-71.06,"lat":42.36,"zone":"am","region":"美国"},{"n":"费城","py":"feicheng|fc","en":"philadelphia","lng":-75.16,"lat":39.95,"zone":"am","region":"美国"},{"n":"芝加哥","py":"zhijiage|zjg","en":"chicago","lng":-87.63,"lat":41.88,"zone":"am","region":"美国"},{"n":"迈阿密","py":"maiami|mam","en":"miami","lng":-80.19,"lat":25.76,"zone":"am","region":"美国"},{"n":"奥兰多","py":"aolanduo|ald","en":"orlando","lng":-81.38,"lat":28.54,"zone":"am","region":"美国"},{"n":"拉斯维加斯","py":"lasweiijiasi|lswjs","en":"lasvegas","lng":-115.14,"lat":36.17,"zone":"am","region":"美国"},{"n":"洛杉矶","py":"luoshanji|lsj","en":"losangeles","lng":-118.24,"lat":34.05,"zone":"am","region":"美国"},{"n":"旧金山","py":"jiujinshan|jjs","en":"sanfrancisco","lng":-122.42,"lat":37.77,"zone":"am","region":"美国"},{"n":"圣何塞","py":"shenghejie|shj","en":"sanjose","lng":-121.89,"lat":37.34,"zone":"am","region":"美国"},{"n":"西雅图","py":"xiyatu|xyt","en":"seattle","lng":-122.33,"lat":47.61,"zone":"am","region":"美国"},{"n":"圣地亚哥","py":"shengdiyage|sdyg","en":"sandiego","lng":-117.16,"lat":32.72,"zone":"am","region":"美国"},{"n":"丹佛","py":"danfo|df","en":"denver","lng":-104.99,"lat":39.74,"zone":"am","region":"美国"},{"n":"新奥尔良","py":"xinaoerliang|xoel","en":"neworleans","lng":-90.07,"lat":29.95,"zone":"am","region":"美国"},{"n":"波特兰","py":"botelan|btl","en":"portland","lng":-122.68,"lat":45.52,"zone":"am","region":"美国"},{"n":"夏威夷","py":"xiaweiyi|xwy","en":"hawaii","lng":-157.86,"lat":21.31,"zone":"am","region":"美国"},{"n":"多伦多","py":"duolunduo|dld","en":"toronto","lng":-79.38,"lat":43.65,"zone":"am","region":"加拿大"},{"n":"温哥华","py":"wenhuahua|whh","en":"vancouver","lng":-123.12,"lat":49.28,"zone":"am","region":"加拿大"},{"n":"蒙特利尔","py":"mengtelier|mtle","en":"montreal","lng":-73.57,"lat":45.5,"zone":"am","region":"加拿大"},{"n":"墨西哥城","py":"moxige|mxgc","en":"mexicocity","lng":-99.13,"lat":19.43,"zone":"am","region":"墨西哥"},{"n":"坎昆","py":"kunkun|kk","en":"cancun","lng":-86.85,"lat":21.16,"zone":"am","region":"墨西哥"},{"n":"哈瓦那","py":"hawana|hwn","en":"havana","lng":-82.38,"lat":23.11,"zone":"am","region":"古巴"},{"n":"巴拿马城","py":"banamacheng|bnmc","en":"panama","lng":-79.52,"lat":8.98,"zone":"am","region":"巴拿马"},{"n":"哥斯达黎加","py":"gesidalijia|gsdlj","en":"costarica","lng":-84.08,"lat":9.93,"zone":"am","region":"哥斯达黎加"},{"n":"利马","py":"lima|lm","en":"lima","lng":-77.04,"lat":-12.05,"zone":"am","region":"秘鲁"},{"n":"库斯科","py":"kusike|ksk","en":"cusco","lng":-71.97,"lat":-13.53,"zone":"am","region":"秘鲁"},{"n":"马丘比丘","py":"maqiubiqiu|mqbq","en":"machupicchu","lng":-72.55,"lat":-13.16,"zone":"am","region":"秘鲁"},{"n":"拉巴斯","py":"labasi|lbs","en":"lapaz","lng":-68.12,"lat":-16.5,"zone":"am","region":"玻利维亚"},{"n":"圣保罗","py":"shengbaoluo|sbli","en":"saopaulo","lng":-46.63,"lat":-23.55,"zone":"am","region":"巴西"},{"n":"里约热内卢","py":"liyuerenlilu|lyrln","en":"rio","lng":-43.17,"lat":-22.91,"zone":"am","region":"巴西"},{"n":"布宜诺斯艾利斯","py":"buyinuosiailis|bnosael","en":"buenosaires","lng":-58.38,"lat":-34.6,"zone":"am","region":"阿根廷"},{"n":"乌斯怀亚","py":"wusihuaiya|wshy","en":"ushuaia","lng":-68.31,"lat":-54.8,"zone":"am","region":"阿根廷"},{"n":"复活节岛","py":"fuhuojiedao|fhjd","en":"easterisland","lng":-109.43,"lat":-27.12,"zone":"am","region":"智利"},{"n":"加拉帕戈斯","py":"jialapagesi|jlpgs","en":"galapagos","lng":-90.72,"lat":-0.74,"zone":"am","region":"厄瓜多尔"},{"n":"悉尼","py":"xini|xn","en":"sydney","lng":151.21,"lat":-33.87,"zone":"au","region":"澳大利亚"},{"n":"墨尔本","py":"moerben|meb","en":"melbourne","lng":144.96,"lat":-37.81,"zone":"au","region":"澳大利亚"},{"n":"布里斯班","py":"bulisiban|blsb","en":"brisbane","lng":153.03,"lat":-27.47,"zone":"au","region":"澳大利亚"},{"n":"珀斯","py":"posi|ps","en":"perth","lng":115.86,"lat":-31.95,"zone":"au","region":"澳大利亚"},{"n":"阿德莱德","py":"adelaide|adld","en":"adelaide","lng":138.6,"lat":-34.93,"zone":"au","region":"澳大利亚"},{"n":"堪培拉","py":"kanpeila|kpl","en":"canberra","lng":149.13,"lat":-35.28,"zone":"au","region":"澳大利亚"},{"n":"黄金海岸","py":"huangjinhaian|hjha","en":"goldcoast","lng":153.43,"lat":-28,"zone":"au","region":"澳大利亚"},{"n":"大堡礁","py":"dabaojiao|dbj","en":"greatbarrierreef","lng":147.7,"lat":-18.3,"zone":"au","region":"澳大利亚"},{"n":"凯恩斯","py":"kaiensi|kes","en":"cairns","lng":145.78,"lat":-16.92,"zone":"au","region":"澳大利亚"},{"n":"奥克兰","py":"aokelan|akl","en":"auckland","lng":174.76,"lat":-36.85,"zone":"au","region":"新西兰"},{"n":"皇后镇","py":"huanghouzhen|hhz","en":"queenstown","lng":168.66,"lat":-45.03,"zone":"au","region":"新西兰"},{"n":"基督城","py":"jiduzcheng|jdc","en":"christchurch","lng":172.64,"lat":-43.53,"zone":"au","region":"新西兰"},{"n":"惠灵顿","py":"huilingdun|hld","en":"wellington","lng":174.78,"lat":-41.29,"zone":"au","region":"新西兰"},{"n":"斐济","py":"feiji|fj","en":"fiji","lng":178.44,"lat":-18.14,"zone":"au","region":"斐济"},{"n":"大溪地","py":"daxidi|dxd","en":"tahiti","lng":-149.56,"lat":-17.54,"zone":"am","region":"法属波利尼西亚"},{"n":"关岛","py":"guandao|gd","en":"guam","lng":144.79,"lat":13.44,"zone":"sea","region":"美国"},{"n":"塞班岛","py":"saibandao|sbd","en":"saipan","lng":145.75,"lat":15.2,"zone":"sea","region":"美国"},{"n":"北极点","py":"beijidian|bjd","en":"northpole","lng":0,"lat":90,"zone":"n","region":"北极"},{"n":"北极","py":"beiji|bj","en":"arctic","lng":0,"lat":85,"zone":"n","region":"北极"},{"n":"格陵兰","py":"gelinnan|gln","en":"greenland","lng":-51.69,"lat":64.18,"zone":"am","region":"格陵兰"},{"n":"斯瓦尔巴","py":"siwabaer|swbe","en":"svalbard","lng":15.65,"lat":78.22,"zone":"n","region":"挪威"},{"n":"南极点","py":"nanjidian|njd","en":"southpole","lng":0,"lat":-90,"zone":"s","region":"南极"},{"n":"南极","py":"nanji|nj","en":"antarctic","lng":0,"lat":-80,"zone":"s","region":"南极"},{"n":"喜马拉雅","py":"ximalaya|xml","en":"himalaya","lng":86.93,"lat":27.99,"zone":"cn","region":"中国·西藏"},{"n":"珠穆朗玛峰","py":"zhumulangmafeng|zmlmf","en":"everest","lng":86.93,"lat":27.99,"zone":"cn","region":"中国·西藏"},{"n":"阿尔卑斯","py":"aerbeisi|abs","en":"alps","lng":9,"lat":46.5,"zone":"eu","region":"欧洲"},{"n":"死海","py":"sihai|sh","en":"deadsea","lng":35.5,"lat":31.5,"zone":"eu","region":"约旦"},{"n":"冰岛","py":"bingdao|iceland","en":"reykjavik","lng":-21.94,"lat":64.13,"zone":"eu","region":"欧洲·冰岛"},{"n":"因特拉肯","py":"yintelaken|interlaken","en":"interlaken","lng":7.86,"lat":46.69,"zone":"eu","region":"欧洲·瑞士"},{"n":"内罗毕","py":"neiluobi|nairobi","en":"nairobi","lng":36.82,"lat":-1.29,"zone":"sea","region":"非洲·肯尼亚"},{"n":"清莱","py":"qinglai|chiangrai","en":"chiangrai","lng":99.89,"lat":19.91,"zone":"cn","region":"亚洲·泰国"},{"n":"琅勃拉邦","py":"langbolabang|luangprabang","en":"luangprabang","lng":102.13,"lat":19.89,"zone":"cn","region":"亚洲·老挝"},{"n":"斯里兰卡","py":"sililanka|srilanka","en":"srilanka","lng":80.77,"lat":7.87,"zone":"sea","region":"亚洲·斯里兰卡"},{"n":"尼泊尔","py":"niboer|nepal","en":"nepal","lng":85.32,"lat":27.72,"zone":"cn","region":"亚洲·尼泊尔"},{"n":"不丹","py":"budan|bhutan","en":"bhutan","lng":89.74,"lat":27.47,"zone":"cn","region":"亚洲·不丹"},{"n":"格鲁吉亚","py":"gelujiya|georgia","en":"georgia","lng":44.83,"lat":41.72,"zone":"eu","region":"亚洲·格鲁吉亚"},{"n":"卡帕多奇亚","py":"kapaduoqiya|cappadocia","en":"cappadocia","lng":34.68,"lat":38.64,"zone":"eu","region":"亚洲·土耳其"},{"n":"阿拉斯加","py":"alasijia|alaska","en":"alaska","lng":-149.9,"lat":61.22,"zone":"am","region":"美洲·美国"},{"n":"黄石公园","py":"huangshigongyuan|yellowstone","en":"yellowstone","lng":-110.99,"lat":44.6,"zone":"am","region":"美洲·美国"},{"n":"古巴","py":"guba|cuba","en":"cuba","lng":-77.78,"lat":23.11,"zone":"am","region":"美洲·古巴"},{"n":"秘鲁","py":"bilu|peru","en":"peru","lng":-77.04,"lat":-12.04,"zone":"am","region":"美洲·秘鲁"},{"n":"玻利维亚","py":"boliweiya|bolivia","en":"bolivia","lng":-68.15,"lat":-16.5,"zone":"am","region":"美洲·玻利维亚"},{"n":"乞力马扎罗","py":"qilimazharo|kilimanjaro","en":"kilimanjaro","lng":37.35,"lat":-3.07,"zone":"sea","region":"非洲·坦桑尼亚"},{"n":"塞舌尔","py":"shesheer|seychelles","en":"seychelles","lng":55.49,"lat":-4.62,"zone":"sea","region":"非洲·塞舌尔"},{"n":"毛里求斯","py":"maoliqiusi|mauritius","en":"mauritius","lng":57.55,"lat":-20.35,"zone":"sea","region":"非洲·毛里求斯"},{"n":"开普敦","py":"kaipudun|capeown|capetown","en":"capetown","lng":18.42,"lat":-33.92,"zone":"sea","region":"非洲·南非"}];
 
-function defaultGoals(){
-  return [
-    {id:id(),ic:'🏸',n:'羽毛球',cur:1649,total:10000,paused:false,milestones:[
-      {label:'基本功 300h',thr:300},{label:'千小时',thr:1000},{label:'1500h',thr:1500},
-      {label:'水平达 3.5',skill:true,reached:false,auto:()=>!!(S.year[1]&&yearDone(1))},{label:'5000h',thr:5000},{label:'万小时大师',thr:10000}]},
-    {id:id(),ic:'💪',n:'身体健康',cur:898,total:3000,paused:false,milestones:[
-      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'2000h',thr:2000},{label:'3000h',thr:3000}]},
-    {id:id(),ic:'💼',n:'职业发展',cur:1017,total:2000,paused:false,milestones:[
-      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'2000h',thr:2000}]},
-    {id:id(),ic:'🎤',n:'生涯教练转行',cur:474,total:2000,paused:true,milestones:[
-      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'2000h',thr:2000}]},
-    {id:id(),ic:'🎹',n:'精神享受（钢琴/唱歌/阅读/播客）',cur:670,total:1500,paused:false,milestones:[
-      {label:'500h',thr:500},{label:'千小时',thr:1000},{label:'1500h',thr:1500}]},
-    {id:id(),ic:'🏔',n:'云南探索',cur:0,total:30,paused:false,milestones:[
-      {label:'7天',thr:7},{label:'15天',thr:15},{label:'30天',thr:30}]},
-  ];
+function norm(s){ return (s||'').toString().toLowerCase().replace(/\s+/g,'').replace(/[省市州县区县自治区特别行政区]/g,''); }
+function findCoord(q){
+  q=norm(q); if(!q) return [];
+  const res=[];
+  CITY_COORDS.forEach((c,idx)=>{
+    const n=norm(c.n), py=(c.py||'').toLowerCase(), en=(c.en||'').toLowerCase();
+    let score=-1;
+    if(n===q) score=100;
+    else if(n.includes(q)||q.includes(n)) score=80;
+    else if(py && py.split('|').some(p=>p.startsWith(q)||p.includes(q))) score=70;
+    else if(en && (en.includes(q)||q.includes(en))) score=68;
+    if(score>0) res.push(Object.assign({score,_i:idx},c));
+  });
+  res.sort((a,b)=> (b.score-a.score) || (a.n.length-b.n.length) || (a._i-b._i));
+  return res.slice(0,8);
 }
+function zoneName(z){ const t=MAP_TABS.find(t=>t.id===z); return t?t.name:z; }
+function geoZoneFor(lng,lat){
+  if(lat>=66) return 'n';
+  if(lat<=-60) return 's';
+  if(lng>=80&&lng<=125&&lat>=18&&lat<=50) return 'cn';
+  if(lng>=-30&&lng<=55&&lat>=30&&lat<=80) return 'eu';
+  if(lng>=-175&&lng<=-25&&lat>=-60&&lat<=80) return 'am';
+  if(lng>=105&&lng<=185&&lat>=-55&&lat<=5) return 'au';
+  return 'sea';
+}
+function defaultGoals(){ return {year:null, month:null}; }
 function defaultSupps(){
   const base=['维生素D','镁','鱼油','维生素C','氨糖','姜黄饮','姜黄奶','羽衣甘蓝粉','奇亚籽','甜菜根粉','电解质粉'];
   return base.map(t=>({id:id(),t,a:'BODY',xp:5,min:0,mode:'fixed',donedates:[],mins:{}}));
@@ -2128,20 +2178,30 @@ function toggle(list,idv){
   const item=list.find(x=>x.id===idv); if(!item)return;
   const d=REC_DATE||todayStr();
   const was=isDone(item,d);
+  const nowDone=!was;
+  // 低频疗愈类（头疗/按摩/康复理疗）：间隔至少 21 天，不连续两周
+  if(nowDone){
+    const left=lfDaysLeft(item,d);
+    if(left>0){
+      const g=lfGapDays(item);
+      alert('⏳ 间隔不足：「'+item.t+'」距上次完成仅 '+(g-left)+' 天，按你的习惯需至少间隔 '+g+' 天（不连续两周）。还需 '+left+' 天再做。');
+      return;
+    }
+  }
   if(item.mode==='time' && !was){
     const mv=parseInt(document.getElementById('min_'+idv)?.value)||0;
     if(mv<=0){ alert('先填这次的时长（分钟）'); return; }
     item.mins=item.mins||{}; item.mins[d]=mv;
   }
   setDone(item,d,!was);
-  const nowDone=!was;
   if(nowDone) touchActivity(d);
   const xp=itemXpAt(item,d);
   grant(item.a, xp, !nowDone);
   if(nowDone && S.mainQ===idv) S.bonusXP=(S.bonusXP||0)+10;
   if(!nowDone && S.mainQ===idv) S.bonusXP=Math.max(0,(S.bonusXP||0)-10);
   addHist((nowDone?'✔ ':'✘ ')+item.t+(item.mode==='time'&&item.mins&&item.mins[d]?(' '+h(item.mins[d])):''), nowDone?xp:-xp, d);
-  if(nowDone){ newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.a); if(_cm) celebrateTask(_cm);
+  if(nowDone){ if(lfGapDays(item)>0){ item.lfDates=item.lfDates||[]; if(!item.lfDates.includes(d)) item.lfDates.push(d); }
+    newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.a); if(_cm) celebrateTask(_cm);
     if(Math.random()<0.12){ const drp=dropReward(Math.random()<0.3?'small':'micro','完成：'+item.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
   }
   save();checkAch();render();
@@ -2683,6 +2743,7 @@ function listHtml(arr,kind){
           <span style="color:${ATTRS[safeAttr(x.a)].color}">${ATTRS[safeAttr(x.a)].name}</span>
           ${x.tags&&x.tags.includes('badminton')?'<span class="qtag">🏸羽毛球</span>':''}
           ${done?`<span class="qdate">📅 ${fmtMD(lastDoneDate(x))}</span>`:''}
+          ${!done && lfDaysLeft(x,d)>0?`<span class="qcool">⏳ 冷却中·还需${lfDaysLeft(x,d)}天</span>`:''}
         </div>
         <button class="btn ghost sm" onclick="toggle(S.${kind},'${x.id}')">${done?'撤销':'完成'}</button>
         <div class="qdel" onclick="delQuest('${kind}','${x.id}')" title="删除">×</div>
@@ -2698,6 +2759,7 @@ function listHtml(arr,kind){
         <span style="color:${ATTRS[safeAttr(x.a)].color}">${ATTRS[safeAttr(x.a)].name}</span>
         ${x.tags&&x.tags.includes('badminton')?'<span class="qtag">🏸羽毛球</span>':''}
         ${done?`<span class="qdate">📅 ${fmtMD(lastDoneDate(x))}</span>`:''}
+        ${!done && lfDaysLeft(x,d)>0?`<span class="qcool">⏳ 冷却中·还需${lfDaysLeft(x,d)}天</span>`:''}
       </div>
       <div class="qdel" onclick="delQuest('${kind}','${x.id}')" title="删除">×</div>
     </div>`;
@@ -2798,7 +2860,7 @@ function renderMap(){
     svg += WORLD_LAND.map(d=>`<path class="land" d="${d}"/>`).join('');
     const places = placesInZone(tab.id);
     if(!places.length){
-      svg += `<text x="500" y="250" text-anchor="middle" fill="#9bb6cc" font-size="15" font-family="inherit">本区暂无规划地点（点「＋新增地点」在地图上加一个）</text>`;
+      svg += `<text x="500" y="250" text-anchor="middle" fill="#9bb6cc" font-size="15" font-family="inherit">本区暂无规划地点（点「＋新增地点」输入地名自动定位）</text>`;
     } else {
       places.forEach(p=>{ svg+=mk(p); });
     }
@@ -2818,7 +2880,7 @@ function renderMap(){
   const fpEl=document.getElementById('footprints');
   if(fpEl){
     const list=all.filter(p=>S.travel[p.id]&&S.travel[p.id].visited);
-    if(!list.length){ fpEl.innerHTML='<div style="color:var(--dim);font-size:13px">还没有到访记录。点击地图上的圆点，标记「我去过了」开始你的足迹；也可以点「＋新增地点」把预设以外的地方加进来。</div>'; }
+    if(!list.length){ fpEl.innerHTML='<div style="color:var(--dim);font-size:13px">还没有到访记录。点击地图上的圆点，标记「我去过了」开始你的足迹；也可以点「＋新增地点」输入地名自动加进来。</div>'; }
     else fpEl.innerHTML=list.map(p=>{
       const d=S.travel[p.id]; const stars='★'.repeat(d.rating||0)+'☆'.repeat(5-(d.rating||0));
       return `<div class="fp" onclick="openPlaceEditor('${p.id}')">
@@ -2839,9 +2901,49 @@ function renderMapTabs(){
     const n=placesInZone(t.id).length;
     const active = S.mapTab===t.id ? ' active':'';
     return `<button class="maptab${active}" onclick="setMapTab('${t.id}')">${t.name}${n?` <span class="mt-n">${n}</span>`:''}</button>`;
-  }).join('') + `<button class="maptab add${_adding?' active':''}" onclick="startAddPlace()">＋ 新增地点</button>`;
+  }).join('') + `<button class="maptab add" onclick="openAddSearch()">＋ 新增地点</button>`;
 }
 function setMapTab(id){ if(S.mapTab===id) return; S.mapTab=id; save(); renderMap(); }
+
+// ===== 新增地点：输入地名 → 自动在地图对应位置点亮 =====
+let _cands=[];
+function openAddSearch(){
+  _cands=[];
+  const si=document.getElementById('citySearch'); if(si) si.value='';
+  const cc=document.getElementById('cityCands'); if(cc) cc.innerHTML='';
+  const fb=document.getElementById('cityFallback'); if(fb) fb.style.display='none';
+  const m=document.getElementById('addSearchModal'); if(m) m.style.display='flex';
+  setTimeout(()=>{ const i=document.getElementById('citySearch'); if(i) i.focus(); },60);
+}
+function closeAddSearch(){ const m=document.getElementById('addSearchModal'); if(m) m.style.display='none'; }
+function renderCityCands(){
+  const q=(document.getElementById('citySearch').value||'').trim();
+  const box=document.getElementById('cityCands'); if(!box) return;
+  const fb=document.getElementById('cityFallback');
+  if(!q){ box.innerHTML=''; if(fb) fb.style.display='none'; return; }
+  const list=findCoord(q); _cands=list;
+  if(!list.length){
+    box.innerHTML='<div class="hint" style="padding:10px 2px">库里没有这个地名。可换个说法，或在地图上手动点选位置。</div>';
+    if(fb) fb.style.display='block';
+    return;
+  }
+  if(fb) fb.style.display='none';
+  box.innerHTML=list.map((c,i)=>`<div class="city-cand" onclick="pickCity(${i})">
+    <span class="cc-name">${escapeHtml(c.n)}</span>
+    <span class="cc-region">${escapeHtml(c.region||'')}</span>
+    <span class="cc-coord">${c.lng.toFixed(1)}°E, ${c.lat.toFixed(1)}°N · ${zoneName(c.zone)}</span>
+  </div>`).join('');
+}
+function pickCity(i){
+  const c=_cands[i]; if(!c) return;
+  if(!S.customPlaces) S.customPlaces=[];
+  const id='c_'+Date.now();
+  S.customPlaces.push({id,name:c.n,sub:c.region||'',region:'自定义',zone:c.zone,lng:c.lng,lat:c.lat,wish:false});
+  S.mapTab=c.zone;
+  save();
+  closeAddSearch();
+  openCustomModal(id,null);
+}
 
 function renderTravelGoals(){
   const gy=document.getElementById('goalYear'), gm=document.getElementById('goalMonth');
@@ -2917,9 +3019,10 @@ function savePlace(){
 }
 function closePlaceEditor(){ _pmId=null; const m=document.getElementById('placeModal'); if(m) m.style.display='none'; }
 
-function startAddPlace(){
-  _adding=!_adding;
-  const tip=document.getElementById('addTip'); if(tip) tip.style.display=_adding?'block':'none';
+function manualAddMode(){
+  closeAddSearch();
+  _adding=true;
+  const tip=document.getElementById('addTip'); if(tip) tip.style.display='block';
   renderMapTabs(); renderMap();
 }
 function onMapClick(evt){
@@ -3562,7 +3665,7 @@ function renderRewards(){
         <div class="rw-meta">📅 ${d.ts}${d.reason?' · '+escapeHtml(d.reason):''}${d.claimed?(' · ✅ 已享用 '+d.claimedAt):''}</div>
       </div>
       <div class="rw-act">
-        ${d.claimed?'<span class="rw-done">已享用</span>':`<button class="btn sm primary" onclick="claimReward(${idx})">我享用啦</button>`}
+        ${d.claimed?'':`<button class="btn sm primary" onclick="claimReward(${idx})">我享用啦</button>`}
       </div>
     </div>`;
   }).join('');
