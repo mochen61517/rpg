@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v5.18.1</title>
+<title>人生修行录 · v5.19.0</title>
 <style>
   :root{
     --bg:#161412; --panel:#221e1a; --panel2:#2c2622; --line:#4a3f36;
@@ -850,6 +850,47 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 .quote-banner .q-src{ margin-top:6px; font-size:12.5px; color:var(--dim); text-align:right; }
 .quote-banner .q-shuffle{ margin-left:10px; padding:2px 9px; font-size:12px; color:var(--gold); background:transparent; border:1px solid var(--gold); border-radius:20px; cursor:pointer; vertical-align:middle; opacity:.78; transition:opacity .15s, background .15s; }
 .quote-banner .q-shuffle:hover{ opacity:1; background:rgba(212,168,75,.12); }
+
+/* ===== v5.19 互动版块 ===== */
+/* ② 每日宜忌 */
+.yiji{ display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; }
+.yiji .yj{ padding:6px 14px; border-radius:20px; font-size:15px; font-weight:600; }
+.yiji .yi{ color:var(--gold); background:rgba(212,168,75,.12); border:1px solid rgba(212,168,75,.4); }
+.yiji .ji{ color:#e08a8a; background:rgba(224,138,138,.10); border:1px solid rgba(224,138,138,.35); }
+.yiji-note{ margin-top:8px; font-size:12.5px; color:var(--dim); line-height:1.6; }
+.yiji-done{ margin-top:8px; font-size:13px; color:var(--gold); }
+/* ③ 远方来信 */
+.badge-new{ display:inline-block; padding:1px 9px; border-radius:12px; background:var(--gold); color:#1a1208; font-size:12px; font-weight:700; margin-left:6px; }
+.letter-list{ margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+.letter-item{ display:flex; align-items:center; gap:10px; padding:9px 12px; border:1px solid rgba(255,255,255,.08); border-radius:9px; cursor:pointer; transition:background .15s; }
+.letter-item:hover{ background:rgba(255,255,255,.05); }
+.letter-item.read{ opacity:.55; }
+.letter-item .lt{ flex:1; font-size:13.5px; }
+.letter-item .lp{ font-size:12px; color:var(--dim); }
+.letter-item .ls{ font-size:12px; color:var(--gold); }
+.letter-head{ font-size:17px; font-weight:700; color:var(--txt); margin-bottom:4px; }
+.letter-from{ font-size:12px; color:var(--gold); margin-bottom:10px; }
+.letter-body{ font-family:"Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif; font-size:15px; line-height:1.9; color:var(--txt); white-space:pre-wrap; }
+.letter-task{ margin-top:12px; font-size:13px; color:var(--dim); }
+.letter-done{ margin-top:8px; font-size:13px; color:var(--gold); }
+/* ④ 江湖偶遇 */
+.enc-who{ font-size:15px; font-weight:700; color:var(--gold); margin-bottom:4px; }
+.enc-tex{ font-family:"Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif; font-size:14.5px; line-height:1.8; color:var(--txt); margin-bottom:10px; }
+.enc-opts{ display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+/* ⑤ 成就羁绊 */
+.bond-list{ margin-top:8px; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+.bond{ padding:12px 14px; border:1px solid rgba(255,255,255,.10); border-radius:11px; cursor:pointer; transition:border-color .15s, background .15s; }
+.bond:hover{ background:rgba(255,255,255,.04); }
+.bond-done{ border-color:rgba(212,168,75,.55); background:rgba(212,168,75,.07); }
+.bond-h{ display:flex; justify-content:space-between; align-items:baseline; }
+.bond-n{ font-size:15px; font-weight:700; color:var(--txt); }
+.bond-c{ font-size:12px; color:var(--dim); }
+.bond-npc{ font-size:12.5px; color:var(--gold); margin:5px 0 3px; }
+.bond-state{ font-size:12px; color:var(--dim); }
+.bond-sub{ font-size:12px; color:var(--gold); margin-bottom:8px; }
+/* 通用 modal-body */
+.modal-body{ padding:18px 20px; font-size:14px; max-height:70vh; overflow:auto; }
+.modal-body .btn{ margin-top:6px; }
 </style>
 </head>
 <body>
@@ -857,7 +898,7 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic">🕯️</div>
-      <div class="brand-t">人生修行录<span>v5.18.1 · 今日一句扩容至 ~95 条 + 可「换一句」</span></div>
+      <div class="brand-t">人生修行录<span>v5.19.0 · 互动版块：宜忌抽签 / 远方来信 / 江湖偶遇 / 成就羁绊</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -887,6 +928,9 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 
       <!-- 今日一句 -->
       <div class="panel quote-banner" id="quoteBanner"></div>
+
+      <!-- 今日宜忌抽签 -->
+      <div class="panel dash-card col12" data-dash-id="draw" id="drawBox"></div>
 
       <!-- 角色卡 -->
       <!-- 角色卡 -->
@@ -994,6 +1038,9 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
           <button class="btn ghost" onclick="resetSidePool()">🔄 重置任务库</button>
         </div>
         <div class="hint">每天自动刷新日行、每周一刷新周游、每月 1 日刷新月行（不管完成与否）。「抽一则」会生成一条 <b>🔴 强制</b> 任务（其他为选择性）。完成任务 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
+      </div>
+      <div class="panel">
+        <div id="encBox"></div>
       </div>
       <div class="panel">
         <h2>💡 补充灵感 · 加入随机库存</h2>
@@ -1296,6 +1343,9 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
         <div class="hint">完成对应修行即可点亮；带「认领」的成就需手动认领。</div>
       </div>
       <div class="panel">
+        <div id="bondBox"></div>
+      </div>
+      <div class="panel">
         <h2>🌟 人生愿望 · 人生副本</h2>
         <div class="wishgroups" id="wishGroups"></div>
         <div class="hint">每条都是一枚可点亮的人生徽章：点一下即「点亮 ✔」，再点取消。已点亮的会同步出现在首页徽章版块。把它当作长线支线，逐条点亮。</div>
@@ -1328,11 +1378,21 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
           <div class="gfield"><label>🌙 本月旅行目标</label><select id="goalMonth" onchange="setTravelGoal('month',this.value)"></select><span class="gach" id="goalMonthAch"></span></div>
         </div>
         <div class="hint" style="margin-top:12px">点击地图上的圆点，标记「我去过了」并写下感受；预设之外的地方，点左上角「＋新增地点」→ 输入地名（如大理、冰岛、巴黎），系统会自动在地图对应位置点亮。年/月旅行目标可在上方设定，达成后自动显示 ✅。</div>
+        <div class="panel" id="letterBox"></div>
         <h3 style="margin:16px 0 4px; font-size:14px">📍 我的足迹</h3>
         <div class="footprints" id="footprints"></div>
       </div>
     </div>
     <!-- 地点编辑弹窗 -->
+    <!-- 远方来信 阅读弹窗 -->
+    <div id="letterModal" class="modal-mask" style="display:none" onclick="if(event.target===this)hideModal('letterModal')">
+      <div class="modal"><div class="modal-x" onclick="hideModal('letterModal')">×</div><div class="modal-body"></div></div>
+    </div>
+    <!-- 成就羁绊 阅读弹窗 -->
+    <div id="bondModal" class="modal-mask" style="display:none" onclick="if(event.target===this)hideModal('bondModal')">
+      <div class="modal"><div class="modal-x" onclick="hideModal('bondModal')">×</div><div class="modal-body"></div></div>
+    </div>
+
     <div id="placeModal" class="modal-mask" style="display:none" onclick="if(event.target===this)closePlaceEditor()">
       <div class="modal">
         <div class="modal-h"><span id="pmName"></span><span class="modal-x" onclick="closePlaceEditor()">×</span></div>
@@ -2101,6 +2161,10 @@ function defaultState(){
     npc: { active:[], week:'' },  // NPC 委托：本周在办委托 + 所属周
     skill: { spent:{}, un:[] },   // 技能树：各系已花点数 + 已解锁节点 id
     season: { cur:'', titles:[], worn:'' }, // 赛季：当前赛季 / 已获称号 / 佩戴中
+    draw: { date:'', yi:'', ji:'', claimed:false }, // 每日宜忌抽签：当日签文 + 是否已承接气运
+    letters: { unlocked:[], pointer:0 },             // 远方来信：已解锁信件队列
+    enc: { cur:null, done:[] },                      // 江湖偶遇：当前偶遇 + 已完成记录
+    bonds: { awarded:[] },                           // 成就羁绊：已解锁的系
   };
 }
 
@@ -2320,6 +2384,14 @@ function migrate(){
   if(!Array.isArray(S.skill.un)) S.skill.un=[];
   if(!S.season || typeof S.season!=='object') S.season={cur:'',titles:[],worn:''};
   if(!Array.isArray(S.season.titles)) S.season.titles=[];
+  // v5.19 新字段兜底（每日宜忌 / 远方来信 / 江湖偶遇 / 成就羁绊）
+  if(!S.draw || typeof S.draw!=='object') S.draw={date:'',yi:'',ji:'',claimed:false};
+  if(!S.letters || typeof S.letters!=='object') S.letters={unlocked:[],pointer:0};
+  if(!Array.isArray(S.letters.unlocked)) S.letters.unlocked=[];
+  if(!S.enc || typeof S.enc!=='object') S.enc={cur:null,done:[]};
+  if(!Array.isArray(S.enc.done)) S.enc.done=[];
+  if(!S.bonds || typeof S.bonds!=='object') S.bonds={awarded:[]};
+  if(!Array.isArray(S.bonds.awarded)) S.bonds.awarded=[];
   refreshSideQuests();
 }
 async function load(){
@@ -2723,7 +2795,7 @@ function newDay(){
     S.lastMonth=thisMonth();
   }
   addHist('🌅 新的一天');
-  try{ npcRoll(); seasonCheck(); }catch(e){}
+  try{ npcRoll(); seasonCheck(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){}
   save();checkAch();render();
 }
 function resetAll(){
@@ -3862,6 +3934,8 @@ function render(){
   try{ checkVolume(); seasonCheck(); }catch(e){}
   try{ renderEnergy(); renderSaga(); renderLiunian(); renderNpc(); renderSkillTree(); renderSeason(); renderWorn(); }catch(e){ console.warn('v5.17 render',e); }
   try{ renderQuote(); }catch(e){ console.warn('v5.18 render',e); }
+  // v5.19 互动版块渲染
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); }catch(e){ console.warn('v5.19 render',e); }
   newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
   newlyDone=[];
 }
@@ -4792,6 +4866,271 @@ function renderQuote(){
 }
 function shuffleQuote(){ _qoff++; try{ localStorage.setItem('qoff_'+todayStr(), String(_qoff)); }catch(e){} renderQuote(); }
 
+// ===== v5.19 互动版块：每日宜忌抽签 / 远方来信 / 江湖偶遇 / 成就羁绊 =====
+// 复用同一套 NPC 阵容（林教头/沈掌柜/云娘/白鹭先生），让世界感连贯
+
+// —— ② 每日宜忌抽签 ——
+const YIJI=[
+ {yi:'动脑',ji:'久坐',note:'给大脑一点新挑战，别黏在椅子上。'},
+ {yi:'出出汗',ji:'熬到深夜',note:'动起来，今晚早点熄灯。'},
+ {yi:'主动联系老友',ji:'独自硬扛',note:'一条消息，就能接住你自己。'},
+ {yi:'深读一书',ji:'碎片刷屏',note:'放下手机，读完一章。'},
+ {yi:'早睡',ji:'咖啡因续命',note:'今天的能量，从昨晚的觉开始。'},
+ {yi:'把一件事做透',ji:'贪多并行',note:'少即是多，做完再开下一件。'},
+ {yi:'对镜练一段琴',ji:'苛责手生',note:'不求好，求完整。'},
+ {yi:'走出去晒太阳',ji:'闷在屋里',note:'丁火喜金水清凉，也需一点暖意。'},
+ {yi:'写下今日三件小确幸',ji:'只盯不足',note:'看见拥有的，比盯着缺的更有力。'},
+ {yi:'约一场球',ji:'久坐不动',note:'身体是你能直接掌控的领地。'},
+ {yi:'复盘一段经历',ji:'反复懊悔',note:'复盘是为了往前，不是为了鞭尸。'},
+ {yi:'给未来的自己写句话',ji:'焦虑未知',note:'把担心写下来，它就小了一圈。'},
+ {yi:'慢炖一锅饭',ji:'敷衍肠胃',note:'好好吃饭，是最朴素的善待。'},
+ {yi:'听一首老歌',ji:'比较他人',note:'你的节奏，不用和谁对齐。'},
+ {yi:'闭眼静坐十分钟',ji:'信息过载',note:'留白，是为了更好的运转。'},
+ {yi:'把烦恼说给风听',ji:'憋在心里',note:'说出来，风就替你扛了一半。'},
+];
+const YIJI_REST={yi:'休息',ji:'硬撑硬扛',note:'精力已透支，今天的事可以留到明天，先把人照顾好。'};
+function drawRoll(){
+  let st=''; try{ st=(energyState()||{}).state; }catch(_){}
+  const pick=(st==='透支')?YIJI_REST:YIJI[Math.floor(Math.random()*YIJI.length)];
+  S.draw={date:todayStr(), yi:pick.yi, ji:pick.ji, note:pick.note, claimed:false};
+}
+function drawClaim(){
+  if(!S.draw||S.draw.date!==todayStr()||S.draw.claimed) return;
+  S.bonusXP=(S.bonusXP||0)+20;
+  addHist('✔【宜忌】承接今日气运 +20 XP', 20);
+  try{ touchActivity(todayStr()); }catch(_){}
+  celebrateTask('今日气运已承 ✦ +20');
+  S.draw.claimed=true; save(); checkAch(); render();
+}
+function renderDraw(){
+  const el=document.getElementById('drawBox'); if(!el) return;
+  if(!S.draw||S.draw.date!==todayStr()) drawRoll();
+  const d=S.draw;
+  let h='<h2>🎴 今日宜忌 <span class="note">每日一签 · 承气运 +20</span></h2>';
+  h+='<div class="yiji"><span class="yj yi">宜 · '+d.yi+'</span><span class="yj ji">忌 · '+d.ji+'</span></div>';
+  h+='<div class="yiji-note">'+(d.note||'')+'</div>';
+  h+= d.claimed? '<div class="yiji-done">✦ 今日气运已承</div>'
+                : '<button class="btn sm" style="margin-top:8px" onclick="drawClaim()">承接今日气运 +20 XP</button>';
+  el.innerHTML=h;
+}
+
+// —— ③ 远方来信 ——
+const LETTERS_ORDER=['yunnan','xizang','chuanxi','guizhou','guangxi','hainan','xinjiang','japan','sweden','beijing'];
+const LETTERS={
+  yunnan:[
+    {t:'昆明 · 第一封信', b:'这里的云是低的，低到像要落进翠湖里。你先前说想找个凉爽近水的地方，昆明八月不过二十多度，风一过就凉。我在滇池边坐了一下午，什么也没做，难得地，不觉得浪费。', task:{t:'给云南写一句你想对它说的话', xp:15}},
+    {t:'大理 · 风的形状', b:'洱海的水是安静的蓝，苍山在背后沉默地绿着。古城里随便一家小院都种着花。你说不想一直在北京——这里的人不急，连卖花的老太太都慢。也许你可以先来住满一个月，看看是不是真的合。', task:{t:'列三个你最想在大理做的事', xp:15}},
+    {t:'丽江 · 雪山与慢', b:'玉龙雪山远远白着，古城的溪水从脚边流过。夜里四方街有歌，有人弹吉他唱老歌。你喜水，这里处处是水。我替你把窗打开了，风进来，丁火也就凉了半分。', task:null},
+  ],
+  xizang:[
+    {t:'拉萨 · 海拔之上', b:'这里的天蓝得不像话，经幡被风念了一整年。氧气薄，反而让人慢下来、只想好好呼吸。若你来，记得先缓几天，别跟身体较劲。', task:{t:'做一组深呼吸，想象自己在高原', xp:10}},
+    {t:'拉萨 · 一盏酥油灯', b:'大昭寺前人人都平静。我点了一盏灯，替所有还在城市里硬撑的人。你也该有人替你点一盏。', task:null},
+  ],
+  chuanxi:[
+    {t:'成都 · 慢的练习', b:'茶馆里一坐就是一下午，没人觉得你在虚度。你说怕虚无，可虚无的反面不是忙，是「愿意停」。成都教你停。', task:{t:'允许自己无所事事半小时', xp:10}},
+    {t:'川西 · 雪山公路', b:'出城往西，山一下子高了。路边的牦牛比人悠闲。你若自驾走一趟，会明白什么叫「世界很大，我的愁很小」。', task:null},
+  ],
+  guizhou:[
+    {t:'贵阳 · 爽爽的城', b:'「爽爽的贵阳」不是广告词，是体感。夏天不用空调，山风穿堂。你喜凉，这里是天然的。', task:{t:'查一查贵阳的住处与气候', xp:10}},
+  ],
+  guangxi:[
+    {t:'桂林 · 山水之间', b:'从小课本里的山水，真到了才知道为什么叫甲天下。竹筏漂在漓江，时间像被水冲慢了。', task:null},
+  ],
+  hainan:[
+    {t:'海口 · 海风来信', b:'冬天这里穿短袖，你若厌了北京的冷，可以来避。但你说喜清凉不喜湿热，所以海南只作备选——记着，别勉强自己待在不舒服的地方。', task:{t:'记下你理想气候的三个关键词', xp:10}},
+  ],
+  xinjiang:[
+    {t:'乌鲁木齐 · 辽阔', b:'天山大得很，人在里头显得小，愁也小。烤肉和瓜果都实在。若你想远远地逃开人群，这里够远。', task:null},
+  ],
+  japan:[
+    {t:'东京 · 烟火与秩序', b:'涩谷的人流像河，却从不乱。小酒馆里陌生人也能聊一夜。你若想看看另一种「认真生活」的样子，东京不错。', task:{t:'学一句想去国度的语言问候', xp:10}},
+  ],
+  sweden:[
+    {t:'斯德哥尔摩 · 静谧', b:'夏天白夜长，太阳迟迟不落。森林湖边的小木屋，安静得能听见自己。你喜水，这里的湖多得数不清。', task:null},
+  ],
+  beijing:[
+    {t:'北京 · 给现在的你', b:'你正身处其中，也许倦了。但那些球馆、琴房、老同事，都是你一点点攒下的据点。离开或留下都行，先别否定它们。', task:{t:'给北京写一句感谢或告别', xp:10}},
+  ],
+};
+function letterTotal(){ let n=0; LETTERS_ORDER.forEach(p=>{ n+=(LETTERS[p]||[]).length; }); return n; }
+function letterCheck(force){
+  if(!S.letters) S.letters={unlocked:[],pointer:0};
+  const hasUnread=(S.letters.unlocked||[]).some(l=>!l.read);
+  if(hasUnread && !force) return;
+  if(S.letters.pointer>=letterTotal()) return;
+  let rem=S.letters.pointer, target=null;
+  for(const p of LETTERS_ORDER){ const arr=LETTERS[p]||[]; if(rem<arr.length){ target={place:p,idx:rem}; break; } rem-=arr.length; }
+  if(!target) return;
+  const meta=LETTERS[target.place][target.idx];
+  S.letters.unlocked.push({place:target.place, idx:target.idx, read:false, date:todayStr(), title:meta.t, body:meta.b, task:meta.task?{...meta.task,done:false}:null});
+  S.letters.pointer++;
+  addHist('✉️ 远方来信：'+meta.t); save();
+}
+function letterUnread(){ return (S.letters.unlocked||[]).filter(l=>!l.read).length; }
+function renderLetters(){
+  const el=document.getElementById('letterBox'); if(!el) return;
+  const list=S.letters.unlocked||[];
+  let h='<h2>✉️ 远方来信 <span class="note">按你心里的地图，慢慢寄到</span>';
+  const un=letterUnread(); if(un) h+=' <span class="badge-new">'+un+' 封未读</span>';
+  h+='</h2>';
+  if(!list.length){ h+='<div class="hint">还没有来信。先在旅行地图上点亮你心里的目的地，信会一封封寄来——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
+  h+='<div class="letter-list">';
+  list.forEach((l,i)=>{
+    const placeName=(TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+    h+='<div class="letter-item'+(l.read?' read':'')+'" onclick="openLetter('+i+')">'
+      +'<span class="lt">'+l.title+'</span><span class="lp">'+placeName+'</span>'
+      +'<span class="ls">'+(l.read?'已读':'未读')+'</span></div>';
+  });
+  h+='</div>'; el.innerHTML=h;
+}
+function openLetter(i){
+  const l=(S.letters.unlocked||[])[i]; if(!l) return;
+  l.read=true; save(); renderLetters();
+  const placeName=(TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+  let body='<div class="letter-head">'+l.title+'</div><div class="letter-from">—— 寄自 '+placeName+'</div><div class="letter-body">'+l.body+'</div>';
+  if(l.task){
+    body+='<div class="letter-task">附：'+l.task.t+' <b>+'+l.task.xp+' XP</b></div>';
+    body+= l.task.done? '<div class="letter-done">✦ 已回应</div>'
+                      : '<button class="btn sm" style="margin-top:8px" onclick="respondLetter('+i+')">回应这封信（领取 +'+l.task.xp+' XP）</button>';
+  }
+  showModal('letterModal', body);
+}
+function respondLetter(i){
+  const l=(S.letters.unlocked||[])[i]; if(!l||!l.task||l.task.done) return;
+  l.task.done=true;
+  S.bonusXP=(S.bonusXP||0)+l.task.xp;
+  addHist('✔【来信】回应「'+l.title+'」 +'+l.task.xp+' XP', l.task.xp);
+  try{ touchActivity(todayStr()); }catch(_){}
+  celebrateTask('远方回响 ✦ +'+l.task.xp);
+  save(); checkAch(); hideModal('letterModal'); render();
+}
+
+// —— ④ 江湖偶遇 ——
+const ENCOUNTERS=[
+  {id:'lin', who:'林教头', a:'BADMINTON', tex:'林教头在馆外抽烟，看你还拎着拍，抬了抬下巴：「今天手感如何？」',
+   opts:[{t:'陪他多练三十球',xp:30,note:'羽道精进'},{t:'笑着跑开，改天再练',xp:0}]},
+  {id:'shen', who:'沈掌柜', a:'CAREER', tex:'沈掌柜塞来一张招聘会门票：「别光看，去现场闻闻气味。」',
+   opts:[{t:'去现场看看',xp:20,note:'业道有进'},{t:'先收着，再看',xp:0}]},
+  {id:'yun', who:'云娘', a:'BODY', tex:'云娘端来一碗汤：「你脸色不好，先喝完。」',
+   opts:[{t:'老实喝完',xp:15,note:'根基回血'},{t:'推说没空',xp:0}]},
+  {id:'bailu', who:'白鹭先生', a:'MIND', tex:'白鹭先生在旧书铺弹琴，招手你上前：「来，弹一段，不求好。」',
+   opts:[{t:'弹一段给他听',xp:20,note:'灵台澄明'},{t:'只听不弹',xp:0}]},
+  {id:'old', who:'卖花老太太', a:null, tex:'路边遇到卖花的老太太，篮里是几支蔫了却还香的花。',
+   opts:[{t:'买一支插瓶',xp:10,note:'生活的小确幸'},{t:'匆匆走过',xp:0}]},
+  {id:'tea', who:'茶摊老板', a:null, tex:'巷口茶摊老板给你续了杯免费的：「看你总在赶路。」',
+   opts:[{t:'坐下喝完这杯',xp:10,note:'留白片刻'},{t:'道谢带走',xp:0}]},
+];
+function encWeight(e){ let w=1; if(e.a){ try{ if((attrMinutesOn(todayStr())[e.a]||0)>0) w+=2; }catch(_){} } return w; }
+function encounterRoll(auto){
+  const pool=ENCOUNTERS.slice();
+  const totalW=pool.reduce((s,e)=>s+encWeight(e),0);
+  let r=Math.random()*totalW, pick=pool[0];
+  for(const e of pool){ r-=encWeight(e); if(r<=0){ pick=e; break; } }
+  S.enc.cur={eid:pick.id, who:pick.who, tex:pick.tex, opts:pick.opts.map(o=>({t:o.t,xp:o.xp||0,note:o.note||''}))};
+  if(!auto) save();
+}
+function encPick(i){
+  const cur=S.enc.cur; if(!cur) return;
+  const o=cur.opts[i]; if(!o) return;
+  if(o.xp){ S.bonusXP=(S.bonusXP||0)+o.xp; addHist('✔【偶遇】'+cur.who+'：'+o.t+' +'+o.xp+' XP', o.xp); try{ touchActivity(todayStr()); }catch(_){} celebrateTask(cur.who+'点了点头 ✦ +'+o.xp); }
+  (S.enc.done=S.enc.done||[]).push({eid:cur.eid,t:o.t,xp:o.xp||0,date:todayStr()});
+  S.enc.cur=null; save(); checkAch(); render();
+}
+function renderEncounter(){
+  const el=document.getElementById('encBox'); if(!el) return;
+  let h='<h2>🪄 江湖偶遇 <span class="note">按你近日行迹，故人偶现</span></h2>';
+  if(S.enc.cur){
+    const c=S.enc.cur;
+    h+='<div class="enc-who">'+c.who+'</div><div class="enc-tex">'+c.tex+'</div><div class="enc-opts">';
+    c.opts.forEach((o,i)=>{ h+='<button class="btn sm" onclick="encPick('+i+')">'+o.t+(o.xp?' <b>+'+o.xp+'</b>':'')+'</button>'; });
+    h+='</div>';
+  } else {
+    h+='<div class="hint">此刻江湖平静。点击「探寻」，看今日会撞见哪位故人。</div>';
+    h+='<button class="btn sm" style="margin-top:8px" onclick="encounterRoll(false);save();render()">🪄 探寻江湖</button>';
+  }
+  el.innerHTML=h;
+}
+
+// —— ⑤ 成就羁绊 ——
+const BONDS=[
+  {id:'b_body', name:'强健之契', npc:'云娘', title:'守拙·体道', ids:['body1','s7','s30'],
+   line:'云娘抚了抚你的肩：「身子是修行之本。你肯规律、肯不硬撑，这契，算立下了。」'},
+  {id:'b_bm', name:'羽道之契', npc:'林教头', title:'穿林·羽道', ids:['bm1k'],
+   line:'林教头难得笑了笑：「拍子没白拿。羽道这一契，你早就该立。」'},
+  {id:'b_mind', name:'灵台之契', npc:'白鹭先生', title:'清音·灵台', ids:['piano1','mindGuard','mindBound'],
+   line:'白鹭先生拨了下琴弦：「心里有这一样只为自己做的事，灵台就乱不了。契成。」'},
+  {id:'b_career', name:'立基之契', npc:'沈掌柜', title:'安身·业道', ids:['ashore','careerCrown','coachOpen'],
+   line:'沈掌柜拍板：「安身立命，先有可立之处。你一步一步在走，这契，掌柜认了。」'},
+  {id:'b_yun', name:'云水之契', npc:'白鹭先生', title:'清凉·云水', ids:['yunnan'],
+   line:'白鹭先生指了指远方的水：「丁火喜金水清凉，云南那汪水，你迟早要去。这契，先替你备着。」'},
+];
+function achUn(id){ const a=(S.ach||[]).find(x=>x.id===id); return !!(a&&a.un); }
+function bondDone(b){ return b.ids.every(id=>achUn(id)); }
+function grantBond(b){
+  if(S.bonds.awarded.indexOf(b.id)>=0) return;
+  S.bonds.awarded.push(b.id);
+  if((S.season.titles||[]).indexOf(b.title)<0) S.season.titles.push(b.title);
+  addHist('🔗 成就羁绊达成：'+b.name+' → 称号「'+b.title+'」'); save();
+}
+function renderBonds(){
+  const el=document.getElementById('bondBox'); if(!el) return;
+  let h='<h2>🔗 成就羁绊 <span class="note">集齐一系，故人赠你一句 · 一枚称号</span></h2><div class="bond-list">';
+  BONDS.forEach(b=>{
+    const done=bondDone(b);
+    const lit=b.ids.filter(id=>achUn(id)).length;
+    const awarded=S.bonds.awarded.indexOf(b.id)>=0;
+    h+='<div class="bond'+(done?' bond-done':'')+'" onclick="openBond(\''+b.id+'\')">'
+      +'<div class="bond-h"><span class="bond-n">'+b.name+'</span><span class="bond-c">'+lit+'/'+b.ids.length+'</span></div>'
+      +'<div class="bond-npc">'+b.npc+' · 称号「'+b.title+'」</div>'
+      +'<div class="bond-state">'+(done?(awarded?'已授称号':'可领取称号'):'修行中')+'</div></div>';
+  });
+  h+='</div>'; el.innerHTML=h;
+  BONDS.forEach(b=>{ if(bondDone(b) && S.bonds.awarded.indexOf(b.id)<0) grantBond(b); });
+}
+function openBond(id){
+  const b=BONDS.find(x=>x.id===id); if(!b) return;
+  const done=bondDone(b);
+  const lit=b.ids.filter(x=>achUn(x)).length;
+  let body='<div class="letter-head">'+b.name+'</div>'
+    +'<div class="bond-sub">'+b.npc+' · 称号「'+b.title+'」 · 进度 '+lit+'/'+b.ids.length+'</div>'
+    +'<div class="letter-body">'+b.line+'</div>'
+    +'<div class="hint">集齐 '+b.ids.length+' 枚相关徽章即可缔结此契，获赠称号与故人评语。</div>';
+  if(done && S.bonds.awarded.indexOf(b.id)>=0){
+    body+='<button class="btn sm" style="margin-top:8px" onclick="shareBond(\''+b.id+'\')">🖼 生成名帖分享图</button>';
+  } else if(done){
+    grantBond(b); body+='<div class="letter-done">✦ 称号已授予「'+b.title+'」</div>';
+  }
+  showModal('bondModal', body);
+}
+function wrapText(c, text, x, y, maxW, lh){
+  const chars=(text||'').split(''); let line='', yy=y;
+  for(let i=0;i<chars.length;i++){ const t=line+chars[i]; if(c.measureText(t).width>maxW && line){ c.fillText(line,x,yy); line=chars[i]; yy+=lh; } else line=t; }
+  if(line) c.fillText(line,x,yy);
+}
+function shareBond(id){
+  const b=BONDS.find(x=>x.id===id); if(!b) return;
+  const c=document.createElement('canvas'); c.width=600; c.height=360;
+  const x=c.getContext('2d');
+  x.fillStyle='#0f1a26'; x.fillRect(0,0,600,360);
+  x.fillStyle='#d4a84b'; x.font='bold 24px serif'; x.fillText('江湖名帖 · 成就羁绊', 40, 52);
+  x.fillStyle='#ffffff'; x.font='bold 40px serif'; x.fillText(b.name, 40, 124);
+  x.fillStyle='#9fc7e0'; x.font='19px serif'; x.fillText(b.npc+' 赠言', 40, 170);
+  x.fillStyle='#e8e8e8'; x.font='17px serif'; wrapText(x, b.line, 40, 205, 520, 27);
+  x.fillStyle='#d4a84b'; x.font='bold 20px serif'; x.fillText('称号「'+b.title+'」', 40, 322);
+  try{
+    const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='名帖-'+b.name+'.png'; a.click();
+    addHist('🖼 生成名帖分享图：'+b.name);
+  }catch(e){ alert('分享图生成失败：'+e.message); }
+}
+
+// 通用模态
+function showModal(id, html){
+  const m=document.getElementById(id); if(!m) return;
+  const c=m.querySelector('.modal-body'); if(c) c.innerHTML=html;
+  m.style.display='flex';
+}
+function hideModal(id){ const m=document.getElementById(id); if(m) m.style.display='none'; }
+
 // init
 // ===== v5.16 命理主题皮肤 / 趋势曲线 / 周报月报 =====
 
@@ -4932,7 +5271,7 @@ try{
   REC_DATE='';                   // 默认记今天
   const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
   lastLevel = lvlOf(overallXP());
-  try{ npcRoll(); seasonCheck(); checkVolume(); }catch(e){ console.warn('v5.17 init',e); }
+  try{ npcRoll(); seasonCheck(); checkVolume(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
   checkAch();
   render();
   applyDashOrder();
