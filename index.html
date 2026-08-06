@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v5.19.0</title>
+<title>人生修行录 · v5.21.0</title>
 <style>
   :root{
     --bg:#161412; --panel:#221e1a; --panel2:#2c2622; --line:#4a3f36;
@@ -891,6 +891,41 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 /* 通用 modal-body */
 .modal-body{ padding:18px 20px; font-size:14px; max-height:70vh; overflow:auto; }
 .modal-body .btn{ margin-top:6px; }
+/* v5.20 通知中心 + 左侧导航红点 */
+.notif-panel{ border-left:3px solid var(--gold); }
+.notif-h{ font-size:13px; font-weight:600; color:var(--txt); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.notif-cnt{ background:var(--gold); color:#1a1208; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; }
+.notif-rows{ display:flex; flex-direction:column; gap:6px; }
+.notif-row{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; cursor:pointer; background:rgba(212,168,75,.06); border:1px solid rgba(212,168,75,.18); transition:background .15s; }
+.notif-row:hover{ background:rgba(212,168,75,.14); }
+.notif-ic{ font-size:16px; flex:none; }
+.notif-t{ flex:1; font-size:13px; color:var(--txt); }
+.notif-d{ font-size:11.5px; color:var(--dim); max-width:42%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.notif-go{ font-size:12px; color:var(--gold); white-space:nowrap; flex:none; }
+.nav-badge{ display:none; min-width:17px; height:17px; padding:0 4px; margin-left:4px; background:#e23b3b; color:#fff; border-radius:9px; font-size:11px; font-weight:700; line-height:17px; text-align:center; vertical-align:middle; }
+/* v5.21 身体/心理年龄 */
+.ba-header{ display:flex; gap:20px; justify-content:center; margin:16px 0 10px; }
+.ba-circle{ width:130px; height:130px; border-radius:50%; background:linear-gradient(135deg,rgba(100,220,180,.15),rgba(212,168,75,.2),rgba(255,140,100,.12)); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+.ba-circle::before{ content:''; position:absolute; inset:3px; border-radius:50%; border:2px solid rgba(212,168,75,.25); }
+.ba-num{ font-size:36px; font-weight:800; color:var(--txt); line-height:1; letter-spacing:-1px; }
+.ba-label{ font-size:12px; color:var(--dim); margin-top:2px; }
+.ba-tag{ font-size:11.5px; color:var(--gold); margin-top:2px; font-weight:600; }
+.ba-mind .ba-circle{ background:linear-gradient(135deg,rgba(140,160,220,.15),rgba(180,140,200,.18),rgba(212,168,75,.12)); }
+.ba-compare{ text-align:center; font-size:14px; color:var(--dim); margin:6px 0; }
+.ba-compare b{ color:var(--txt); font-weight:700; }
+.ba-young{ color:#2d9d78; } .ba-old{ color:#e05555; }
+.ba-section{ margin:14px 0 6px; }
+.ba-stitle{ font-size:13.5px; font-weight:600; color:var(--txt); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.ba-note{ font-size:11px; color:var(--dim); font-weight:400; }
+.ba-row{ display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; margin-bottom:5px; background:rgba(0,0,0,.02); transition:background .15s; }
+.ba-row:hover{ background:rgba(0,0,0,.05); }
+.ba-ric{ font-size:17px; flex:none; width:24px; text-align:center; }
+.ba-rn{ flex:1; font-size:13px; color:var(--txt); min-width:0; }
+.ba-rv{ font-size:13px; font-weight:700; flex:none; min-width:48px; text-align:right; }
+.ba-row.ba-good .ba-rv{ color:#2d9d78; }
+.ba-row.ba-bad .ba-rv{ color:#e05555; }
+.ba-rd{ font-size:11.5px; color:var(--dim); flex:none; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+.ba-manual{ text-align:center; margin:14px 0 4px; }
 </style>
 </head>
 <body>
@@ -898,18 +933,18 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic">🕯️</div>
-      <div class="brand-t">人生修行录<span>v5.19.0 · 互动版块：宜忌抽签 / 远方来信 / 江湖偶遇 / 成就羁绊</span></div>
+      <div class="brand-t">人生修行录<span>v5.21.0 · 身体/心理年龄系统（Grow 风格 + 任务自动推导 + 健康数据录入）</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
       <a class="navitem" data-page="current" onclick="showPage('current')">📿 短期任务</a>
       <a class="navitem" data-page="longterm" onclick="showPage('longterm')">🗺️ 长期任务</a>
-      <a class="navitem" data-page="side" onclick="showPage('side')">🎋 江湖轶事</a>
+      <a class="navitem" data-page="side" onclick="showPage('side')">🎋 江湖轶事<span class="nav-badge" id="navBadge-side"></span></a>
       <a class="navitem" data-page="ledger" onclick="showPage('ledger')">💰 钱庄</a>
       <a class="navitem" data-page="journey" onclick="showPage('journey')">🧚 角色设定</a>
-      <a class="navitem" data-page="badges" onclick="showPage('badges')">🏅 徽章成就</a>
+      <a class="navitem" data-page="badges" onclick="showPage('badges')">🏅 徽章成就<span class="nav-badge" id="navBadge-badges"></span></a>
       <a class="navitem" data-page="skill" onclick="showPage('skill')">🌳 修行树</a>
-      <a class="navitem" data-page="map" onclick="showPage('map')">🗺️ 旅行地图</a>
+      <a class="navitem" data-page="map" onclick="showPage('map')">🗺️ 旅行地图<span class="nav-badge" id="navBadge-map"></span></a>
       <a class="navitem" data-page="loot" onclick="showPage('loot')">🛡️ 战利品</a>
       <a class="navitem" data-page="data" onclick="showPage('data')">⚙️ 数据&设置</a>
     </nav>
@@ -928,6 +963,9 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 
       <!-- 今日一句 -->
       <div class="panel quote-banner" id="quoteBanner"></div>
+
+      <!-- 通知中心：待你回应的互动 -->
+      <div class="panel notif-panel" id="notifBox" style="display:none"></div>
 
       <!-- 今日宜忌抽签 -->
       <div class="panel dash-card col12" data-dash-id="draw" id="drawBox"></div>
@@ -959,6 +997,9 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
         <h2>🔋 精力 <span class="note">负荷 vs 恢复 · 过载时请减量，不必补齐清单</span></h2>
         <div id="energyBox"></div>
       </div>
+
+      <!-- 身体/心理年龄 -->
+      <div class="panel col12" data-dash-id="bioAge" id="bioAgeBox"></div>
 
       <!-- 今日任务 -->
       <div class="panel dash-card col4" data-dash-id="daily" onclick="showPage('current')">
@@ -2158,13 +2199,18 @@ function defaultState(){
     theme: 'light',               // 命理主题皮肤：light / bing(丁火清凉) / dark(命理·夜)
     brief: { last:'' },           // 今日战报：最近展示日期
     saga: { vol:1, done:[] },     // 章·卷制：当前卷号 + 已结算卷号列表
-    npc: { active:[], week:'' },  // NPC 委托：本周在办委托 + 所属周
+    npc: { active:[], week:'', seenWeek:'' },  // NPC 委托：本周在办委托 + 所属周 + 已读周
     skill: { spent:{}, un:[] },   // 技能树：各系已花点数 + 已解锁节点 id
     season: { cur:'', titles:[], worn:'' }, // 赛季：当前赛季 / 已获称号 / 佩戴中
     draw: { date:'', yi:'', ji:'', claimed:false }, // 每日宜忌抽签：当日签文 + 是否已承接气运
     letters: { unlocked:[], pointer:0 },             // 远方来信：已解锁信件队列
-    enc: { cur:null, done:[] },                      // 江湖偶遇：当前偶遇 + 已完成记录
-    bonds: { awarded:[] },                           // 成就羁绊：已解锁的系
+    enc: { cur:null, done:[], seen:false },          // 江湖偶遇：当前偶遇 + 已完成记录 + 已读标记
+    bonds: { awarded:[], viewed:[] },                // 成就羁绊：已解锁的系 + 已看过的系
+    bioAge: {                                   // 身体年龄 / 心理年龄系统
+      sleepHours:null, steps:null, restingHR:null, // 可选手动录入健康数据
+      lastCompute:'', bodyAge:0, mentalAge:0,     // 缓存：上次计算日期 / 结果
+      factors:{}                                 // 各因素明细（供展示）
+    },
   };
 }
 
@@ -2377,8 +2423,9 @@ function migrate(){
   if(!S.brief || typeof S.brief!=='object') S.brief={last:''};
   if(!S.saga || typeof S.saga!=='object') S.saga={vol:1,done:[]};
   if(!Array.isArray(S.saga.done)) S.saga.done=[];
-  if(!S.npc || typeof S.npc!=='object') S.npc={active:[],week:''};
+  if(!S.npc || typeof S.npc!=='object') S.npc={active:[],week:'',seenWeek:''};
   if(!Array.isArray(S.npc.active)) S.npc.active=[];
+  if(typeof S.npc.seenWeek!=='string') S.npc.seenWeek='';
   if(!S.skill || typeof S.skill!=='object') S.skill={spent:{},un:[]};
   if(!S.skill.spent || typeof S.skill.spent!=='object') S.skill.spent={};
   if(!Array.isArray(S.skill.un)) S.skill.un=[];
@@ -2388,10 +2435,14 @@ function migrate(){
   if(!S.draw || typeof S.draw!=='object') S.draw={date:'',yi:'',ji:'',claimed:false};
   if(!S.letters || typeof S.letters!=='object') S.letters={unlocked:[],pointer:0};
   if(!Array.isArray(S.letters.unlocked)) S.letters.unlocked=[];
-  if(!S.enc || typeof S.enc!=='object') S.enc={cur:null,done:[]};
+  if(!S.enc || typeof S.enc!=='object') S.enc={cur:null,done:[],seen:false};
   if(!Array.isArray(S.enc.done)) S.enc.done=[];
-  if(!S.bonds || typeof S.bonds!=='object') S.bonds={awarded:[]};
+  if(typeof S.enc.seen!=='boolean') S.enc.seen=false;
+  if(!S.bonds || typeof S.bonds!=='object') S.bonds={awarded:[],viewed:[]};
   if(!Array.isArray(S.bonds.awarded)) S.bonds.awarded=[];
+  if(!Array.isArray(S.bonds.viewed)) S.bonds.viewed=[];
+  // v5.21 新字段兜底（身体/心理年龄）
+  if(!S.bioAge || typeof S.bioAge!=='object') S.bioAge={sleepHours:null,steps:null,restingHR:null,lastCompute:'',bodyAge:0,mentalAge:0,factors:{}};
   refreshSideQuests();
 }
 async function load(){
@@ -3936,6 +3987,8 @@ function render(){
   try{ renderQuote(); }catch(e){ console.warn('v5.18 render',e); }
   // v5.19 互动版块渲染
   try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); }catch(e){ console.warn('v5.19 render',e); }
+  // v5.20 通知中心
+  try{ renderNotifications(); renderNavBadges(); renderBioAge(); }catch(e){ console.warn('v5.20+ render',e); }
   newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
   newlyDone=[];
 }
@@ -4162,7 +4215,10 @@ function showPage(p){
   const t=document.getElementById('page-'+p);
   if(t) t.classList.add('active');
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
+  if(p==='side'){ markSideSeen(); }
+  if(p==='badges'){ markBondsSeen(); }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
+  try{ renderNotifications(); renderNavBadges(); }catch(e){}
 }
 
 // ===== 仪表盘拖拽排序 =====
@@ -4415,6 +4471,7 @@ function npcRoll(force){
   const wk=monday();
   if(!force && S.npc.week===wk && S.npc.active.length) return;
   S.npc.week=wk;
+  S.npc.seenWeek='';
   S.npc.active=NPCS.map(p=>({
     npc:p.id, id:id(),
     t:p.qs[Math.floor(Math.random()*p.qs.length)],
@@ -5027,6 +5084,7 @@ function encounterRoll(auto){
   let r=Math.random()*totalW, pick=pool[0];
   for(const e of pool){ r-=encWeight(e); if(r<=0){ pick=e; break; } }
   S.enc.cur={eid:pick.id, who:pick.who, tex:pick.tex, opts:pick.opts.map(o=>({t:o.t,xp:o.xp||0,note:o.note||''}))};
+  S.enc.seen=false;
   if(!auto) save();
 }
 function encPick(i){
@@ -5087,6 +5145,72 @@ function renderBonds(){
   h+='</div>'; el.innerHTML=h;
   BONDS.forEach(b=>{ if(bondDone(b) && S.bonds.awarded.indexOf(b.id)<0) grantBond(b); });
 }
+
+// —— 通知中心：仪表盘小喇叭 + 左侧导航红点 ——
+function notifList(){
+  const arr=[];
+  if(S.enc && S.enc.cur && !S.enc.seen)
+    arr.push({page:'side', ic:'🪄', t:'江湖偶遇待回应', d:(S.enc.cur.who||'故人')+'在等你', key:'enc'});
+  if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length)
+    arr.push({page:'side', ic:'📜', t:'本周委托已刷新', d:'四位故人各留一言', key:'npc'});
+  const lu=letterUnread();
+  if(lu>0)
+    arr.push({page:'map', ic:'✉️', t:lu+' 封远方来信未读', d:'点开看看', key:'letter'});
+  if(S.draw && S.draw.date===todayStr() && !S.draw.claimed)
+    arr.push({page:'dashboard', ic:'🎴', t:'今日宜忌可承接', d:'承气运 +20 XP', key:'draw', scroll:'drawBox'});
+  return arr;
+}
+function notifGo(el){
+  const p=el.dataset.page, s=el.dataset.scroll;
+  if(s){ const t=document.getElementById(s); if(t) t.scrollIntoView({behavior:'smooth'}); }
+  else if(p){ showPage(p); }
+}
+function renderNotifications(){
+  const el=document.getElementById('notifBox'); if(!el) return;
+  const list=notifList();
+  if(!list.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='';
+  let h='<div class="notif-h">🔔 待你回应 <span class="notif-cnt">'+list.length+'</span></div><div class="notif-rows">';
+  list.forEach(n=>{
+    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" onclick="notifGo(this)">'
+      +'<span class="notif-ic">'+n.ic+'</span>'
+      +'<span class="notif-t">'+n.t+'</span>'
+      +'<span class="notif-d">'+n.d+'</span>'
+      +'<span class="notif-go">前往 ›</span></div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+function navBadgeCount(page){
+  if(page==='side'){
+    let c=0;
+    if(S.enc && S.enc.cur && !S.enc.seen) c++;
+    if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length) c++;
+    return c;
+  }
+  if(page==='map') return letterUnread();
+  if(page==='badges') return (S.bonds.awarded||[]).filter(id=>(S.bonds.viewed||[]).indexOf(id)<0).length;
+  return 0;
+}
+function renderNavBadges(){
+  ['side','map','badges'].forEach(p=>{
+    const sp=document.getElementById('navBadge-'+p); if(!sp) return;
+    const c=navBadgeCount(p);
+    sp.textContent = c>0 ? (c>99?'99+':String(c)) : '';
+    sp.style.display = c>0 ? 'inline-block' : 'none';
+  });
+}
+function markSideSeen(){
+  let ch=false;
+  if(S.enc && S.enc.cur && !S.enc.seen){ S.enc.seen=true; ch=true; }
+  if(S.npc && S.npc.week && S.npc.seenWeek!==S.npc.week){ S.npc.seenWeek=S.npc.week; ch=true; }
+  if(ch){ try{ save(); }catch(e){} }
+}
+function markBondsSeen(){
+  if(!S.bonds) return;
+  const aw=S.bonds.awarded||[];
+  if(aw.length){ S.bonds.viewed=aw.slice(); try{ save(); }catch(e){} }
+}
 function openBond(id){
   const b=BONDS.find(x=>x.id===id); if(!b) return;
   const done=bondDone(b);
@@ -5130,6 +5254,164 @@ function showModal(id, html){
   m.style.display='flex';
 }
 function hideModal(id){ const m=document.getElementById(id); if(m) m.style.display='none'; }
+
+/* ---------- v5.21 身体年龄 / 心理年龄系统 ---------- */
+// 参考 Grow App 模型：基准年龄(实岁) ± 各因素加减 = 身体/心理年龄
+// 数据来源：任务完成记录自动推导 + 可选手动录入健康指标
+function chronoAge(){
+  // 1995 年生，按当前日期算实岁
+  const now=new Date(), born=new Date(1995,0,1);
+  let age=now.getFullYear()-born.getFullYear();
+  const m=now.getMonth()-born.getMonth();
+  if(m<0 || (m===0 && now.getDate()<born.getDate())) age--;
+  return Math.max(1,age);
+}
+// 近 N 天的任务完成情况（用于滚动窗口计算）
+function recentDays(n){
+  const out=[];
+  for(let i=n-1;i>=0;i--) out.push(shiftDate(todayStr(),-i));
+  return out;
+}
+// 按关键词匹配任务
+function tasksMatching(keyword, days){
+  let count=0, mins=0;
+  days.forEach(d=>{
+    allTaskLists().forEach(list=>list.forEach(x=>{
+      if(!x.t||!x.t.includes(keyword)) return;
+      if(Array.isArray(x.donedates)&&x.donedates.includes(d)){ count++; }
+      if(x.mins&&x.mins[d]){ mins+=x.mins[d]; }
+    }));
+  });
+  return {count,mins};
+}
+// —— 身体年龄因素定义 ——
+const BODY_FACTORS=[
+  {id:'strength', ic:'🏋️', n:'力量训练', d:'规律力量训练延缓肌肉流失',
+   calc:(d)=>{ const r=tasksMatching('力量训练',d); return {val:-Math.min(0.6,r.count*0.2), detail:r.count+'次'}; }},
+  {id:'cardio', ic:'🏸', n:'有氧运动', d:'羽毛球/跑步等心肺训练',
+   calc:(d)=>{ const r=tasksMatching('羽毛球',d); const r2=tasksMatching('跑步',d);
+     const c=r.count+r2.count; return {val:-Math.min(0.5,c*0.15), detail:c+'次'}; }},
+  {id:'stretch', ic:'🧘', n:'拉伸恢复', d:'拉伸/康复理疗（每周限 1 次有效）',
+   calc:(d)=>{ const r=tasksMatching('拉伸',d); const r2=tasksMatching('理疗',d);
+     const c=Math.min(1,r.count+r2.count); return {val:-c*0.12, detail:c+'次'}; }},
+  {id:'sleep', ic:'😴', n:'早睡习惯', d:'23:30 前睡觉',
+   calc:(d)=>{ let c=0; d.forEach(dd=>{
+     allTaskLists().forEach(list=>list.forEach(x=>{
+       if(x.t&&x.t.includes('睡觉')&&Array.isArray(x.donedates)&&x.donedates.includes(dd)) c++;
+     }));
+   }); return {val:-c*0.08, detail:c+'/'+d.length+'夜'}; }},
+  {id:'sedentary', ic:'🪑', n:'久坐惩罚', d:'当日无任何身体活动则 +0.15',
+   calc:(d)=>{ let p=0; d.forEach(dd=>{
+     const am=attrMinutesOn(dd);
+     if((am.BODY||0)+(am.BADMINTON||0)<5) p+=0.15;
+   }); return {val:p, detail:(p>0?Math.round(p/0.15)+"天无活动":"每日都有动")}; }},
+  {id:'therapy', ic:'💆', n:'理疗/体检', d:'头疗/按摩/体检（一次性）',
+   calc:(d)=>{ const r=tasksMatching('体检',d); const r2=tasksMatching('理疗',d); const r3=tasksMatching('头疗',d);
+     const c=r.count+r2.count+r3.count; return {val:-c*0.2, detail:c+'次'}; }},
+];
+// —— 心理年龄因素定义 ——
+const MIND_FACTORS=[
+  {id:'creative', ic:'🎹', n:'精神充电', d:'弹琴/唱歌/阅读等创造性休息',
+   calc:(d)=>{ let c=0; d.forEach(dd=>{
+     allTaskLists().forEach(list=>list.forEach(x=>{
+       if((x.a==='MIND')&&x.t&&!x.t.includes('职业')&&!x.t.includes('睡觉')
+          &&Array.isArray(x.donedates)&&x.donedates.includes(dd)) c++;
+     }));
+   }); return {val:-Math.min(0.6,c*0.12), detail:c+'次'}; }},
+  {id:'growth', ic:'📖', n:'成长行动', d:'职业学习/AI应用/读书等自我投资',
+   calc:(d)=>{ const r=tasksMatching('职业',d); const r2=tasksMatching('学习',d); const r3=tasksMatching('读书',d);
+     const c=r.count+r2.count+r3.count; return {val:-Math.min(0.4,c*0.08), detail:c+"次"}; }},
+  {id:'streak', ic:'🔥', n:'连续修行', d:'灯火不熄 ≥3 天额外 -0.15',
+   calc:(d)=>{ const s=computeStreak(); return {val:s>=3?-0.15:0, detail:s+'天连续'}; }},
+  {id:'stress', ic:'😤', n:'压力预警', d:'职业任务大量未完成时 +0.2',
+   calc:(d)=>{ let undone=0; (S.daily||[]).forEach(x=>{ if(x.a==='CAREER'&&!x.done) undone++; });
+     const val=undone>=3?0.2:0; return {val, detail:undone>0?undone+'项未做':'状态平稳'}; }},
+];
+// 计算完整年龄数据
+function computeBioAge(){
+  const ca=chronoAge();
+  const d=recentDays(7); // 滚动 7 日窗口
+  const factors={};
+  let bodyDelta=0, mindDelta=0;
+  BODY_FACTORS.forEach(f=>{ const r=f.calc(d); factors[f.id]=Object.assign({ic:f.ic,n:f.n,d:f.d},r); bodyDelta+=r.val; });
+  MIND_FACTORS.forEach(f=>{ const r=f.calc(d); factors['m_'+f.id]=Object.assign({ic:f.ic,n:f.n,d:f.d},r); mindDelta+=r.val; });
+  // 手动健康数据微调
+  if(S.bioAge.sleepHours!==null && S.bioAge.sleepHours<6) bodyDelta+=0.2; // 睡不够
+  if(S.bioAge.sleepHours!==null && S.bioAge.sleepHours>=7.5) bodyDelta-=0.1; // 睡得好
+  if(S.bioAge.restingHR!==null && S.bioAge.restingHR<=60) bodyDelta-=0.15; // 静息心率低
+  if(S.bioAge.restingHR!==null && S.bioAge.restingHR>80) bodyDelta+=0.15; // 静息心率高
+  const bodyAge=Math.round((ca+bodyDelta)*10)/10;
+  const mentalAge=Math.round((ca+mindDelta)*10)/10;
+  S.bioAge.lastCompute=todayStr(); S.bioAge.bodyAge=bodyAge; S.bioAge.mentalAge=mentalAge; S.bioAge.factors=factors;
+  return {chrono:ca,bodyAge,mentalAge,bodyDelta:Math.round(bodyDelta*10)/10,mindDelta:Math.round(mindDelta*10)/10,factors};
+}
+// 年龄段标签
+function ageTag(age, chrono){
+  const d=age-chrono;
+  if(d<=-2) return '青春正盛';
+  if(d<=-0.5) return '青春余波';
+  if(d<0.5) return '稳中向好';
+  if(d<=2) return '蓄势待发';
+  return '需要关注';
+}
+// 渲染仪表盘年龄卡片
+function renderBioAge(){
+  const el=document.getElementById('bioAgeBox'); if(!el) return;
+  const b=computeBioAge();
+  const bt=b.bodyAge, mt=b.mentalAge, ct=b.chrono;
+  const bTag=ageTag(bt,ct), mTag=ageTag(mt,ct);
+  const bd=bt-ct, md=mt-ct;
+  const bdCls=bd<=0?"ba-young":(bd>0?"ba-old":"");
+  const mdCls=md<=0?"ba-young":(md>0?"ba-old":"");
+  let h=`<div class="ba-header">`;
+  h+=`<div class="ba-circle"><div class="ba-num">${bt.toFixed(1)}</div><div class="ba-label">身体年龄</div><div class="ba-tag">${bTag}</div></div>`;
+  h+=`<div class="ba-circle ba-mind"><div class="ba-num">${mt.toFixed(1)}</div><div class="ba-label">心理年龄</div><div class="ba-tag">${mTag}</div></div>`;
+  h+=`</div>`;
+  h+=`<div class="ba-compare ${bdCls}">实岁 <b>${ct}</b> · 身体${bd>=0?"年长":"年轻"} <b>${Math.abs(bd).toFixed(1)}</b> 岁</div>`;
+  h+=`<div class="ba-compare ${mdCls}">心理${md>=0?"年长":"年轻"} <b>${Math.abs(md).toFixed(1)}</b> 岁 · 更新于 ${todayStr()}</div>`;
+  h+=`<div class="ba-section"><div class="ba-stitle">\u{1FA9A} 身体影响因素 <span class="ba-note">近 7 日</span></div>`;
+  BODY_FACTORS.forEach(f=>{ const v=b.factors[f.id]; if(!v)return;
+    const cls=v.val<0?"ba-good":(v.val>0?"ba-bad":"");
+    h+=`<div class="ba-row ${cls}"><span class="ba-ric">${v.ic}</span><span class="ba-rn">${v.n}</span><span class="ba-rv">${v.val>=0?"+":""}${v.val.toFixed(1)}岁</span><span class="ba-rd">${v.detail}</span></div>`;
+  });
+  if(S.bioAge.sleepHours!==null){ h+=`<div class="ba-row"><span class="ba-ric">\u{1F4A4}</span><span class="ba-rn">睡眠时长</span><span class="ba-rv">${S.bioAge.sleepHours<6?"+0.2":(S.bioAge.sleepHours>=7.5?"-0.1":"0")}岁</span><span class="ba-rd">${S.bioAge.sleepHours}h</span></div>`; }
+  if(S.bioAge.restingHR!==null){ h+=`<div class="ba-row"><span class="ba-ric">\u2764\uFE0F</span><span class="ba-rn">静息心率</span><span class="ba-rv">${S.bioAge.restingHR<=60?"-0.15":(S.bioAge.restingHR>80?"+0.15":"0")}岁</span><span class="ba-rd">${S.bioAge.restingHR} bpm</span></div>`; }
+  h+=`</div>`;
+  h+=`<div class="ba-section"><div class="ba-stitle">\u{1F9E0} 心理影响因素 <span class="ba-note">近 7 日</span></div>`;
+  MIND_FACTORS.forEach(f=>{ const v=b.factors["m_"+f.id]; if(!v)return;
+    const cls=v.val<0?"ba-good":(v.val>0?"ba-bad":"");
+    h+=`<div class="ba-row ${cls}"><span class="ba-ric">${v.ic}</span><span class="ba-rn">${v.n}</span><span class="ba-rv">${v.val>=0?"+":""}${v.val.toFixed(1)}岁</span><span class="ba-rd">${v.detail}</span></div>`;
+  });
+  h+=`</div>`;
+  h+=`<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>`;
+  el.innerHTML=h;
+}
+// 健康数据录入弹窗
+function showBioAgeInput(){
+  const ba=S.bioAge;
+  const html=`<div class="modal-body">`
+    +`<h3 style="margin-top:0">\u270F\uFE0F 录入今日健康数据</h3>`
+    +`<p class="hint" style="margin-bottom:12px">可选填，不填则仅从任务记录推导。数据仅本地存储。</p>`
+    +`<label>睡眠时长（小时）</label>`
+    +`<input type="number" id="bai_sleep" step="0.5" min="0" max="24" value="${ba.sleepHours!==null?ba.sleepHours:""}" placeholder="如 7.5">`
+    +`<label>今日步数</label>`
+    +`<input type="number" id="bai_steps" min="0" max="100000" value="${ba.steps!==null?ba.steps:""}" placeholder="如 8000">`
+    +`<label>静息心率（bpm）</label>`
+    +`<input type="number" id="bai_hr" min="30" max="200" value="${ba.restingHR!==null?ba.restingHR:""}" placeholder="如 62">`
+    +`<div style="display:flex;gap:8px;margin-top:14px">`
+    +`<button class="btn sm" onclick="saveBioAgeInput()">保存</button>`
+    +`<button class="btn sm ghost" onclick="hideModal('bioAgeModal')">取消</button>`
+    +`</div></div>`;
+  showModal('bioAgeModal','录入健康数据',html);
+}
+function saveBioAgeInput(){
+  const s=document.getElementById('bai_sleep'), st=document.getElementById('bai_steps'), hr=document.getElementById('bai_hr');
+  if(s.value!=='') S.bioAge.sleepHours=parseFloat(s.value); else S.bioAge.sleepHours=null;
+  if(st.value!=='') S.bioAge.steps=parseInt(st.value); else S.bioAge.steps=null;
+  if(hr.value!=='') S.bioAge.restingHR=parseInt(hr.value); else S.bioAge.restingHR=null;
+  try{ save(); }catch(e){}
+  hideModal('bioAgeModal'); renderBioAge(); addHist('📊 更新了健康数据');
+}
 
 // init
 // ===== v5.16 命理主题皮肤 / 趋势曲线 / 周报月报 =====
