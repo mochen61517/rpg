@@ -481,6 +481,11 @@
   .dash-row:last-child{border-bottom:none}
   .dash-row.done{color:var(--dim);text-decoration:line-through}
   .dash-row .dr-xp{font-size:11px;color:var(--gold)}
+  .dtag{display:inline-block;font-size:10px;font-weight:700;line-height:1;padding:2px 6px;border-radius:8px;margin-right:6px;vertical-align:middle;color:#1a140a}
+  .dtag-fix{background:#9fb6c9}
+  .dtag-rnd{background:#c9a86b}
+  .dtag-npc{background:#b58fc9}
+  .dtag-goal{background:#8fc99a}
   .dash-mini{display:flex;gap:8px;flex-wrap:wrap}
   .dash-mini span{font-size:11px;background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:12px}
   .dash-mini span.on{background:var(--grw);color:#0f1115;border-color:var(--grw)}
@@ -748,7 +753,6 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 .en-lab.e-good{background:#3fae74}.en-lab.e-ok{background:#5b8fd6}.en-lab.e-low{background:#e0a94a}.en-lab.e-bad{background:#d9534f}
 .en-num{font-size:26px;font-weight:800}
 .en-unit{color:var(--dim);font-size:13px}
-.en-side{margin-left:auto;color:var(--dim);font-size:12px}
 .en-bar{height:12px;border-radius:999px;background:rgba(127,127,127,.16);overflow:hidden}
 .en-bar i{display:block;height:100%;border-radius:999px;transition:width .5s}
 .en-bar i.e-good{background:linear-gradient(90deg,#5fd0a0,#3fae74)}
@@ -756,6 +760,43 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 .en-bar i.e-low{background:linear-gradient(90deg,#f3c969,#e0a94a)}
 .en-bar i.e-bad{background:linear-gradient(90deg,#ff9a8a,#d9534f)}
 .en-tip{margin-top:8px;font-size:13px;color:var(--dim)}
+.en-more{color:var(--gold);cursor:pointer;font-weight:600;margin-left:4px}
+/* ===== 精力·恢复页 ===== */
+.energy-page{max-width:1120px;margin:0 auto;padding:4px 0 30px}
+.energy-advice{display:flex;gap:18px;align-items:center;background:linear-gradient(100deg,rgba(212,168,75,.10),rgba(212,168,75,.02));border-left:4px solid var(--gold);border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.energy-advice.e-bad{border-left-color:#d9534f}
+.energy-advice.e-low{border-left-color:#e0a94a}
+.energy-advice.e-ok{border-left-color:#5b8fd6}
+.energy-advice.e-good{border-left-color:#3fae74}
+.ea-score{flex:0 0 auto;text-align:center;line-height:1}
+.ea-score .ea-lab{padding:3px 12px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;display:inline-block}
+.ea-lab.e-good{background:#3fae74}.ea-lab.e-ok{background:#5b8fd6}.ea-lab.e-low{background:#e0a94a}.ea-lab.e-bad{background:#d9534f}
+.ea-score b{display:block;font-size:40px;font-weight:800;margin:6px 0 0}
+.ea-unit{font-size:13px;color:var(--dim)}
+.ea-body{flex:1 1 auto}
+.ea-tip-top{font-size:15px;color:var(--txt);margin-bottom:6px;font-weight:600}
+.ea-list{margin:0;padding-left:18px;color:var(--dim);font-size:13px;line-height:1.7}
+.ea-list li{margin:2px 0}
+.energy-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.energy-card{display:flex;flex-direction:column;gap:10px}
+.enk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.enk-title{font-size:16px;font-weight:700}
+.enk-sub{font-size:12px;color:var(--dim);margin-top:2px}
+.enk-cur{font-size:15px;font-weight:700;color:var(--gold);white-space:nowrap}
+.enk-range-btns{display:flex;gap:6px}
+.enk-range-btn{padding:3px 12px;font-size:12px;border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:999px;cursor:pointer;opacity:.6}
+.enk-range-btn.on{opacity:1;background:rgba(212,168,75,.15);font-weight:700}
+.enk-range-sub{font-size:12px;color:var(--dim);margin-bottom:6px}
+.mini-bars{display:flex;align-items:flex-end;gap:2px;height:64px;padding:4px 0}
+.mb{flex:1 1 auto;height:100%;display:flex;align-items:flex-end;min-width:2px}
+.mb i{width:100%;border-radius:2px 2px 0 0;display:block;min-height:2px}
+.mb-miss{background:rgba(127,127,127,.18);min-height:2px}
+.enk-bio-prev{font-size:13px;color:var(--txt)}
+.enk-bio-factors{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ba-chip{font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(127,127,127,.12)}
+.ba-chip.up{color:#3fae74}.ba-chip.down{color:#d9534f}
+.enk-bio-hint{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.6}
+@media(max-width:780px){ .energy-cards{grid-template-columns:1fr} }
 /* 卷册 */
 .vol{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;position:relative}
 .vol-cur{border-color:#e0a94a;box-shadow:0 0 0 1px rgba(224,169,74,.25) inset}
@@ -843,13 +884,26 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 .bf-say{font-size:14px;line-height:1.8;padding:10px 12px;border-radius:10px;background:rgba(224,169,74,.12);margin-bottom:8px}
 .bf-liu{font-size:12px;color:var(--dim);line-height:1.7}
 
-/* ===== v5.18 今日一句 ===== */
-.quote-banner{ position:relative; padding:16px 20px 16px 52px; background:linear-gradient(100deg, rgba(212,168,75,.10), rgba(212,168,75,.02)); border-left:4px solid var(--gold); border-radius:12px; overflow:hidden; }
-.quote-banner .q-mark{ position:absolute; left:12px; top:0; font-family:"Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif; font-size:46px; line-height:1; color:var(--gold); opacity:.32; }
-.quote-banner .q-text{ font-family:"Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif; font-size:17px; line-height:1.7; color:var(--txt); letter-spacing:.3px; }
-.quote-banner .q-src{ margin-top:6px; font-size:12.5px; color:var(--dim); text-align:right; }
-.quote-banner .q-shuffle{ margin-left:10px; padding:2px 9px; font-size:12px; color:var(--gold); background:transparent; border:1px solid var(--gold); border-radius:20px; cursor:pointer; vertical-align:middle; opacity:.78; transition:opacity .15s, background .15s; }
-.quote-banner .q-shuffle:hover{ opacity:1; background:rgba(212,168,75,.12); }
+/* ===== v5.18 今日一句（明信片样式） ===== */
+.panel.quote-postcard{ background:linear-gradient(135deg,#fbf6ea 0%,#f1e6cd 100%); border:1px solid #d9c9a3; border-radius:10px; padding:0; box-shadow:0 6px 20px rgba(120,90,40,.18); overflow:hidden; color:#4a3f2e; }
+.panel.quote-postcard:before{ content:none; display:none; }
+.quote-postcard .pc-inner{ display:flex; gap:0; min-height:132px; }
+.quote-postcard .pc-main{ flex:1 1 auto; padding:16px 18px; display:flex; flex-direction:column; justify-content:center; }
+.quote-postcard .pc-text{ font-family:"Noto Serif SC","STKaiti","KaiTi","楷体",serif; font-size:17px; line-height:1.75; color:#3a3225; letter-spacing:.4px; }
+.quote-postcard .pc-text::before{ content:"“"; font-family:serif; font-size:30px; color:#b89b5e; vertical-align:-9px; margin-right:1px; }
+.quote-postcard .pc-text::after{ content:"”"; font-family:serif; font-size:30px; color:#b89b5e; vertical-align:-11px; margin-left:1px; }
+.quote-postcard .pc-src{ margin-top:10px; font-size:12.5px; color:#8a7551; text-align:right; font-style:italic; }
+.quote-postcard .pc-divider{ width:0; border-left:2px dashed #c9b58a; align-self:stretch; margin:18px 0; }
+.quote-postcard .pc-side{ flex:0 0 118px; padding:14px 12px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; position:relative; background:rgba(255,255,255,.30); }
+.quote-postcard .pc-stamp{ width:62px; height:76px; background:#fffdf7; border:1px solid #e3d6b6; box-shadow:0 1px 3px rgba(0,0,0,.12); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; transform:rotate(2deg); }
+.quote-postcard .pc-stamp .pc-stamp-face{ font-size:30px; line-height:1; }
+.quote-postcard .pc-stamp .pc-stamp-cap{ font-size:9px; color:#9a845a; margin-top:5px; letter-spacing:2px; }
+.quote-postcard .pc-stamp::after{ content:""; position:absolute; inset:3px; border:1.5px dashed #d8c69b; pointer-events:none; }
+.quote-postcard .pc-postmark{ position:absolute; right:6px; top:46px; width:56px; height:56px; border:2px solid rgba(120,90,50,.55); border-radius:50%; display:flex; align-items:center; justify-content:center; transform:rotate(-15deg); color:rgba(120,90,50,.62); font-size:10px; letter-spacing:1px; text-align:center; line-height:1.25; pointer-events:none; }
+.quote-postcard .pc-postmark::before{ content:""; position:absolute; width:42px; height:42px; border:1px solid rgba(120,90,50,.40); border-radius:50%; }
+.quote-postcard .pc-postmark::after{ content:""; position:absolute; width:46px; height:1px; background:rgba(120,90,50,.32); box-shadow:0 6px 0 rgba(120,90,50,.28),0 -6px 0 rgba(120,90,50,.28); }
+.quote-postcard .pc-shuffle{ margin-top:auto; padding:3px 11px; font-size:12px; color:#7a5a2c; background:transparent; border:1px solid #c2a86f; border-radius:20px; cursor:pointer; opacity:.82; transition:opacity .15s,background .15s; }
+.quote-postcard .pc-shuffle:hover{ opacity:1; background:rgba(194,168,111,.18); }
 
 /* ===== v5.19 互动版块 ===== */
 /* ② 每日宜忌 */
@@ -877,6 +931,8 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 .enc-who{ font-size:15px; font-weight:700; color:var(--gold); margin-bottom:4px; }
 .enc-tex{ font-family:"Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif; font-size:14.5px; line-height:1.8; color:var(--txt); margin-bottom:10px; }
 .enc-opts{ display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+.btn-act{ background:linear-gradient(135deg,#3f8a4d,#2f6b3a); color:#fff; border:1px solid #57b368; font-weight:600; box-shadow:0 2px 8px rgba(47,107,58,.35); }
+.btn-act:hover{ filter:brightness(1.08); }
 /* ⑤ 成就羁绊 */
 .bond-list{ margin-top:8px; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
 .bond{ padding:12px 14px; border:1px solid rgba(255,255,255,.10); border-radius:11px; cursor:pointer; transition:border-color .15s, background .15s; }
@@ -937,7 +993,9 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
-      <a class="navitem" data-page="current" onclick="showPage('current')">📿 短期任务</a>
+      <a class="navitem" data-page="energy" onclick="showPage('energy')">🔋 精力·恢复</a>
+      <a class="navitem" data-page="current" onclick="showPage('current')">📿 今日行动</a>
+      <a class="navitem" data-page="week" onclick="showPage('week')">🗓️ 周月任务</a>
       <a class="navitem" data-page="longterm" onclick="showPage('longterm')">🗺️ 长期任务</a>
       <a class="navitem" data-page="side" onclick="showPage('side')">🎋 江湖轶事<span class="nav-badge" id="navBadge-side"></span></a>
       <a class="navitem" data-page="ledger" onclick="showPage('ledger')">💰 钱庄</a>
@@ -962,7 +1020,7 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
       </div>
 
       <!-- 今日一句 -->
-      <div class="panel quote-banner" id="quoteBanner"></div>
+      <div class="panel quote-postcard" id="quoteBanner"></div>
 
       <!-- 通知中心：待你回应的互动 -->
       <div class="panel notif-panel" id="notifBox" style="display:none"></div>
@@ -1001,25 +1059,18 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
       <!-- 身体/心理年龄 -->
       <div class="panel col12" data-dash-id="bioAge" id="bioAgeBox"></div>
 
-      <!-- 今日任务 -->
+      <!-- 今日行动（固定日常 + 随机日行 + 四方委托 混合摘要） -->
       <div class="panel dash-card col4" data-dash-id="daily" onclick="showPage('current')">
-        <h2>📿 今日任务</h2>
+        <h2>📿 今日行动</h2>
         <div id="dashDaily">加载中…</div>
-        <div class="hint" style="margin:8px 0 0">点击进入短期任务</div>
+        <div class="hint" style="margin:8px 0 0">固定 · 随机 · 委托，点击进入做</div>
       </div>
 
-      <!-- 本周任务 -->
-      <div class="panel dash-card col4" data-dash-id="weekly" onclick="showPage('current')">
-        <h2>📅 本周任务</h2>
+      <!-- 本周任务（随机周游 + 手动周目标） -->
+      <div class="panel dash-card col4" data-dash-id="weekly" onclick="showPage('week')">
+        <h2>🗓️ 本周任务</h2>
         <div id="dashWeekly">加载中…</div>
-        <div class="hint" style="margin:8px 0 0">点击进入短期任务</div>
-      </div>
-
-      <!-- 江湖轶事 -->
-      <div class="panel dash-card col4" data-dash-id="side" onclick="showPage('side')">
-        <h2>🎋 江湖轶事</h2>
-        <div id="dashSide">加载中…</div>
-        <div class="hint" style="margin:8px 0 0">点击进入随机任务</div>
+        <div class="hint" style="margin:8px 0 0">点击进入周月任务</div>
       </div>
 
       <!-- 资金卡 -->
@@ -1064,23 +1115,30 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
     </div>
 
 <!-- ===== 江湖轶事 ===== -->
+    <div class="page" id="page-energy">
+      <div class="phead">精力·恢复<span class="psub">负荷与恢复的天平 · 近 7 / 30 / 90 天趋势</span></div>
+      <div id="energyPageRoot" class="energy-page"></div>
+    </div>
+
     <div class="page" id="page-side">
-      <div class="phead">江湖轶事<span class="psub">四方委托 · 日行一善 · 周游历险 · 支线任务抽取</span></div>
+      <div class="phead">江湖轶事<span class="psub">只负责「产生任务」· 任务去「今日行动 / 周月任务」做</span></div>
       <div class="panel">
         <h2>📜 四方委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
           <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
-        <div id="npcBox"></div>
+        <div class="hint">委托已搬到「今日行动」里交差。这里只管重摇本周的故人留言。</div>
       </div>
       <div class="panel">
+        <h2>🎲 抽取器 · 江湖掉落</h2>
         <div class="row" style="justify-content:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap">
           <button class="btn" onclick="drawSideQuest('daily')">🎲 抽一则日行（强制）</button>
           <button class="btn" onclick="drawSideQuest('weekly')">🎲 抽一则周游（强制）</button>
           <button class="btn" onclick="drawSideQuest('monthly')">🎲 抽一则月行（强制）</button>
           <button class="btn ghost" onclick="resetSidePool()">🔄 重置任务库</button>
         </div>
-        <div class="hint">每天自动刷新日行、每周一刷新周游、每月 1 日刷新月行（不管完成与否）。「抽一则」会生成一条 <b>🔴 强制</b> 任务（其他为选择性）。完成任务 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
+        <div class="hint">每天自动刷新日行、每周一刷新周游、每月 1 日刷新月行（不管完成与否）。「抽一则」会生成一条 <b>🔴 强制</b> 任务（其他为选择性），进到对应页面做。完成 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
       </div>
       <div class="panel">
+        <h2>🪄 江湖偶遇</h2>
         <div id="encBox"></div>
       </div>
       <div class="panel">
@@ -1091,18 +1149,6 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
           <button class="btn sm" onclick="addSideIdea()">+ 入库</button>
         </div>
         <div class="hint">写下的想法会进入随机任务库，之后随机抽取出现（不是立刻安排，是思路延展）。</div>
-      </div>
-      <div class="panel">
-        <h2>⚡ 日行一善 · 很快就能做完 <span class="note">每日刷新</span></h2>
-        <div id="sideDailyList"></div>
-      </div>
-      <div class="panel">
-        <h2>🌄 周游历险 · 需要一点时间 <span class="note">每周一刷新</span></h2>
-        <div id="sideWeeklyList"></div>
-      </div>
-      <div class="panel">
-        <h2>🌙 月行大计 · 整月坚持 <span class="note">每月 1 日刷新</span></h2>
-        <div id="sideMonthlyList"></div>
       </div>
     </div>
 
@@ -1282,7 +1328,7 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 
     <!-- ===== 短期任务 ===== -->
     <div class="page" id="page-current">
-      <div class="phead">短期任务<span class="psub">日功每日重置 · 周历每周一重置</span></div>
+      <div class="phead">今日行动<span class="psub">固定日课 · 随机日行 · 四方委托 · 混在一处做</span></div>
       <div class="recbar">
         <span class="reclabel">记录于</span>
         <input id="recDate" type="date" class="recinput" onchange="setRecDate(this.value)">
@@ -1290,7 +1336,8 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
         <span class="rechint" id="recHint">默认记今天；要补录过去某天，先选日期再勾任务。</span>
       </div>
       <div class="panel" style="margin-top:-8px">
-        <h2>📿 日功 · 每日重置</h2>
+        <h2>📿 今日行动</h2>
+        <div class="subh">🗓️ 固定日常 <span class="qmin">（你设的日课，每天重置）</span></div>
         <div id="dailyList"></div>
         <div class="addrow">
           <input type="text" id="dText" placeholder="新日常任务…">
@@ -1309,17 +1356,13 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
             <button class="btn sm" onclick="addQuest('supps')">+ 添加</button>
           </div>
         </div>
+        <div class="subh" style="margin-top:10px">🎲 随机日行 <span class="qmin">（江湖掉落，每天刷新；🔴强制必做）</span></div>
+        <div id="sideDailyList"></div>
+        <div class="hint">随机日行在「江湖轶事 → 抽取器」抽一则生成；每天自动刷新。</div>
       </div>
       <div class="panel">
-        <h2>🌀 周历 · 每周一重置</h2>
-        <div id="weeklyList"></div>
-        <div class="addrow">
-          <input type="text" id="wText" placeholder="新周常任务…">
-          <select id="wAttr"></select>
-          <input type="number" id="wMin" value="60" min="0" title="分钟">
-          <input type="number" id="wXp" value="30" min="1" title="XP">
-          <button class="btn sm" onclick="addQuest('weekly')">+ 添加</button>
-        </div>
+        <h2>📜 四方委托 <span class="note">每周一刷新 · 四位故人各留一言</span></h2>
+        <div id="npcBox"></div>
       </div>
       <div class="panel">
         <h2>🏸 羽毛球专精 · 你的人生主题</h2>
@@ -1332,6 +1375,30 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
           <div class="bmweek"><span>本周羽毛球时间</span><span id="bmWeek">0 / 15h</span></div>
         </div>
         <div class="hint">羽毛球实战/基本功计入体魄，视频复盘/学习计入成长，但都汇总到这里。目标不是再加量，是让你看见这笔巨额投入。</div>
+      </div>
+    </div>
+
+    <!-- ===== 周月任务（重构：随机周游 + 手动周目标 + 月行大计；周任务和日任务分开） ===== -->
+    <div class="page" id="page-week">
+      <div class="phead">周月任务<span class="psub">随机周游 · 手动周目标 · 月行大计 · 周任务和日任务分开</span></div>
+      <div class="panel">
+        <h2>🌀 本周行动</h2>
+        <div class="subh">🎲 随机周游 <span class="qmin">（江湖掉落，每周一刷新；🔴强制必做）</span></div>
+        <div id="sideWeeklyList"></div>
+        <div class="hint">随机周游在「江湖轶事 → 抽取器」抽一则生成；每周一自动刷新。</div>
+        <div class="subh" style="margin-top:12px">✍️ 手动周目标 <span class="qmin">（你明确要在这周做的计划）</span></div>
+        <div id="weeklyGoalList"></div>
+        <div class="addrow">
+          <input type="text" id="wText" placeholder="新周目标…">
+          <select id="wAttr"></select>
+          <input type="number" id="wMin" value="60" min="0" title="分钟">
+          <input type="number" id="wXp" value="30" min="1" title="XP">
+          <button class="btn sm" onclick="addQuest('weekly')">+ 添加</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>🌙 月行大计 <span class="note">每月 1 日刷新</span></h2>
+        <div id="sideMonthlyList"></div>
       </div>
     </div>
 
@@ -2118,18 +2185,9 @@ function defaultState(){
       {id:id(),t:'23:30 前睡觉',a:'BODY',xp:10,min:0,mode:'fixed',done:false,rec:'每日'},
     ],
     supps: defaultSupps(),
-    weekly:[
-      // 一次性离散行动（投递 / 面试 / 体检 / 里程碑），不放每日重复的时间累积型活动
-      // 说明：力量训练 / 羽毛球（基本功·视频·打球）/ 职业行动 / 精神充电 / 拉伸 都是日任务按时间累积，不进周任务
-      // 职业（一次性）
-      {id:id(),t:'完成 1 次简历投递/网申',a:'CAREER',xp:0,min:60,mode:'time',done:false,rec:60},
-      {id:id(),t:'完成 1 次面试/笔面',a:'CAREER',xp:0,min:90,mode:'time',done:false,rec:90},
-      // 身体健康（一次性）
-      {id:id(),t:'完成 1 次体检/理疗/体态评估',a:'BODY',xp:0,min:60,mode:'time',done:false,rec:60},
-      // 精神享受（一次性）
-      {id:id(),t:'完成 1 首钢琴曲完整练习/录音',a:'MIND',xp:0,min:30,mode:'time',done:false,rec:30},
-      {id:id(),t:'看完 1 部电影/纪录片',a:'MIND',xp:0,min:120,mode:'time',done:false,rec:120},
-    ],
+    // 固定周常不再自动生成：周任务 = 随机周游（江湖掉落）+ 手动周目标（你明确要做的）。
+    // 老用户已有的 S.weekly 项目保留为「手动周目标」，此处仅清空默认种子。
+    weekly:[],
     year:[
       {id:id(),t:'拿到一个「够大够稳」的平台（央企 / 体制内 / 文职）',paused:false,done:false,items:[]},
       {id:id(),t:'羽毛球水平达到 3.5（可稳定对抗、步法/战术成型）',paused:false,done:false,items:[
@@ -2209,7 +2267,8 @@ function defaultState(){
     bioAge: {                                   // 身体年龄 / 心理年龄系统
       sleepHours:null, steps:null, restingHR:null, // 可选手动录入健康数据
       lastCompute:'', bodyAge:0, mentalAge:0,     // 缓存：上次计算日期 / 结果
-      factors:{}                                 // 各因素明细（供展示）
+      factors:{},                                // 各因素明细（供展示）
+      sleepLog:{}, ageLog:{}                     // 每日睡眠时长 / 体龄脑龄快照（精力页趋势用）
     },
   };
 }
@@ -3827,24 +3886,26 @@ function render(){
   let yearTotal=0, yearDoneCount=0;
   S.year.forEach((c,i)=>{ if(!c.paused){ yearTotal++; if(yearDone(i)) yearDoneCount++; } });
 
-  // 今日任务摘要（最多 4 条未完成的）
-  const dashDaily = S.daily.slice().sort((a,b)=>(isDone(a,d)?1:0)-(isDone(b,d)?1:0)).slice(0,4);
+  // 今日行动摘要（固定日常 + 随机日行 + 四方委托，混合、未完成优先）
+  const dashDaily = [
+    ...S.daily.map(x=>({tag:'固定',t:x.t,done:isDone(x,d),xp:itemXpAt(x,d)})),
+    ...S.sideDaily.map(x=>({tag:'随机',t:x.t,done:x.done,mand:x.mandatory})),
+    ...(S.npc.active||[]).map(x=>({tag:'委托',t:x.t,done:x.done,xp:x.xp})),
+  ].sort((a,b)=>(a.done?1:0)-(b.done?1:0)).slice(0,6);
   document.getElementById('dashDaily').innerHTML = dashDaily.length
-    ? dashDaily.map(x=>`<div class="dash-row ${isDone(x,d)?'done':''}"><span>${isDone(x,d)?'✔ ':''}${x.t}</span><span class="dr-xp">+${x.mode==='fixed'?x.xp:(x.rec||x.min||0)}</span></div>`).join('')
-    : '<div class="dash-empty">暂无日常任务</div>';
+    ? dashDaily.map(x=>`<div class="dash-row ${x.done?'done':''}"><span>${x.done?'✔ ':''}<b class="dtag dtag-${x.tag==='固定'?'fix':x.tag==='随机'?'rnd':'npc'}">${x.tag}</b>${x.t}</span><span class="dr-xp">${x.mand?'🔴':(x.xp?('+'+x.xp):'')}</span></div>`).join('')
+    : '<div class="dash-empty">今日暂无安排</div>';
 
-  // 本周任务摘要（最多 4 条）
-  const dashWeekly = S.weekly.slice().sort((a,b)=>(isDoneEver(a)?1:0)-(isDoneEver(b)?1:0)).slice(0,4);
+  // 本周任务摘要（随机周游 + 手动周目标）
+  const dashWeekly = [
+    ...S.sideWeekly.map(x=>({tag:'随机',t:x.t,done:x.done,mand:x.mandatory})),
+    ...S.weekly.map(x=>({tag:'目标',t:x.t,done:isDoneEver(x)})),
+  ].sort((a,b)=>(a.done?1:0)-(b.done?1:0)).slice(0,6);
   document.getElementById('dashWeekly').innerHTML = dashWeekly.length
-    ? dashWeekly.map(x=>`<div class="dash-row ${isDoneEver(x)?'done':''}"><span>${isDoneEver(x)?'✔ ':''}${x.t}</span><span class="dr-xp">${ATTRS[safeAttr(x.a)].name}</span></div>`).join('')
-    : '<div class="dash-empty">暂无周常任务</div>';
+    ? dashWeekly.map(x=>`<div class="dash-row ${x.done?'done':''}"><span>${x.done?'✔ ':''}<b class="dtag dtag-${x.tag==='随机'?'rnd':'goal'}">${x.tag}</b>${x.t}</span><span class="dr-xp">${x.mand?'🔴':''}</span></div>`).join('')
+    : '<div class="dash-empty">本周暂无安排</div>';
 
-  // 江湖轶事摘要
-  document.getElementById('dashSide').innerHTML = (S.sideDaily.length||S.sideWeekly.length||S.sideMonthly.length)
-    ? `<div class="dash-row"><span>日行 ${S.sideDaily.filter(x=>x.done).length}/${S.sideDaily.length} 完成</span><span class="dr-xp">${S.sideDaily.filter(x=>x.mandatory).length?'🔴 强制 '+S.sideDaily.filter(x=>x.mandatory).length+' 条':''}</span></div>
-       <div class="dash-row"><span>周游 ${S.sideWeekly.filter(x=>x.done).length}/${S.sideWeekly.length} 完成</span><span class="dr-xp">${S.sideWeekly.filter(x=>x.mandatory).length?'🔴 强制 '+S.sideWeekly.filter(x=>x.mandatory).length+' 条':''}</span></div>
-       <div class="dash-row"><span>月行 ${S.sideMonthly.filter(x=>x.done).length}/${S.sideMonthly.length} 完成</span><span class="dr-xp">${S.sideMonthly.filter(x=>x.mandatory).length?'🔴 强制 '+S.sideMonthly.filter(x=>x.mandatory).length+' 条':''}</span></div>`
-    : '<div class="dash-empty">任务库待刷新</div>';
+  // （江湖轶事已改为纯任务生成器，dashSide 面板已移除）
 
   // 月 / 年主线摘要
   document.getElementById('dashMonth').innerHTML = `<div class="dash-row"><span>${S.month.t}</span><span class="dr-xp">${moDone}/${mo.length}</span></div>
@@ -3914,10 +3975,10 @@ function render(){
   const _jy=document.getElementById('journeyYear'); if(_jy) _jy.innerHTML=journeyYearHTML();
   const _js=document.getElementById('journeySide'); if(_js) _js.innerHTML=journeySideHTML();
 
-  // lists: 日常 / 补剂 / 周常 / 江湖轶事 / 账本
+  // lists: 日常 / 补剂 / 手动周目标 / 随机日行 / 随机周游 / 月行 / 账本
   document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
   document.getElementById('suppList').innerHTML=listHtml(S.supps,'supps');
-  document.getElementById('weeklyList').innerHTML=listHtml(S.weekly,'weekly');
+  const wgEl=document.getElementById('weeklyGoalList'); if(wgEl) wgEl.innerHTML=listHtml(S.weekly,'weekly');
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
   document.getElementById('wAttr').innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
@@ -3979,6 +4040,7 @@ function render(){
   } else { hb.innerHTML='<div style="color:var(--dim);font-size:13px">还没有记录，打卡后这里会显示历史。</div>'; }
   renderHobbies();
   renderLongterm();
+  renderEnergyPage();
   renderWishes();
   renderTrendCard();
   // v5.17
@@ -4211,6 +4273,7 @@ function celebrateTask(msg){
 
 // 多页路由：切换 page 显示 + 导航高亮 + 同步 hash（刷新/分享不丢当前页）
 function showPage(p){
+  if(p==='energy') renderEnergyPage();
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   const t=document.getElementById('page-'+p);
   if(t) t.classList.add('active');
@@ -4330,8 +4393,8 @@ function shiftDate(dateStr,n){ const d=new Date(dateStr+'T00:00:00'); d.setDate(
 
 /* ---------- ① 精力条：负荷 vs 恢复 ---------- */
 // 设计取向：不催你做更多。过载时系统主动劝休息。
-function energyState(){
-  const d=todayStr();
+// 可回算到任意历史日 d 的精力状态（精力页趋势复用）
+function energyStateForDate(d){
   // 近 3 日投入分钟 → 负荷（3 日 540 分钟 ≈ 满负荷）
   let m3=0; for(let i=0;i<3;i++) m3+=minutesOn(shiftDate(d,-i));
   const load=Math.min(100, m3/5.4);
@@ -4347,7 +4410,7 @@ function energyState(){
     if(lfGapDays(x)>0){ const l=lastLfDate(x); if(l){ const gap=Math.round((new Date(d+'T00:00:00')-new Date(l+'T00:00:00'))/86400000); if(gap>=0&&gap<=7) healed=true; } }
   }));
   if(healed) rest+=14;
-  // 今日尚未投入 → 视为在休整
+  // 当天未记录投入分钟 → 视为在休整
   if(minutesOn(d)===0) rest+=10;
   const v=Math.max(0,Math.min(100, Math.round(100-load+rest)));
   let label,tip,cls;
@@ -4356,6 +4419,112 @@ function energyState(){
   else if(v>=30){ label='偏低'; cls='e-low'; tip='连日投入偏多了，今天可以只做一两件，或提前睡。'; }
   else { label='透支'; cls='e-bad'; tip='身体在提醒你停一停。今天建议休息 / 拉伸 / 早睡，不必勉强补齐清单。'; }
   return {v,label,tip,cls,load:Math.round(load),rest:Math.round(rest),m3:Math.round(m3)};
+}
+function energyState(){ return energyStateForDate(todayStr()); }
+
+// ===== 精力·恢复页：趋势回算 + 迷你柱图 + 参考建议 =====
+function isStretchOn(d){ return (S.daily||[]).some(x=>/拉伸/.test(x.t||'')&&isDone(x,d)); }
+function isHealedOn(d){
+  let r=false;
+  allTaskLists().forEach(list=>list.forEach(x=>{
+    if(lfGapDays(x)>0){ const l=lastLfDate(x); if(l){ const gap=Math.round((new Date(d+'T00:00:00')-new Date(l+'T00:00:00'))/86400000); if(gap>=0&&gap<=7) r=true; } }
+  }));
+  return r;
+}
+function sleepHoursOn(d){ return (S.bioAge&&S.bioAge.sleepLog&&S.bioAge.sleepLog[d]!=null)?S.bioAge.sleepLog[d]:null; }
+// 生成 days 天的历史序列 [{d, v}]，v 可能为 null（无记录）
+function energyTrendSeries(days, valFn){
+  const today=todayStr(); const out=[];
+  for(let i=days-1;i>=0;i--){ const d=shiftDate(today,-i); out.push({d, v:valFn(d)}); }
+  return out;
+}
+// 紧凑迷你柱图
+function miniBars(series, opt){
+  opt=opt||{}; const maxV=opt.max||100; const n=series.length;
+  const bw = n<=7? '30px' : (n<=31? '9px' : '4px');
+  const html=series.map(s=>{
+    const tip=(s.d.slice(5))+(s.v==null?'：无记录':('：'+(opt.fmtVal?opt.fmtVal(s.v):s.v)));
+    if(s.v==null) return '<div class="mb" style="width:'+bw+';flex:0 0 auto" title="'+tip+'"><i class="mb-miss"></i></div>';
+    const pct=Math.max(2,Math.min(100, s.v/maxV*100));
+    const col=opt.colorFn?opt.colorFn(s.v):'var(--gold)';
+    return '<div class="mb" style="width:'+bw+';flex:0 0 auto" title="'+tip+'"><i style="height:'+pct+'%;background:'+col+'"></i></div>';
+  }).join('');
+  return '<div class="mini-bars">'+html+'</div>';
+}
+function switchEnergyRange(btn, days){
+  const card=btn.closest('.energy-card'); if(!card) return;
+  card.querySelectorAll('.enk-range-btn').forEach(b=>b.classList.toggle('on', b.dataset.days===String(days)));
+  card.querySelectorAll('.enk-range-pane').forEach(p=>p.style.display=(p.dataset.days===String(days))?'block':'none');
+}
+function energyCard(title, sub, cur, valFn, opt, ranges){
+  const panes=ranges.map(days=>{
+    const series=energyTrendSeries(days, valFn);
+    const has=series.filter(s=>s.v!=null).length;
+    return '<div class="enk-range-pane" data-days="'+days+'" style="'+(days===7?'display:block':'display:none')+'">'
+      +'<div class="enk-range-sub">近 '+days+' 天 · 有记录 '+has+' 天</div>'
+      +miniBars(series, opt)+'</div>';
+  }).join('');
+  const btns=ranges.map(days=>'<button class="enk-range-btn'+(days===7?' on':'')+'" data-days="'+days+'" onclick="switchEnergyRange(this,'+days+')">'+days+'天</button>').join('');
+  return '<div class="panel energy-card">'
+    +'<div class="enk-head"><div><div class="enk-title">'+title+'</div><div class="enk-sub">'+sub+'</div></div>'
+    +'<div class="enk-cur">'+cur+'</div></div>'
+    +'<div class="enk-range-btns">'+btns+'</div>'+panes+'</div>';
+}
+function energyCardBio(){
+  const ba=S.bioAge||{};
+  const cur=((ba.bodyAge||ba.mentalAge))?('体 '+ba.bodyAge+' · 脑 '+ba.mentalAge):'未计算';
+  const log=ba.ageLog||{}; const ds=Object.keys(log).sort();
+  const prev= ds.length>1? log[ds[ds.length-2]] : null;
+  const deltaTxt= prev? ('上次（'+ds[ds.length-2]+'）：体 '+prev.body+' · 脑 '+prev.mental) : '暂无历史记录（计算体龄后自动记录）';
+  const fs=ba.factors||{};
+  const fhtml=Object.keys(fs).filter(k=>fs[k]&&fs[k].d).map(k=>{
+    const f=fs[k]; const up=f.val>0; return '<span class="ba-chip '+(up?'up':'down')+'">'+f.ic+' '+f.n+' '+(up?'+':'')+f.val+'</span>';
+  }).join('');
+  return '<div class="panel energy-card">'
+    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div>'
+    +'<div class="enk-cur">'+cur+'</div></div>'
+    +'<div class="enk-bio-prev">'+deltaTxt+'</div>'
+    +(fhtml?'<div class="enk-bio-factors">'+fhtml+'</div>':'')
+    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(ba.lastCompute||'—')+'</div>'
+    +'</div>';
+}
+function energyAdvice(){
+  const e=energyState(); const tips=[]; const d=todayStr();
+  if(e.v<50) tips.push('状态'+e.label+'（'+e.v+'/100），今天别硬撑，清单只挑 1–2 件重要的做。');
+  else if(e.v>=75) tips.push('状态'+e.label+'，可以放手做想做的事。');
+  else tips.push('状态'+e.label+'，保持当下节奏即可。');
+  const sh=S.bioAge.sleepHours;
+  const sleptEarly=(S.daily||[]).some(x=>/睡觉|早睡/.test(x.t||'')&&isDone(x,d));
+  const dailyTxt=(S.daily||[]).map(x=>x.t||'').join(' ');
+  if(sh!=null && sh<6) tips.push('昨晚只睡 '+sh+'h，偏少，今晚尽量 23:00 前躺下。');
+  else if(!sleptEarly && !/睡觉|早睡/.test(dailyTxt)) tips.push('今天还没标记「早睡/睡觉」，记得睡前打卡。');
+  if(!isStretchOn(d)){
+    if(!/拉伸/.test(dailyTxt)) tips.push('今天没安排拉伸，可加一条「拉伸10分」护腰颈。');
+    else tips.push('拉伸还没做，睡前 5 分钟就够。');
+  }
+  if(!isHealedOn(d)){
+    let last=null; allTaskLists().forEach(list=>list.forEach(x=>{ if(lfGapDays(x)>0){ const l=lastLfDate(x); if(l&&(!last||l>last)) last=l; } }));
+    if(last) tips.push('距上次疗愈已 '+Math.round((new Date(d+'T00:00:00')-new Date(last+'T00:00:00'))/86400000)+' 天，该约一次头疗/按摩了。');
+  }
+  return tips;
+}
+function renderEnergyPage(){
+  const root=document.getElementById('energyPageRoot'); if(!root) return;
+  const e=energyState(); const advice=energyAdvice(); const ranges=[7,30,90];
+  let h='<div class="energy-advice '+e.cls+'">'
+    +'<div class="ea-score"><span class="ea-lab '+e.cls+'">'+e.label+'</span><b>'+e.v+'</b><span class="ea-unit">/100</span></div>'
+    +'<div class="ea-body"><div class="ea-tip-top">'+e.tip+'</div>'
+    +'<ul class="ea-list">'+advice.map(a=>'<li>'+a+'</li>').join('')+'</ul></div></div>';
+  h+='<div class="energy-cards">';
+  h+=energyCard('⚡ 精力值', '负荷 vs 恢复的综合分', e.v+' / 100 · '+e.label,
+      (d)=>energyStateForDate(d).v, {max:100, colorFn:(v)=>v>=75?'#3fae74':(v>=50?'#5b8fd6':(v>=30?'#e0a94a':'#d9534f')), fmtVal:(v)=>v}, ranges);
+  h+=energyCard('💤 睡眠', '每晚睡眠时长（小时）', (S.bioAge.sleepHours!=null?S.bioAge.sleepHours+'h':'未录入'),
+      (d)=>sleepHoursOn(d), {max:12, colorFn:(v)=>v>=7.5?'#3fae74':(v>=6?'#5b8fd6':'#d9534f'), fmtVal:(v)=>v+'h'}, ranges);
+  h+=energyCard('🤸 身体恢复', '拉伸 / 疗愈完成标记', '',
+      (d)=>(isStretchOn(d)?1:0)+(isHealedOn(d)?1:0), {max:2, colorFn:(v)=>v>=2?'#3fae74':(v>=1?'#5b8fd6':'#888'), fmtVal:(v)=>['无','部分','完成'][v]||v}, ranges);
+  h+=energyCardBio();
+  h+='</div>';
+  root.innerHTML=h;
 }
 
 /* ---------- ② 章·卷制 ---------- */
@@ -4678,10 +4847,9 @@ function renderEnergy(){
   const el=document.getElementById('energyBox'); if(!el) return;
   const e=energyState();
   el.innerHTML=
-     '<div class="en-top"><span class="en-lab '+e.cls+'">'+e.label+'</span><b class="en-num">'+e.v+'</b><span class="en-unit">/100</span>'
-    +'<span class="en-side">近三日投入 '+h(e.m3)+' · 负荷 '+e.load+' · 恢复 +'+e.rest+'</span></div>'
+     '<div class="en-top"><span class="en-lab '+e.cls+'">'+e.label+'</span><b class="en-num">'+e.v+'</b><span class="en-unit">/100</span></div>'
     +'<div class="en-bar"><i class="'+e.cls+'" style="width:'+e.v+'%"></i></div>'
-    +'<div class="en-tip">'+e.tip+'</div>';
+    +'<div class="en-tip">'+e.tip+' <a class="en-more" onclick="showPage(\'energy\')">看详情 ›</a></div>';
 }
 function renderSaga(){
   const el=document.getElementById('sagaBox'); if(!el) return;
@@ -4919,7 +5087,16 @@ function renderQuote(){
   const q=dailyQuote(_qoff);
   const j=curJieqi();
   const tag=(q.j && q.j.indexOf(j.name)>=0)?(' · 当令 '+j.name):'';
-  el.innerHTML='<div class="q-mark">“</div><div class="q-text">'+q.t+'</div><div class="q-src">—— '+q.s+tag+'<button class="q-shuffle" onclick="shuffleQuote()">换一句 ›</button></div>';
+  const d=todayStr()||'';
+  const pm=(d.length>=10)? d.slice(5).replace('-','·') : d;
+  el.innerHTML='<div class="pc-inner">'
+    +'<div class="pc-main"><div class="pc-text">'+q.t+'</div><div class="pc-src">—— '+q.s+tag+'</div></div>'
+    +'<div class="pc-divider"></div>'
+    +'<div class="pc-side">'
+    +'<div class="pc-stamp"><div class="pc-stamp-face">🐱</div><div class="pc-stamp-cap">修行录</div></div>'
+    +'<div class="pc-postmark">'+pm+'</div>'
+    +'<button class="pc-shuffle" onclick="shuffleQuote()">换一句 ›</button>'
+    +'</div></div>';
 }
 function shuffleQuote(){ _qoff++; try{ localStorage.setItem('qoff_'+todayStr(), String(_qoff)); }catch(e){} renderQuote(); }
 
@@ -5064,17 +5241,19 @@ function respondLetter(i){
 
 // —— ④ 江湖偶遇 ——
 const ENCOUNTERS=[
-  {id:'lin', who:'林教头', a:'BADMINTON', tex:'林教头在馆外抽烟，看你还拎着拍，抬了抬下巴：「今天手感如何？」',
-   opts:[{t:'陪他多练三十球',xp:30,note:'羽道精进'},{t:'笑着跑开，改天再练',xp:0}]},
-  {id:'shen', who:'沈掌柜', a:'CAREER', tex:'沈掌柜塞来一张招聘会门票：「别光看，去现场闻闻气味。」',
-   opts:[{t:'去现场看看',xp:20,note:'业道有进'},{t:'先收着，再看',xp:0}]},
-  {id:'yun', who:'云娘', a:'BODY', tex:'云娘端来一碗汤：「你脸色不好，先喝完。」',
-   opts:[{t:'老实喝完',xp:15,note:'根基回血'},{t:'推说没空',xp:0}]},
-  {id:'bailu', who:'白鹭先生', a:'MIND', tex:'白鹭先生在旧书铺弹琴，招手你上前：「来，弹一段，不求好。」',
-   opts:[{t:'弹一段给他听',xp:20,note:'灵台澄明'},{t:'只听不弹',xp:0}]},
-  {id:'old', who:'卖花老太太', a:null, tex:'路边遇到卖花的老太太，篮里是几支蔫了却还香的花。',
+  {id:'lin', who:'林教头', a:'BADMINTON', tex:'林教头在馆外拎着拍：「手感是练出来的。现在空场，来多打十个好球？」',
+   opts:[{t:'现在多练10分钟基本功',xp:30,note:'羽道精进'},{t:'下次一定',xp:0}]},
+  {id:'lin2', who:'林教头', a:'BADMINTON', tex:'林教头发来消息：「周末馆里缺个人，来打一场？」',
+   opts:[{t:'答应，记到本周',xp:20,note:'应约赴局'},{t:'这周没空，改天',xp:0}]},
+  {id:'shen', who:'沈掌柜', a:'CAREER', tex:'沈掌柜：「别光看岗位，去招聘 App 翻翻，闻闻气味。」',
+   opts:[{t:'打开刷5分钟',xp:20,note:'业道有进'},{t:'先收着',xp:0}]},
+  {id:'yun', who:'云娘', a:'BODY', tex:'云娘递来一杯温水：「你脸色不太好，先喝一口。」',
+   opts:[{t:'起身喝一杯水',xp:15,note:'根基回血'},{t:'等会儿',xp:0}]},
+  {id:'bailu', who:'白鹭先生', a:'MIND', tex:'白鹭先生在旧书铺弹琴，招手：「来，现在弹一段，不求好。」',
+   opts:[{t:'现在弹10分钟琴',xp:20,note:'灵台澄明'},{t:'只听不弹',xp:0}]},
+  {id:'old', who:'卖花老太太', a:null, tex:'路边卖花老太太，篮里几支蔫了却还香的花。',
    opts:[{t:'买一支插瓶',xp:10,note:'生活的小确幸'},{t:'匆匆走过',xp:0}]},
-  {id:'tea', who:'茶摊老板', a:null, tex:'巷口茶摊老板给你续了杯免费的：「看你总在赶路。」',
+  {id:'tea', who:'茶摊老板', a:null, tex:'巷口茶摊老板给你续了杯：「看你总在赶路，坐下喝完这杯。」',
    opts:[{t:'坐下喝完这杯',xp:10,note:'留白片刻'},{t:'道谢带走',xp:0}]},
 ];
 function encWeight(e){ let w=1; if(e.a){ try{ if((attrMinutesOn(todayStr())[e.a]||0)>0) w+=2; }catch(_){} } return w; }
@@ -5091,19 +5270,21 @@ function encPick(i){
   const cur=S.enc.cur; if(!cur) return;
   const o=cur.opts[i]; if(!o) return;
   if(o.xp){ S.bonusXP=(S.bonusXP||0)+o.xp; addHist('✔【偶遇】'+cur.who+'：'+o.t+' +'+o.xp+' XP', o.xp); try{ touchActivity(todayStr()); }catch(_){} celebrateTask(cur.who+'点了点头 ✦ +'+o.xp); }
+  if(cur.eid==='lin2' && i===0){ (S.sideWeekly=S.sideWeekly||[]).push({id:id(),t:'应林教头之约 · 打一场球',cat:'探索',type:'weekly',xp:20,src:'enc',w:1,done:false,donedates:[],mins:{}}); addHist('🏸 已答应林教头，记到本周'); }
   (S.enc.done=S.enc.done||[]).push({eid:cur.eid,t:o.t,xp:o.xp||0,date:todayStr()});
   S.enc.cur=null; save(); checkAch(); render();
 }
 function renderEncounter(){
   const el=document.getElementById('encBox'); if(!el) return;
-  let h='<h2>🪄 江湖偶遇 <span class="note">按你近日行迹，故人偶现</span></h2>';
+  let h='<h2>🪄 江湖偶遇 <span class="note">按你近日行迹，故人偶现 · 接了就去做</span></h2>';
   if(S.enc.cur){
     const c=S.enc.cur;
     h+='<div class="enc-who">'+c.who+'</div><div class="enc-tex">'+c.tex+'</div><div class="enc-opts">';
-    c.opts.forEach((o,i)=>{ h+='<button class="btn sm" onclick="encPick('+i+')">'+o.t+(o.xp?' <b>+'+o.xp+'</b>':'')+'</button>'; });
+    c.opts.forEach((o,i)=>{ const act=o.xp?' btn-act':''; h+='<button class="btn sm'+act+'" onclick="encPick('+i+')">'+(o.xp?'🟢 ':'')+o.t+(o.xp?' <b>+'+o.xp+'</b>':'')+'</button>'; });
     h+='</div>';
   } else {
-    h+='<div class="hint">此刻江湖平静。点击「探寻」，看今日会撞见哪位故人。</div>';
+    const doneToday=(S.enc.done||[]).filter(x=>x.date===todayStr()).length;
+    h+='<div class="hint">此刻江湖平静。'+(doneToday?('今日已接 '+doneToday+' 桩小事 ✅ 不错，去做了。'):'点击「探寻」，看今日会撞见哪位故人。')+'</div>';
     h+='<button class="btn sm" style="margin-top:8px" onclick="encounterRoll(false);save();render()">🪄 探寻江湖</button>';
   }
   el.innerHTML=h;
@@ -5343,6 +5524,7 @@ function computeBioAge(){
   const bodyAge=Math.round((ca+bodyDelta)*10)/10;
   const mentalAge=Math.round((ca+mindDelta)*10)/10;
   S.bioAge.lastCompute=todayStr(); S.bioAge.bodyAge=bodyAge; S.bioAge.mentalAge=mentalAge; S.bioAge.factors=factors;
+  if(!S.bioAge.ageLog) S.bioAge.ageLog={}; S.bioAge.ageLog[todayStr()]={body:bodyAge,mental:mentalAge};
   return {chrono:ca,bodyAge,mentalAge,bodyDelta:Math.round(bodyDelta*10)/10,mindDelta:Math.round(mindDelta*10)/10,factors};
 }
 // 年龄段标签
@@ -5409,6 +5591,7 @@ function saveBioAgeInput(){
   if(s.value!=='') S.bioAge.sleepHours=parseFloat(s.value); else S.bioAge.sleepHours=null;
   if(st.value!=='') S.bioAge.steps=parseInt(st.value); else S.bioAge.steps=null;
   if(hr.value!=='') S.bioAge.restingHR=parseInt(hr.value); else S.bioAge.restingHR=null;
+  if(S.bioAge.sleepHours!=null){ if(!S.bioAge.sleepLog) S.bioAge.sleepLog={}; S.bioAge.sleepLog[todayStr()]=S.bioAge.sleepHours; }
   try{ save(); }catch(e){}
   hideModal('bioAgeModal'); renderBioAge(); addHist('📊 更新了健康数据');
 }
