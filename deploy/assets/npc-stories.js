@@ -1,0 +1,112 @@
+/* ---------- ④ NPC 委托 ---------- */
+const NPCS=[
+  {id:'lin',n:'林教头',ic:'🏸',d:'羽球馆的老教头，话不多，眼很毒。',a:'BADMINTON',
+   qs:['去把反手高远练三十球，我看着。','这周找个比你强的打一场，输了也来找我复盘。','录一段自己的杀球，回来一起看毛病。','步法练二十分钟，别偷懒。']},
+  {id:'shen',n:'沈掌柜',ic:'💼',d:'城南商行的掌柜，最信「动作」不信「打算」。',a:'CAREER',
+   qs:['别再看了，投出去一份再说。','把你的简历给我看看，改到能见人为止。','找一个在里面做事的人聊半小时。','把你想去的三个地方列出来，写清楚为什么。']},
+  {id:'yun',n:'云娘',ic:'🌿',d:'药庐的主人，专治「硬撑」这种病。',a:'BODY',
+   qs:['今晚十一点前躺下，我明天问你。','拉伸十五分钟，别嫌慢。','喝够水，走一万步，就这两件。','这周给自己安排一次真正的休息，什么都不做。']},
+  {id:'bailu',n:'白鹭先生',ic:'🎹',d:'旧书铺的琴师，认为人得有一样只为自己做的事。',a:'MIND',
+   qs:['弹一首完整的，不求好，求完整。','读三十页，不许查手机。','唱一首你最近总在心里哼的歌。','写点什么，给自己看就行。']},
+];
+const NPC_REL_STEPS=[{n:'初识',v:0},{n:'相识',v:1},{n:'熟识',v:3},{n:'知交',v:6},{n:'莫逆',v:10}];
+const NPC_EVENTS={
+  lin:{title:'球馆熄灯以后',scene:'散场后，林教头把你那段并不漂亮的练习录像又放了一遍。他没挑动作，只问：你想把哪一种自己留在球场上？',relic:{id:'relic_lin',ic:'🏸',name:'缠过三次的旧手胶'},choices:[{t:'留下那段失误',d:'承认狼狈也是训练的一部分。',story:'你没有删掉失误。手胶提醒你：真正的进步都有不体面的开头。'},{t:'再打最后十球',d:'用行动回应不甘心。',story:'你们默默打完最后十球。手胶记得那晚球馆熄灯前的声音。'}]},
+  shen:{title:'一封没有把握的邀约',scene:'沈掌柜收到一个并不稳妥的机会，顺手推到你面前：好处说得清，风险也是真的。你会怎么答？',relic:{id:'relic_shen',ic:'🧾',name:'掌柜的旧账签'},choices:[{t:'先问清最坏结果',d:'谨慎不是退缩，是看清代价。',story:'你列清风险后仍保留选择。旧账签写着：胆量从来不是不算账。'},{t:'给自己一次冒险',d:'有些门要走近了才看得见。',story:'你决定先迈一步再修正。旧账签背面，是掌柜写的四个字：做了再说。'}]},
+  yun:{title:'药庐里的一天空白',scene:'云娘替你留了一整天空白，没有任务，没有改善计划。她只问：如果今天不用证明自己，你想怎样过？',relic:{id:'relic_yun',ic:'🌿',name:'药庐安神香囊'},choices:[{t:'安静地睡一场',d:'把休息当作正事。',story:'你睡到自然醒，没有补偿，也没有内疚。香囊记得身体终于被允许停下。'},{t:'漫无目的地出门',d:'让好奇心替你带路。',story:'你走了一条没有收益的路。香囊里留着那天风吹过草木的味道。'}]},
+  bailu:{title:'没有观众的那一曲',scene:'白鹭先生合上旧谱，说今晚不讲技巧。只弹一首你怕弹坏、却一直想弹的曲子。',relic:{id:'relic_bailu',ic:'🎼',name:'写着指法的旧谱页'},choices:[{t:'从头弹到尾',d:'不因瑕疵中断表达。',story:'错音没有毁掉那一曲。旧谱页提醒你：完整有时比正确更接近真心。'},{t:'只弹最喜欢的一段',d:'不必每次都追求完整。',story:'你反复弹那几小节，直到它真正属于你。谱页保存了一小段自由。'}]}
+};
+const NPC_ADV_EVENTS={
+  lin:{6:{title:'替你守住的一局',mark:'旧木记分牌',scene:'林教头第一次没有站在场边指点，而是坐下来替你记分。最后一球落地，他问你更想赢下比分，还是赢回自己的节奏？',choices:[{t:'先把节奏找回来',d:'稳定比逞强更长久。'},{t:'再争最后一分',d:'有些时刻值得全力。'}]},10:{title:'教头不再喊停',mark:'球馆备用钥匙',scene:'那天训练结束，他把备用钥匙递给你：以后不用等我开门。你已经知道该练什么，也知道什么时候该停。',choices:[{t:'收下钥匙',d:'成为能为自己负责的人。'},{t:'约他再打一局',d:'身份变了，球还可以继续。'}]}},
+  shen:{6:{title:'只对你摊开的账本',mark:'红线账页',scene:'沈掌柜把一本从不示人的旧账摊开，里面既有得意，也有判断失误。你会先看哪一页？',choices:[{t:'看那次最大的亏损',d:'失败更接近真实能力。'},{t:'看他第一次赚钱',d:'起点里藏着最初的胆量。'}]},10:{title:'柜台后面的座位',mark:'黄铜算盘珠',scene:'掌柜把柜台后的座位让给你半日，不再替你做判断。来客递来一桩模糊的生意，你如何回应？',choices:[{t:'先拒绝模糊条件',d:'边界也是一种信用。'},{t:'提出一个小范围试做',d:'让风险在可控处发生。'}]}},
+  yun:{6:{title:'替照顾者熬的一剂药',mark:'青瓷药匙',scene:'云娘今天看起来很累，却仍在替别人配药。她问你：照顾别人的人，累了应该怎么办？',choices:[{t:'替她守半日药庐',d:'照顾可以相互流动。'},{t:'劝她今天关门',d:'休息不需要先被谁批准。'}]},10:{title:'不必再问的脉象',mark:'药庐灯芯',scene:'她搭过你的脉，却没有开方，只说你已经能听见身体的声音了。临别前，她让你替药庐留一句话。',choices:[{t:'慢一点，也算前进',d:'把温柔写进规矩。'},{t:'身体永远不是代价',d:'把边界留给未来的自己。'}]}},
+  bailu:{6:{title:'旧书铺的第二把椅子',mark:'墨色书签',scene:'白鹭先生在琴旁放了第二把椅子。今晚没有老师和学生，只有两个愿意把沉默留给音乐的人。',choices:[{t:'合奏一首旧曲',d:'熟悉的旋律也能重新相遇。'},{t:'各弹各的',d:'陪伴不必总做同一件事。'}]},10:{title:'留白的最后一页',mark:'无字谱纸',scene:'旧谱只剩最后一页空白。先生说，这页不该由他写。你准备留下些什么？',choices:[{t:'写下自己的旋律',d:'表达终于不再借别人的声音。'},{t:'让它继续空着',d:'留白也是完整的一部分。'}]}}
+};
+const NPC_JOINT_EVENT={title:'四盏灯同桌',scene:'一个雨夜，四位故人竟在旧书铺碰了面。有人谈行动，有人谈休息，有人谈胜负，有人只顾拨弦。他们把最后一个问题留给你：这一程，你最想守住什么？',choices:[{t:'守住继续出发的勇气',d:'路会改变，但行动仍在。'},{t:'守住不必证明的自己',d:'成长不必以失去自己为代价。'}]};
+function npcRel(pid){ if(!S.npcRel) S.npcRel={}; if(!S.npcRel[pid]) S.npcRel[pid]={xp:0,done:0}; return S.npcRel[pid]; }
+function npcRelInfo(pid){
+  const r=npcRel(pid), xp=Math.max(0,r.xp||0); let i=0; for(let j=0;j<NPC_REL_STEPS.length;j++) if(xp>=NPC_REL_STEPS[j].v)i=j;
+  const cur=NPC_REL_STEPS[i], next=NPC_REL_STEPS[Math.min(i+1,NPC_REL_STEPS.length-1)];
+  const pct=i===NPC_REL_STEPS.length-1?100:Math.round((xp-cur.v)/(next.v-cur.v)*100);
+  return {xp,level:i,name:cur.n,next:next.n,pct};
+}
+function npcMemory(p,ri){
+  const lines={
+    lin:['他还在观察你的脚步。','他记住了你肯练，也肯复盘。','他说你的球开始有自己的样子。','他不再只把你当学生。'],
+    shen:['掌柜先看行动，再看人。','他开始相信你说过的话会落地。','有些门路，他愿意替你多问一句。','他把你当成了可以共事的人。'],
+    yun:['她提醒你别总把累藏起来。','她知道你正在学着不再硬撑。','你没说出口的疲惫，她也能看见。','药庐总为你留着一盏灯。'],
+    bailu:['先生还不知道你会留下什么声音。','他开始认得你常弹、常唱的调子。','他愿意把压箱底的旧谱拿给你。','有些沉默，你们已经不必解释。'],
+  };
+  const a=lines[p.id]||['故人记得你来过。']; return a[Math.min(ri.level,a.length-1)];
+}
+function openNpcEvent(pid){
+  const p=NPCS.find(n=>n.id===pid), e=NPC_EVENTS[pid], mask=document.getElementById('npcEventMask'), body=document.getElementById('npcEventBody');
+  if(!p||!e||!mask||!body||npcRelInfo(pid).xp<3||S.npcEvents[pid]) return;
+  body.innerHTML='<div class="st-kicker">'+p.ic+' '+p.n+' · 专属事件</div><div class="st-title">'+e.title+'</div><div class="ne-scene">'+e.scene+'</div><div class="ne-choices">'+e.choices.map((c,i)=>'<button class="ne-choice" onclick="resolveNpcEvent(\''+pid+'\','+i+')"><b>'+c.t+'</b><span>'+c.d+'</span></button>').join('')+'</div><div class="st-actions"><button class="btn sm ghost" onclick="closeNpcEvent()">以后再说</button></div>';
+  mask.style.display='flex';
+}
+function closeNpcEvent(){ const m=document.getElementById('npcEventMask'); if(m)m.style.display='none'; }
+function resolveNpcEvent(pid,choice){
+  const p=NPCS.find(n=>n.id===pid), e=NPC_EVENTS[pid], c=e&&e.choices[choice]; if(!p||!e||!c||S.npcEvents[pid]) return;
+  S.npcEvents[pid]={choice,ts:new Date().toISOString().slice(0,16).replace('T',' ')};
+  if(!S.npcRelics.includes(e.relic.id)) S.npcRelics.push(e.relic.id);
+  const rel=npcRel(pid); rel.xp=(rel.xp||0)+1; rel.done=(rel.done||0)+1;
+  S.bonusXP=(S.bonusXP||0)+20; addHist('🧿【'+p.n+'】'+e.title+'：'+c.t+' · 获得「'+e.relic.name+'」 +20 XP',20);
+  closeNpcEvent(); save(); render(); celebrateTask(e.relic.ic+' 获得故人信物：'+e.relic.name);
+}
+function nextAdvancedNpcEvent(pid,xp){for(const lv of [6,10])if(xp>=lv&&!S.npcEvents[pid+'_'+lv])return {lv,e:NPC_ADV_EVENTS[pid]&&NPC_ADV_EVENTS[pid][lv]};return null;}
+function openAdvancedNpcEvent(pid,lv){
+  const p=NPCS.find(n=>n.id===pid),e=NPC_ADV_EVENTS[pid]&&NPC_ADV_EVENTS[pid][lv],mask=document.getElementById('npcEventMask'),body=document.getElementById('npcEventBody');if(!p||!e||!mask||!body||npcRelInfo(pid).xp<lv||S.npcEvents[pid+'_'+lv])return;
+  body.innerHTML='<div class="st-kicker">'+p.ic+' '+p.n+' · '+(lv===6?'知交':'莫逆')+'事件</div><div class="st-title">'+e.title+'</div><div class="ne-scene">'+e.scene+'</div><div class="ne-choices">'+e.choices.map((c,i)=>'<button class="ne-choice" onclick="resolveAdvancedNpcEvent(\''+pid+'\','+lv+','+i+')"><b>'+c.t+'</b><span>'+c.d+'</span></button>').join('')+'</div><div class="st-actions"><button class="btn sm ghost" onclick="closeNpcEvent()">以后再说</button></div>';mask.style.display='flex';
+}
+function resolveAdvancedNpcEvent(pid,lv,choice){
+  const p=NPCS.find(n=>n.id===pid),e=NPC_ADV_EVENTS[pid]&&NPC_ADV_EVENTS[pid][lv],c=e&&e.choices[choice],key=pid+'_'+lv;if(!p||!e||!c||S.npcEvents[key])return;
+  S.npcEvents[key]={choice,ts:new Date().toISOString().slice(0,16).replace('T',' '),mark:e.mark};const xp=lv===10?40:25;S.bonusXP=(S.bonusXP||0)+xp;addHist('📖【'+p.n+'】'+e.title+'：'+c.t+' · 留念「'+e.mark+'」 +'+xp+' XP',xp);closeNpcEvent();save();render();celebrateTask(p.ic+' '+(lv===10?'莫逆':'知交')+'留念：'+e.mark);
+}
+function openJointNpcEvent(){
+  if(S.npcEvents.joint_four||!NPCS.every(p=>S.npcEvents[p.id]))return;const body=document.getElementById('npcEventBody'),mask=document.getElementById('npcEventMask'),e=NPC_JOINT_EVENT;if(!body||!mask)return;body.innerHTML='<div class="st-kicker">🏮 四方故人 · 联动事件</div><div class="st-title">'+e.title+'</div><div class="ne-scene">'+e.scene+'</div><div class="ne-choices">'+e.choices.map((c,i)=>'<button class="ne-choice" onclick="resolveJointNpcEvent('+i+')"><b>'+c.t+'</b><span>'+c.d+'</span></button>').join('')+'</div>';mask.style.display='flex';
+}
+function resolveJointNpcEvent(choice){const e=NPC_JOINT_EVENT,c=e.choices[choice];if(!c||S.npcEvents.joint_four)return;S.npcEvents.joint_four={choice,ts:new Date().toISOString().slice(0,16).replace('T',' ')};S.bonusXP=(S.bonusXP||0)+35;addHist('🏮【四方故人】'+e.title+'：'+c.t+' +35 XP',35);closeNpcEvent();save();render();celebrateTask('🏮 四盏灯，照见同一段路');}
+function renderNpcRelics(){
+  const el=document.getElementById('npcRelicBox'); if(!el)return; const owned=S.npcRelics||[];
+  const rows=NPCS.map(p=>({p,e:NPC_EVENTS[p.id]})).filter(x=>owned.includes(x.e.relic.id));
+  if(!rows.length){el.innerHTML='<div class="relic-empty">与故人的关系达到「熟识」并完成专属事件后，纪念物会留在这里。</div>';return;}
+  el.innerHTML=rows.map(x=>{const rec=S.npcEvents[x.p.id], c=x.e.choices[rec?rec.choice:0];return '<div class="relic-card"><div class="relic-ic">'+x.e.relic.ic+'</div><div class="relic-name">'+x.e.relic.name+'</div><div class="relic-from">来自 '+x.p.n+' · '+x.e.title+'</div><div class="relic-story">'+c.story+'</div></div>';}).join('');
+}
+function npcRoll(force){
+  const wk=monday();
+  if(!force && S.npc.week===wk && S.npc.active.length) return;
+  S.npc.week=wk;
+  S.npc.seenWeek='';
+  S.npc.active=NPCS.map(p=>({
+    npc:p.id, id:id(),
+    t:p.qs[Math.floor(Math.random()*p.qs.length)],
+    a:p.a, xp:30, done:false
+  }));
+  addHist('📜 本周委托已刷新（四位故人各留一言）');
+}
+function npcDone(qid){
+  const q=S.npc.active.find(x=>x.id===qid); if(!q) return;
+  const wasTodayFocus=ensureTodayPlan().focusId===qid;
+  q.done=!q.done;
+  const p=NPCS.find(n=>n.id===q.npc);
+  if(q.done){
+    S.bonusXP=(S.bonusXP||0)+q.xp;
+    touchActivity(todayStr());
+    addHist('✔【委托】'+(p?p.n:'')+'：'+q.t+' +'+q.xp+' XP', q.xp);
+    if(p){ const before=npcRelInfo(p.id).level, rel=npcRel(p.id); rel.xp=(rel.xp||0)+1; rel.done=(rel.done||0)+1; const after=npcRelInfo(p.id); if(after.level>before) setTimeout(()=>celebrateTask(p.ic+' 与'+p.n+'的关系升为「'+after.name+'」'),420); if(before<2&&after.level>=2&&!S.npcEvents[p.id]) setTimeout(()=>celebrateTask('📜 '+p.n+'的专属事件已解锁'),800); }
+    celebrateTask((p?p.ic+' '+p.n+'点了点头。':'✔ 委托达成'));
+    setTimeout(()=>showQuestSettlement({id:q.id,text:q.t,attr:q.a,mins:q.min||0,xp:q.xp||0,focusDone:wasTodayFocus}),180);
+    // 四人全清 → 额外嘉奖
+    if(S.npc.active.every(x=>x.done)){
+      addHist('🏮 本周四方委托全清');
+      try{ const drp=dropReward('medium','本周委托全清'); if(drp) setTimeout(()=>celebrateTask('🎁 四方尽欢：'+findReward(drp.rewardId).name),200); }catch(e){}
+    }
+  } else {
+    S.bonusXP=Math.max(0,(S.bonusXP||0)-q.xp);
+    addHist('✘【委托】'+(p?p.n:'')+'：'+q.t, -q.xp);
+    if(p){ const rel=npcRel(p.id); rel.xp=Math.max(0,(rel.xp||0)-1); rel.done=Math.max(0,(rel.done||0)-1); }
+  }
+  save(); checkAch(); render();
+}
+
