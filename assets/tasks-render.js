@@ -793,6 +793,27 @@ function listHtml(arr,kind){
   }).join('');
 }
 
+// ===== 补剂：横向小图标行，完成即点亮 =====
+const SUPP_ICON = {
+  '维生素D':'☀️','镁':'🧂','鱼油':'🐟','维生素C':'🍋','氨糖':'🦴',
+  '姜黄饮':'🫚','姜黄奶':'🥛','羽衣甘蓝粉':'🥬','奇亚籽':'🌱','甜菜根粉':'🍠','电解质粉':'⚡',
+  '钙':'🦴','铁':'🩸','益生菌':'🦠','胶原蛋白':'💧','褪黑素':'🌙','复合维生素':'🟡','B族':'🟡'
+};
+function renderSupps(){
+  const el=document.getElementById('suppList'); if(!el) return;
+  if(!S.supps||!S.supps.length){ el.innerHTML='<div class="hint">暂无补剂，下面加一个。</div>'; return; }
+  const d=REC_DATE||todayStr();
+  el.innerHTML='<div class="supp-row">'+S.supps.map(x=>{
+    const done=isDone(x,d);
+    const ic=SUPP_ICON[x.t]||'💊';
+    return '<button type="button" class="supp-ic'+(done?' done':'')+'" title="'+escHtml((done?'已服用：':'未服用：')+x.t)+'" onclick="toggle(S.supps,\''+x.id+'\')">'
+      +'<span class="supp-em">'+ic+'</span>'
+      +'<span class="supp-nm">'+escHtml(x.t)+'</span>'
+      +(done?'<span class="supp-ck">✔</span>':'')
+      +'<span class="supp-del" onclick="event.stopPropagation();delQuest(\'supps\',\''+x.id+'\')" title="删除">×</span>'
+      +'</button>';
+  }).join('')+'</div>';
+}
 // ===== 旅行地图：自绘世界地图 + 地点解锁 + 感受记录（合规：台湾属中国、含南海诸岛） =====
 function projX(lng){ return ((lng+180)/360*1000).toFixed(1); }
 function projY(lat){ return ((90-lat)/180*500).toFixed(1); }
@@ -1727,7 +1748,7 @@ function render(){
 
   // lists: 日常 / 补剂 / 手动周目标 / 随机日行 / 随机周游 / 月行 / 账本
   document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
-  document.getElementById('suppList').innerHTML=listHtml(S.supps,'supps');
+  renderSupps();
   const wgEl=document.getElementById('weeklyGoalList'); if(wgEl) wgEl.innerHTML=listHtml(S.weekly,'weekly');
   renderWeeklyReview();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
