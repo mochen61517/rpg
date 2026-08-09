@@ -2002,8 +2002,8 @@ function renderXpLedger(){
   const labs={action:['⚔️','行动'],momentum:['🔥','连携'],story:['📖','剧情'],bonus:['🎁','额外']},days=[];for(let i=6;i>=0;i--){const dd=shiftDate(d,-i),v=xpLedgerFor(dd).pos;days.push({d:dd,v});}const mx=Math.max(1,...days.map(q=>q.v));
   el.innerHTML='<div class="xpl-head"><div><div class="xpl-title">⚖️ 修为账本</div><div class="hint">看清奖励来自哪里 · 节奏线不是上限</div></div><div class="xpl-total"><b>+'+x.pos+'</b><br><span>今日入账 XP'+(x.neg?' · 撤销 '+x.neg:'')+'</span></div></div>'
     +'<div class="xpl-meter"><i style="width:'+pct+'%"></i></div><div class="xpl-scale"><span>0 · 起步</span><span>180 · 充足</span><span>360 · 丰盛</span></div>'
-    +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>'
-    +'<div class="xpl-week">'+days.map(q=>'<div class="xpl-day"><i style="height:'+Math.max(2,Math.round(q.v/mx*28))+'px"></i><span>'+q.d.slice(5)+'</span></div>').join('')+'</div>';
+    +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>'+
+    +'<div class="xpl-week"><svg class="xpl-chart" viewBox="0 0 280 40" preserveAspectRatio="none" style="width:100%;height:40px;display:block;margin-bottom:6px;"><polyline points="'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return x+','+y;}).join(' ')+'" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--gold)"/>';}).join('')+'</svg><div class="xpl-day">'+days.map(q=>'<span>'+q.d.slice(5)+'</span>').join('')+'</div></div>';
 }
 function renderLoot(){
   const el=document.getElementById('equipList'); if(!el) return;  // 页面未渲染则跳过
