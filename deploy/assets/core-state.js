@@ -666,6 +666,7 @@ function defaultState(){
       sleepLog:{}, ageLog:{}                     // 每日睡眠时长 / 体龄脑龄快照（精力页趋势用）
     },
     todayPlan: {date:'', focusId:'', mode:'normal', fateChoice:'', settled:[]}, // v5.22 今日驾驶舱；仅保存当天选择，不影响旧任务数据
+    reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
   };
 }
 

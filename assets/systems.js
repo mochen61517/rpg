@@ -103,19 +103,7 @@ function seasonStats(key){
   const places=Object.keys(S.travel||{}).filter(k=>S.travel[k]&&S.travel[k].visited&&S.travel[k].date>=start&&S.travel[k].date<=end).length;
   return {start,end,attr,done,sleep,maxStreak,places};
 }
-function seasonCheck(){
-  const key=curSeasonKey();
-  if(!S.season.cur){ S.season.cur=key; return; }
-  if(S.season.cur===key) return;
-  // 赛季切换：结算上季
-  const old=S.season.cur;
-  const st=seasonStats(old);
-  const got=TITLES.filter(t=>t.cond(st)).map(t=>t.id);
-  got.forEach(tid=>{ if(!S.season.titles.some(x=>x.id===tid&&x.season===old)) S.season.titles.push({id:tid,season:old}); });
-  addHist('🏁 '+old+' 赛季结算：完成 '+st.done+' 项 · 最长连击 '+st.maxStreak+' 日 · 获称号 '+(got.length||0)+' 个');
-  if(got.length) try{ dropReward('medium', old+' 赛季结算'); }catch(e){}
-  S.season.cur=key;
-}
+// 赛季结算已移除（赛季称号模块已停用）
 // 本季实时进度（未结算也能看到快要到手的称号）
 function seasonPreview(){
   const key=curSeasonKey(), st=seasonStats(key);
@@ -249,24 +237,7 @@ function renderLifeBanner(){
     +   '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
     +'</div>';
 }
-function renderSaga(){
-  const el=document.getElementById('sagaBox'); if(!el) return;
-  const cur=curVolume();
-  el.innerHTML=VOLUMES.map(v=>{
-    const p=v.prog();
-    const done=S.saga.done.includes(v.n);
-    const isCur=(v.n===cur.n)&&!done;
-    const pct=p.b?Math.min(100,Math.round(p.a/p.b*100)):0;
-    return '<div class="vol '+(done?'vol-done':(isCur?'vol-cur':'vol-lock'))+'">'
-      +'<div class="vol-h"><span class="vol-n">卷 '+v.n+'</span><span class="vol-t">'+v.t+'</span>'
-      +'<span class="vol-s">'+(done?'✔ 已终章':(isCur?'进行中':'未启'))+'</span></div>'
-      +'<div class="vol-sub">'+v.sub+'</div>'
-      +'<div class="vol-bar"><i style="width:'+pct+'%"></i></div>'
-      +'<div class="vol-p">'+p.a+' / '+p.b+'</div>'
-      +'<div class="vol-txt">'+(done?v.close:v.open)+'</div>'
-      +'</div>';
-  }).join('');
-}
+// 修行卷册已移除（与长期复利轨道重复）
 function renderDayun(){
   const el=document.getElementById('dayunBox'); if(!el) return;
   const y=new Date().getFullYear();
@@ -318,56 +289,9 @@ function renderNpc(){
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新四方委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
-function renderSkillTree(){
-  const el=document.getElementById('skillBox'); if(!el) return;
-  const left=skillPointsLeft(), tot=skillPointsTotal();
-  const head='<div class="sk-head">修行点 <b>'+left+'</b> / '+tot+' <span class="note">（每提升 1 级得 1 点；已投入 '+skillPointsSpent()+' 点）</span></div>';
-  const body=Object.keys(SKILL_TREE).map(k=>{
-    const A=ATTRS[k];
-    const bonus=Math.round(skillBonusFor(k)*100);
-    const nodes=SKILL_TREE[k].map(nd=>{
-      const un=S.skill.un.includes(nd.id);
-      const c=canUnlock(k,nd.id);
-      const cls=un?'sk-un':(c.ok?'sk-ok':'sk-no');
-      return '<div class="sknode '+cls+'" onclick="'+(un||!c.ok?'':'unlockSkill(\''+k+'\',\''+nd.id+'\')')+'">'
-        +'<div class="sk-n">'+(un?'🌿 ':'')+nd.n+'</div>'
-        +'<div class="sk-d">'+nd.d+'</div>'
-        +'<div class="sk-f"><span class="sk-b">+'+Math.round(nd.b*100)+'%</span><span class="sk-c">'+(un?'已开枝':(nd.cost+' 点'))+'</span></div>'
-        +'</div>';
-    }).join('<div class="sk-link"></div>');
-    return '<div class="sktree"><div class="sk-th"><span>'+A.icon+' '+A.name+'</span><span class="sk-tb">当前加成 +'+bonus+'%</span></div>'
-      +'<div class="sk-row">'+nodes+'</div></div>';
-  }).join('');
-  el.innerHTML=head+body+'<div class="hint">解锁后永久生效：该领域每次打卡获得的经验 ×(1+装备加成+天赋加成)。点数不可退，慢慢种。</div>';
-}
-function renderSeason(){
-  const el=document.getElementById('seasonBox'); if(!el) return;
-  const key=curSeasonKey(), st=seasonStats(key), pv=seasonPreview();
-  const owned={}; (S.season.titles||[]).forEach(t=>{ owned[t.id]=t.season; });
-  const cards=pv.map(t=>{
-    const has=!!owned[t.id];
-    const cls=has?'ti-own':(t.hit?'ti-hit':'ti-no');
-    const worn=S.season.worn===t.id;
-    return '<div class="title '+cls+(worn?' ti-worn':'')+'">'
-      +'<div class="ti-ic">'+t.ic+'</div>'
-      +'<div class="ti-n">'+t.n+'</div>'
-      +'<div class="ti-d">'+t.d+'</div>'
-      +'<div class="ti-s">'+(has?('已获 · '+owned[t.id]):(t.hit?'本季达标 ✓ 季末入账':'未达标'))+'</div>'
-      +(has?'<button class="btn sm '+(worn?'primary':'ghost')+'" onclick="wearTitle(\''+t.id+'\')">'+(worn?'佩戴中':'佩戴')+'</button>':'')
-      +'</div>';
-  }).join('');
-  el.innerHTML=
-     '<div class="se-head">当前赛季 <b>'+key+'</b> <span class="note">'+st.start+' ~ '+st.end+'</span></div>'
-    +'<div class="se-stat">完成 <b>'+st.done+'</b> 项 ｜ 最长连击 <b>'+st.maxStreak+'</b> 日 ｜ 新到访 <b>'+st.places+'</b> 处 ｜ '
-    +Object.keys(ATTRS).map(k=>ATTRS[k].icon+h(st.attr[k]||0)).join(' ')+'</div>'
-    +'<div class="titles">'+cards+'</div>'
-    +'<div class="hint">季度切换时自动结算，达标的称号入账并可佩戴（显示在角色名旁）。未结算前显示实时进度。</div>';
-}
-function renderWorn(){
-  const el=document.getElementById('wornTitle'); if(!el) return;
-  const t=wornTitleObj();
-  el.innerHTML = t ? ('<span class="worn">'+t.ic+' '+t.n+'</span>') : '';
-}
+// 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
+// 赛季称号已移除（与复利轨道 / 成就重复）
+// 佩戴称号已移除（赛季模块停用）
 
 // ===== v5.18 今日一句（名著 / 名言 / 影视 / 歌词 / 节气） =====
 const QUOTES=[
@@ -726,7 +650,6 @@ function bondDone(b){ return b.ids.every(id=>achUn(id)); }
 function grantBond(b){
   if(S.bonds.awarded.indexOf(b.id)>=0) return;
   S.bonds.awarded.push(b.id);
-  if((S.season.titles||[]).indexOf(b.title)<0) S.season.titles.push(b.title);
   addHist('🔗 成就羁绊达成：'+b.name+' → 称号「'+b.title+'」'); save();
 }
 function renderBonds(){
@@ -1129,6 +1052,7 @@ function buildReport(kind, start, end){
   // 升级/突破
   const ups=(S.history||[]).filter(e=>e.ts&&e.ts.slice(0,10)>=start&&e.ts.slice(0,10)<=end&&/突破|升级/.test(e.text)).map(e=>e.text);
   const gxp=overallXP(), gL=lvlOf(gxp);
+  const label=kind==='week'?'周':'月';
   const lines=[];
   lines.push('📊 '+(kind==='week'?'周报':'月报')+'（'+start+' ~ '+end+'）');
   lines.push('🔥 灯火不熄：'+computeStreak()+' 日');
@@ -1141,7 +1065,34 @@ function buildReport(kind, start, end){
   if(ups.length) lines.push('⭐ 突破：'+ups.join('；'));
   lines.push('📈 当前 Lv.'+gL+'（加权经验 '+Math.round(gxp)+'）');
   lines.push('💡 一句话：这'+(kind==='week'?'周':'月')+'把节奏稳住，'+ (totalMin>0?'有在持续投入。':'可以再往前推一步。'));
-  return { title:(kind==='week'?'周报':'月报')+' · Lv.'+gL, text:lines.join('\n') };
+  // —— 结构化可读卡片（屏幕展示用，与上方纯文本推送内容同源）——
+  const attrRows=Object.keys(ATTRS).map(k=>{
+    const h=(hrs[k]/60); const pct= totalMin>0? Math.round(h/(totalMin/60)*100):0;
+    return '<div class="rep-attr"><span class="rep-attr-n">'+ATTRS[k].icon+' '+ATTRS[k].name+'</span>'
+      +'<span class="rep-attr-v">'+h.toFixed(1)+'h</span>'
+      +'<span class="rep-attr-bar"><i style="width:'+pct+'%"></i></span></div>';
+  }).join('');
+  const hi=[];
+  if(monthDone.length) hi.push(['🌕 本月主线推进', monthDone.join('、')]);
+  if(yearDoneList.length) hi.push(['🗺️ 今年大道完成', yearDoneList.join('、')]);
+  if(newVisits.length) hi.push(['🌍 新到访', newVisits.join('、')]);
+  if(drops.length) hi.push(['🛡️ 嘉奖掉落', drops.join(' · ')]);
+  if(ups.length) hi.push(['⭐ 突破', ups.join('；')]);
+  const hiHtml=hi.length? '<div class="rep-hi">'+hi.map(x=>'<div class="rep-hi-row"><span class="rep-hi-k">'+x[0]+'</span><span class="rep-hi-v">'+x[1]+'</span></div>').join('')+'</div>' : '';
+  const html='<div class="rep-card">'
+    +'<div class="rep-top"><span class="rep-title">'+(kind==='week'?'📅 本周报':'🌕 本月报')+'</span><span class="rep-range">'+start+' ~ '+end+'</span></div>'
+    +'<div class="rep-stats">'
+      +'<div class="rep-stat"><b>'+computeStreak()+'</b><span>🔥 灯火不熄 · 日</span></div>'
+      +'<div class="rep-stat"><b>'+daily.count+'</b><span>⚔️ 日常完成</span></div>'
+      +'<div class="rep-stat"><b>'+weekly.count+'</b><span>📆 周常完成</span></div>'
+      +'<div class="rep-stat"><b>'+(sd.count+sw.count+sm.count)+'</b><span>📜 轶事</span></div>'
+      +'<div class="rep-stat"><b>Lv.'+gL+'</b><span>📈 当前等级</span></div>'
+    +'</div>'
+    +'<div class="rep-secs"><span class="rep-secs-t">🧭 四系投入（合计 '+(totalMin/60).toFixed(1)+'h）</span>'+attrRows+'</div>'
+    +hiHtml
+    +'<div class="rep-tip">💡 这'+label+'把节奏稳住，'+(totalMin>0?'有在持续投入。':'可以再往前推一步。')+'</div>'
+    +'</div>';
+  return { title:(kind==='week'?'周报':'月报')+' · Lv.'+gL, text:lines.join('\n'), html };
 }
 function pushText(title, content){
   let token=S.pushToken || prompt('输入 pushplus token（一次填入即记住）：');
@@ -1153,9 +1104,35 @@ function pushText(title, content){
 function genReport(kind, push){
   const {start,end}=reportWindow(kind);
   const rep=buildReport(kind,start,end);
-  const box=document.getElementById('reportOut');
-  if(box){ box.style.display='block'; box.textContent=rep.text; }
+  // 写入各自专属区域（周/月互不覆盖）
+  const box=document.getElementById(kind==='week'?'reportWeek':'reportMonth');
+  if(box){ box.style.display='block'; box.innerHTML=rep.html; }
+  // 历史留痕（周月分开、各留最近 12 条）
+  S.reports = S.reports||[];
+  S.reports.unshift({kind, ts:new Date().toISOString().slice(0,16).replace('T',' '), title:rep.title, html:rep.html, text:rep.text});
+  const cap=12; if(S.reports.length>cap) S.reports.length=cap;
+  try{ save(); }catch(e){}
+  renderReportHistory();
   if(push) pushText(rep.title, rep.text);
+}
+function renderReportHistory(){
+  const el=document.getElementById('reportHist'); if(!el) return;
+  const list=(S.reports||[]).slice(0,12);
+  if(!list.length){ el.innerHTML='<div class="hint">还没有生成过报告。点上方按钮生成，会自动留痕在这里，周/月分开记录。</div>'; return; }
+  const items=list.map((r,i)=>{
+    const ic=r.kind==='week'?'📅':'🌕';
+    return '<div class="rep-hist-item" onclick="showReport('+i+')">'
+      +'<span class="rep-hist-ic">'+ic+'</span>'
+      +'<span class="rep-hist-t">'+r.title+'</span>'
+      +'<span class="rep-hist-ts">'+r.ts+'</span></div>';
+  }).join('');
+  el.innerHTML='<div class="rep-hist-h">🕘 历史记录（点击重看 · 周月分开）</div><div class="rep-hist-list">'+items+'</div>';
+}
+function showReport(i){
+  const r=(S.reports||[])[i]; if(!r) return;
+  const box=document.getElementById(r.kind==='week'?'reportWeek':'reportMonth');
+  if(box){ box.style.display='block'; box.innerHTML=r.html; }
+  const hEl=document.getElementById('reportHist'); if(hEl) hEl.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 // v5.31 详情页信息架构：每项能力只保留一个可见归属，移动 DOM 不改动任何存档数据。
@@ -1223,12 +1200,7 @@ function reorganizeDetailPages(){
     const growthFirst=page('growth')?.querySelector(':scope > .panel');
     growthFirst?.insertAdjacentElement('afterend',xp);
   }
-  const skillPanel=document.getElementById('skillBox')?.closest('.panel');
-  if(skillPanel){
-    detailGroup('growth','🌳 完整技能树','四系加点与全部节点 · 需要时展开',[skillPanel]);
-    const skillGroup=page('growth')?.lastElementChild;
-    xp?.insertAdjacentElement('afterend',skillGroup);
-  }
+  // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
   detailGroup('growth','🛡️ 收藏与嘉奖','装备、奖励需要时再展开',[
     document.querySelector('#page-loot > .loot-tabs'),
     document.getElementById('lootEquips'),
@@ -1262,12 +1234,34 @@ function reorganizeDetailPages(){
   setHead('data','设置与内容管理','存档与反馈 · 通知 · 随机内容库');
 }
 
+// 长期复利轨道 = 唯一累计时长真源。覆盖所有需要长期复利的维度；
+// reading 用真实历史基数 182h（不虚构拆分自「精神享受」）；身体/职业/生涯教练沿用 S.goals 真实基数。
+// realms：按「总累计小时」自动升级的武侠境界阶梯（每轨道自带风味名）。
 const LIFE_TRACKS={
-  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BADMINTON_LIFETIME_HOURS*60,unit:'终身',variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。']},
-  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:0,unit:'今日起',variants:['唱一首旧歌，找回当时的自己。','只认真唱最喜欢的一段。','留意哪一句让呼吸真正舒展开。']},
-  reading:{ic:'📖',n:'阅读',a:'MIND',base:0,unit:'今日起',variants:['读五页，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。']},
-  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:0,unit:'今日起',variants:['只练一个乐句，听它比昨天顺一点。','闭眼弹一次熟悉的片段。','把最卡的两小节放慢一半。']},
-  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:0,unit:'今日起',variants:['先问身体：今天哪里最需要被照顾？','用三分钟把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。']}
+  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BADMINTON_LIFETIME_HOURS*60,unit:'终身',paused:false,
+    realms:[[0,'初出茅庐'],[2000,'向名扬俱乐部'],[4000,'区里成名'],[6000,'省队水准'],[8000,'全国新锐'],[10000,'一代宗师']],
+    variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。']},
+  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:0,unit:'今日起',paused:false,
+    realms:[[0,'初出茅庐'],[50,'敢开嗓'],[150,'麦上常客'],[400,'小有所成'],[800,'一曲倾城'],[1500,'绕梁宗师']],
+    variants:['唱一首旧歌，找回当时的自己。','只认真唱最喜欢的一段。','留意哪一句让呼吸真正舒展开。']},
+  reading:{ic:'📖',n:'阅读',a:'MIND',base:182*60,unit:'累计',paused:false,
+    realms:[[0,'初出茅庐'],[100,'初窥门径'],[300,'渐入佳境'],[600,'博观约取'],[1000,'胸有丘壑'],[1500,'一代书宗']],
+    variants:['读五页，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。']},
+  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:0,unit:'今日起',paused:false,
+    realms:[[0,'初出茅庐'],[50,'认谱'],[150,'小曲流畅'],[400,'小有所成'],[800,'登堂入室'],[1500,'琴心宗师']],
+    variants:['只练一个乐句，听它比昨天顺一点。','闭眼弹一次熟悉的片段。','把最卡的两小节放慢一半。']},
+  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:0,unit:'今日起',paused:false,
+    realms:[[0,'初出茅庐'],[50,'舒展'],[150,'柔和'],[400,'松活'],[800,'筋长一寸'],[1500,'养生宗师']],
+    variants:['先问身体：今天哪里最需要被照顾？','用三分钟把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。']},
+  body:{ic:'💪',n:'身体健康',a:'BODY',base:898*60,unit:'终身',paused:false,
+    realms:[[0,'初出茅庐'],[500,'体魄渐实'],[1000,'小有所成'],[2000,'康健有成'],[3000,'钢筋铁骨']],
+    variants:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。']},
+  career:{ic:'💼',n:'职业发展',a:'CAREER',base:1017*60,unit:'终身',paused:false,
+    realms:[[0,'初出茅庐'],[500,'独当一面'],[1000,'小有所成'],[2000,'业内立足']],
+    variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']},
+  coach:{ic:'🧭',n:'生涯教练转行',a:'MIND',base:474*60,unit:'终身',paused:true,
+    realms:[[0,'初出茅庐'],[500,'试水'],[1000,'小有所成'],[2000,'传灯开张']],
+    variants:['今天有没有一次「教练式」的对话或觉察？','记一个你想帮人看清的卡点。','哪怕很小，今天为「转行」做了一件事吗？']}
 };
 const LIFE_PROMPTS=['今天哪个普通瞬间值得被保存？','今天有什么声音、气味或光线让你停了一下？','哪一刻你感觉自己不是在赶路，而是在生活？','今天身体给了你什么细小反馈？','今天有什么东西比预想中更好？','如果只留下一帧，你想留下什么？'];
 function ensureLifeCompound(){
@@ -1281,7 +1275,13 @@ function practiceLogs(key){return ensureLifeCompound().logs.filter(x=>x.key===ke
 function practiceNewMinutes(key){return practiceLogs(key).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceTodayMinutes(key){return practiceLogs(key).filter(x=>x.d===todayStr()).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceWeekMinutes(key){const start=monday();return practiceLogs(key).filter(x=>x.d>=start&&x.d<=shiftDate(start,6)).reduce((n,x)=>n+(+x.min||0),0);}
-function practiceStage(min){const stages=[[0,'点火'],[60,'萌芽'],[300,'生根'],[1200,'成形'],[3000,'熟练'],[6000,'质变']];let cur=stages[0],next=null;for(let i=0;i<stages.length;i++){if(min>=stages[i][0])cur=stages[i];else{next=stages[i];break;}}return{n:cur[1],at:cur[0],next};}
+function trackStage(totalMin, realms){
+  const H=totalMin/60; let cur=realms[0], next=null;
+  for(let i=0;i<realms.length;i++){ if(H>=realms[i][0]) cur=realms[i]; else { next=realms[i]; break; } }
+  const at=cur[0], nh=next?next[0]:null;
+  const pct = next ? Math.min(100, Math.max(0,(H-at)/(nh-at)*100)) : 100;
+  return {n:cur[1], at, next: next?{h:nh,n:next[1]}:null, pct, H};
+}
 function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
 function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(todayStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
@@ -1300,8 +1300,8 @@ function saveLifeMemory(){
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 function renderLifeCompound(){
   ensureLifeCompound();const todayActive=Object.keys(LIFE_TRACKS).filter(k=>practiceTodayMinutes(k)>0).length,mems=S.lifeCompound.memories||[],todayMems=mems.filter(x=>x.d===todayStr()).length,prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
-  const quick=document.getElementById('lifeBlendBox');if(quick)quick.innerHTML='<div class="lc-head"><div><b>🌱 今日生活复利</b><span>长期价值与当下感受，在同一次行动里发生</span></div><div class="lc-score">'+todayActive+'/5 轨道 · '+todayMems+' 枚碎片</div></div><div class="lc-grid">'+Object.keys(LIFE_TRACKS).map(k=>{const t=LIFE_TRACKS[k],m=practiceTodayMinutes(k);return'<div class="lc-card '+(m?'active':'')+'"><div class="lc-card-top"><b>'+t.ic+' '+t.n+'</b><span>'+(m?('今天 +'+m+'m'):'尚未点火')+'</span></div><p>'+lifeVariant(k)+'</p><div class="lc-actions"><button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)">火种 +5</button><button class="btn xs" onclick="addLifePractice(\''+k+'\',15)">稳定 +15</button></div></div>';}).join('')+'</div><div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div><div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'+Object.keys(LIFE_TRACKS).map(k=>'<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>').join('')+'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…"><button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button></div></div>';
-  const detail=document.getElementById('longPracticeBox');if(detail)detail.innerHTML='<div class="lp-head"><div><b>🌳 长期复利轨道</b><span>不追求每天完美，只让总量持续向前</span></div><div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div><div class="lp-grid">'+Object.keys(LIFE_TRACKS).map(k=>{const t=LIFE_TRACKS[k],fresh=practiceNewMinutes(k),total=t.base+fresh,st=practiceStage(fresh),pct=st.next?Math.min(100,(fresh-st.at)/(st.next[0]-st.at)*100):100;return'<div class="lp-card"><div class="lp-title"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div><div class="lp-total">'+(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small></div><div class="lp-bar"><i style="width:'+pct+'%"></i></div><div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span><span>'+(st.next?('距「'+st.next[1]+'」 '+Math.max(0,st.next[0]-fresh)+'m'):'已进入质变期')+'</span></div></div>';}).join('')+'</div><div class="lp-note">唱歌、阅读和钢琴从本版本起分别累计；原有“精神享受”历史总量继续保留，不虚构拆分。由原任务完成产生的投入会自动同步到对应轨道。</div>';
+  const quick=document.getElementById('lifeBlendBox');if(quick)quick.innerHTML='<div class="lc-head"><div><b>🌱 今日生活复利</b><span>长期价值与当下感受，在同一次行动里发生</span></div><div class="lc-score">'+todayActive+'/'+Object.keys(LIFE_TRACKS).length+' 轨道 · '+todayMems+' 枚碎片</div></div><div class="lc-grid">'+Object.keys(LIFE_TRACKS).map(k=>{const t=LIFE_TRACKS[k],m=practiceTodayMinutes(k);return'<div class="lc-card '+(m?'active':'')+(t.paused?' paused':'')+'"><div class="lc-card-top"><b>'+t.ic+' '+t.n+'</b><span>'+(m?('今天 +'+m+'m'):'尚未点火')+'</span></div><p>'+lifeVariant(k)+'</p><div class="lc-actions"><button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)">火种 +5</button><button class="btn xs" onclick="addLifePractice(\''+k+'\',15)">稳定 +15</button></div></div>';}).join('')+'</div><div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div><div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'+Object.keys(LIFE_TRACKS).map(k=>'<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>').join('')+'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…"><button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button></div></div>';
+  const detail=document.getElementById('longPracticeBox');if(detail)detail.innerHTML='<div class="lp-head"><div><b>🌳 长期复利轨道</b><span>不追求每天完美，只让总量持续向前</span></div><div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div><div class="lp-grid">'+Object.keys(LIFE_TRACKS).map(k=>{const t=LIFE_TRACKS[k],fresh=practiceNewMinutes(k),total=t.base+fresh,st=trackStage(total,t.realms),pct=st.pct;return'<div class="lp-card'+(t.paused?' paused':'')+'"><div class="lp-title"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div><div class="lp-total">'+(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small></div><div class="lp-bar"><i style="width:'+pct+'%"></i></div><div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span><span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';}).join('')+'</div><div class="lp-note">羽毛球/身体/职业/生涯教练沿用真实累计基数；阅读用真实历史 182h（不虚构拆分自「精神享受」）。由原任务完成产生的投入会自动同步到对应轨道。每个轨道按总累计小时自动点亮武侠境界。</div>';
 }
 function setupLifeCompoundUI(){
   ensureLifeCompound();if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';document.getElementById('todayDetailCockpit')?.insertAdjacentElement('afterend',p);}
@@ -1349,7 +1349,7 @@ try{
   REC_DATE='';                   // 默认记今天
   const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
   lastLevel = lvlOf(overallXP());
-  try{ npcRoll(); seasonCheck(); checkVolume(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
+  try{ npcRoll(); checkVolume(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
   checkAch();
   render();
   applyDashOrder();

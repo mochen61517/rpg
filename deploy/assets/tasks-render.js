@@ -264,7 +264,7 @@ function newDay(){
     S.lastMonth=thisMonth();
   }
   addHist('🌅 新的一天');
-  try{ npcRoll(); seasonCheck(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){}
+  try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){}
   save();checkAch();render();
 }
 function resetAll(){
@@ -1770,28 +1770,7 @@ function render(){
   document.getElementById('bmFill').style.width=bP.pct+'%';
   document.getElementById('bmWeek').textContent=`${h(bmWeekHours())} / 15h`;
 
-  // goals
-  document.getElementById('goalsBox').innerHTML=S.goals.map((g,i)=>{
-    const pct=Math.min(100,g.cur/g.total*100);
-    const ms=g.milestones.map((m,mi)=>{
-      const reached=m.skill?(m.auto?!!m.auto():!!m.reached):(g.cur>=m.thr);
-      const tag=m.skill?(m.auto?'随年目标自动达成':'技能'):m.thr+'h';
-      const clk=(m.skill&&!m.auto&&!reached)?`onclick="claimMilestone(${i},${mi})"`:'';
-      const cls='ms '+(m.skill&&!m.auto?'skill ':'')+(reached?'reached':'');
-      return `<span class="${cls}" ${clk} title="${tag}">${reached?'✔ ':''}${m.label}</span>`;
-    }).join('');
-    return `<div class="goal ${g.paused?'paused':''}">
-      <div class="gtop"><span class="gic">${g.ic}</span><span class="gn">${g.n}${g.paused?'<span class="ptag">⏸ 休眠</span>':''}</span>
-        <span class="gcur" onclick="editGoalTotal(${i})" title="点此修改总目标">${g.cur} / ${g.total}h · ${pct.toFixed(1)}%</span></div>
-      <div class="gbar"><div class="gbf" style="width:${pct}%"></div></div>
-      <div class="gms">${ms}</div>
-      <div class="gacts">
-        <button class="btn ghost sm" onclick="recordHours(${i},15)">+15min</button>
-        <button class="btn ghost sm" onclick="recordHours(${i},60)">+1h</button>
-        <button class="btn ghost sm" onclick="recordHours(${i},-60)">-1h</button>
-      </div>
-    </div>`;
-  }).join('');
+  // 🎯 长期目标已合并进「长期复利轨道」（systems.js renderLifeCompound），此处不再渲染
 
   // achievements - 拆分已解锁 / 待解锁
   const _achCard=(a,i)=>`<div class="ach ${a.un?'un':''} ${((!a.un)&&(a.next||a.lv))?'featured':''}">
@@ -1804,7 +1783,7 @@ function render(){
   const _un=S.ach.map((a,i)=>a.un?_achCard(a,i):null).filter(Boolean);
   const _lk=S.ach.map((a,i)=>!a.un?_achCard(a,i):null).filter(Boolean);
   document.getElementById('achsUnlocked').innerHTML=_un.join('')||'<div class="hint">尚无解锁的印记，开始修行吧。</div>';
-  document.getElementById('achsLocked').innerHTML=_lk.join('')||'<div class="hint">皆已点亮 ✨</div>';
+  const _al=document.getElementById('achsLocked'); if(_al) _al.innerHTML=_lk.join('')||'<div class="hint">皆已点亮 ✨</div>';
   document.getElementById('pushToken').value=S.pushToken||'';
   const hb=document.getElementById('histBox');
   if(S.history.length){
@@ -1816,8 +1795,8 @@ function render(){
   renderWishes();
   renderTrendCard();
   // v5.17
-  try{ checkVolume(); seasonCheck(); }catch(e){}
-  try{ renderEnergy(); renderSaga(); renderLiunian(); renderDayun(); renderNpc(); renderSkillTree(); renderSeason(); renderWorn(); }catch(e){ console.warn('v5.17 render',e); }
+  try{ checkVolume(); }catch(e){}
+  try{ renderEnergy(); renderLiunian(); renderDayun(); renderNpc(); }catch(e){ console.warn('v5.17 render',e); }
   try{ renderLoadAdvisor(); }catch(e){ console.warn('load advisor',e); }
   try{ if(typeof renderLifeCompound==='function') renderLifeCompound(); }catch(e){ console.warn('life compound',e); }
   try{ renderQuietMode(); }catch(e){}
@@ -1826,6 +1805,8 @@ function render(){
   try{ renderLifeBanner(); }catch(e){ console.warn('life banner render',e); }
   // v5.19 互动版块渲染
   try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); }catch(e){ console.warn('v5.19 render',e); }
+  // v5.34 周报/月报历史（周月分开放，自动留痕）
+  try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v5.20 通知中心
   try{ renderNotifications(); renderNavBadges(); renderBioAge(); }catch(e){ console.warn('v5.20+ render',e); }
   newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
