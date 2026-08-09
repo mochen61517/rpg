@@ -2129,6 +2129,7 @@ function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=doc
 function showPage(p){
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
   if(p==='energy') renderEnergyPage();
+  if(p==='map'){ try{ renderTripsPage(); }catch(e){ console.warn('trips render',e); } }
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   const t=document.getElementById('page-'+p);
   if(t) t.classList.add('active');

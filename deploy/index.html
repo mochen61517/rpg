@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生修行录 · v5.34.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.42.0">
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.43.0">
 </head>
 <body>
 <div class="layout">
@@ -21,6 +21,7 @@
       <a class="navitem" data-page="longterm" onclick="showPage('longterm')">🗺️ 长期主线</a>
       <a class="navitem" data-page="ledger" onclick="showPage('ledger')">💰 钱庄</a>
       <a class="navitem" data-page="journey" onclick="showPage('journey')">🧚 角色设定</a>
+      <a class="navitem" data-page="map" onclick="showPage('map')">🗺️ 旅行脚印<span class="nav-badge" id="navBadge-map"></span></a>
       <a class="navitem" data-page="growth" onclick="showPage('growth')">🌳 修行·成长<span class="nav-badge" id="navBadge-growth"></span></a>
       <a class="navitem" data-page="data" onclick="showPage('data')">⚙️ 数据&设置</a>
     </nav>
@@ -457,34 +458,12 @@
       </div>
     </div>
 
-    <!-- ===== 旅行地图 ===== -->
+        <!-- ===== 旅行脚印（v5.43 替代自绘世界地图） ===== -->
     <div class="page" id="page-map">
-      <div class="phead">旅行地图<span class="psub">用脚步解锁世界 · 到访后写下你的感受</span></div>
-      <div class="lifemap">
-        <div class="maptabs" id="mapTabs"></div>
-        <div class="addtip" id="addTip" style="display:none">📍 点击地图任意位置放置新地点（位置会在对应区域自动点亮）</div>
-        <div id="worldmap"></div>
-        <div class="mapbar">
-          <span class="stat">我的足迹 <b id="fpCount">0</b> / <span id="fpTotal">0</span></span>
-          <span class="stat">解锁率 <b id="fpPct">0%</b></span>
-          <div class="legend">
-            <span><i style="background:#ffd166"></i>已到访</span>
-            <span><i style="background:#5a7a93"></i>未到访</span>
-            <span><i style="background:#2b4a63"></i>陆地</span>
-          </div>
-        </div>
-        <div class="goals">
-          <div class="gfield"><label>🎯 今年旅行目标</label><select id="goalYear" onchange="setTravelGoal('year',this.value)"></select><span class="gach" id="goalYearAch"></span></div>
-          <div class="gfield"><label>🌙 本月旅行目标</label><select id="goalMonth" onchange="setTravelGoal('month',this.value)"></select><span class="gach" id="goalMonthAch"></span></div>
-        </div>
-        <div class="hint" style="margin-top:12px">点击地图上的圆点，标记「我去过了」并写下感受；预设之外的地方，点左上角「＋新增地点」→ 输入地名（如大理、冰岛、巴黎），系统会自动在地图对应位置点亮。年/月旅行目标可在上方设定，达成后自动显示 ✅。</div>
-        <div class="panel" id="letterBox"></div>
-        <h3 style="margin:16px 0 4px; font-size:14px">📍 我的足迹</h3>
-        <div class="footprints" id="footprints"></div>
-      </div>
+      <div class="phead">🗺️ 旅行脚印<span class="psub">把到访与心愿写下来，让脚步有迹可循</span></div>
+      <div id="tripsPage"></div>
     </div>
-    <!-- 地点编辑弹窗 -->
-    <!-- 远方来信 阅读弹窗 -->
+<!-- 远方来信 阅读弹窗 -->
     <div id="letterModal" class="modal-mask" style="display:none" onclick="if(event.target===this)hideModal('letterModal')">
       <div class="modal"><div class="modal-x" onclick="hideModal('letterModal')">×</div><div class="modal-body"></div></div>
     </div>
@@ -742,9 +721,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.42.0"></script>
-<script src="assets/tasks-render.js?v=5.42.0"></script>
-<script src="assets/npc-stories.js?v=5.42.0"></script>
-<script src="assets/systems.js?v=5.42.0"></script>
+<script src="assets/core-state.js?v=5.43.0"></script>
+<script src="assets/tasks-render.js?v=5.43.0"></script>
+<script src="assets/npc-stories.js?v=5.43.0"></script>
+<script src="assets/systems.js?v=5.43.0"></script>
 </body>
 </html>

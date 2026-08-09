@@ -626,10 +626,9 @@ function defaultState(){
     coin: { target:0, initial:0, labor:[] },  // 金币人生：目标金币 / 初始金币 / 搬砖时长打卡（labor:[{id,date,hours,link}]）
     hobbies: defaultHobbies(),
     wishes: defaultWishes(),
-    travel: {},                 // 旅行地图：{ [placeId]: {visited,date,rating,refl} }
+    trips: [],                    // 旅行脚印：[{id, name, sub, date, rating, refl, wish, createdAt}] —— v5.43 替代自绘世界地图
+    travel: {},                 // 旅行地图：{ [placeId]: {visited,date,rating,refl} }  // v5.43 起由 trips 接管，保留字段以兼容旧数据
     travelGoals: {year:null, month:null},  // 年/月旅行目标（地点 id）
-    mapTab: 'cn',                  // 旅行地图当前分区
-    customPlaces: [],             // 旅行地图：用户自定义地点（直接在地图上点选新增）
     equips: { owned:['eq_racket','eq_handbook','eq_whey','eq_vinyl','eq_ring','eq_cloak'], equipped:[] }, // 装备库：owned=已拥有 equipped=已装备
     customEquips: [],             // 用户自制装备
     rewards: { drops:[], dailyCount:0, dailyDate:'' }, // 嘉奖箱：drops=掉落记录 dailyCount=每日掉落计数
@@ -898,6 +897,8 @@ function migrate(){
   if(typeof S.coin.target!=='number') S.coin.target=0;
   if(typeof S.coin.initial!=='number') S.coin.initial=0;
   if(!Array.isArray(S.coin.labor)) S.coin.labor=[];
+  if(!Array.isArray(S.trips)) S.trips = [];
+
   if(!S.travel || typeof S.travel!=='object') S.travel = {};
   if(!Array.isArray(S.customPlaces)) S.customPlaces = [];
   if(!S.travelGoals || typeof S.travelGoals!=='object') S.travelGoals = {year:null, month:null};

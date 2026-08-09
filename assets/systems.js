@@ -745,6 +745,113 @@ function relLinkText(lv){
   return '才刚认识。多接几次他的委托，关系会自己长出来。';
 }
 
+// ===== v5.43 旅行脚印（纯文字版，替代自绘世界地图） =====
+let _tripWish=false,_tripEditId=null;
+function tripStars(n){
+  n=Math.max(0,Math.min(5,n|0));
+  return '★'.repeat(n)+'☆'.repeat(5-n);
+}
+function tripEscape(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function tripSave(){
+  if(!Array.isArray(S.trips)) S.trips=[];
+  S.trips=S.trips.filter(t=>t&&t.name&&String(t.name).trim());
+  save();
+}
+function renderTripsPage(){
+  const el=document.getElementById('tripsPage'); if(!el) return;
+  if(!Array.isArray(S.trips)) S.trips=[];
+  const visited=S.trips.filter(t=>!t.wish).sort((a,b)=>(b.date||b.createdAt||'').localeCompare(a.date||a.createdAt||''));
+  const wish=S.trips.filter(t=>!!t.wish);
+  const total=S.trips.length;
+  const cVis=visited.length, cWish=wish.length;
+  const tab=(_tripWish?'wish':'vis');
+  const html='<div class="trips-tabs">'
+    +'<button class="ttab'+(tab==='vis'?'':' off')+'" onclick="tripSwitchTab(\'vis\')">📍 已去过 <span class="tn">'+cVis+'</span></button>'
+    +'<button class="ttab'+(tab==='wish'?' off':'')+'" onclick="tripSwitchTab(\'wish\')">✈️ 想去 <span class="tn">'+cWish+'</span></button>'
+    +'</div>'
+    +tripFormHtml(_tripEditId)
+    +(tab==='vis'?tripListHtml(visited,'vis'):tripListHtml(wish,'wish'))
+    +'<div class="trips-foot">已记录 '+total+' 个脚印'+(_tripEditId?' <button class="btn xs ghost" onclick="tripCancelEdit()">取消编辑</button>':'')+'</div>';
+  el.innerHTML=html;
+}
+function tripSwitchTab(t){ _tripWish=(t==='wish'); _tripEditId=null; renderTripsPage(); }
+function tripFormHtml(id){
+  const t=(id?S.trips.find(x=>x.id===id):null)||null;
+  const wish=!t?!!_tripWish:!!t.wish;
+  return '<div class="trip-form">'
+    +'<div class="tf-head">'+(id?'✎ 编辑脚印':'✚ 记一笔新的脚印')+'</div>'
+    +'<div class="tf-row">'
+      +'<input id="tfName" class="tf-inp" placeholder="地点名（如 大理、冰岛、家门口公园）" value="'+tripEscape(t?t.name:'')+'" maxlength="40">'
+      +'<input id="tfSub" class="tf-inp sub" placeholder="具体点（古城 / 老巷 / 苍山）" value="'+tripEscape(t?t.sub:'')+'" maxlength="40">'
+    +'</div>'
+    +'<div class="tf-row two">'
+      +(wish
+        ? '<span class="tf-hint">这一栏是你还「想去」的地方 🌱</span>'
+        : '<label>到访日期 <input id="tfDate" type="date" value="'+tripEscape(t?t.date||'':'')+'"></label>'
+          +'<label>评分 <span id="tfStars" class="tf-stars">'+tripStars(t?(t.rating||0):0).split('').map((s,i)=>'<i data-n="'+(i+1)+'">'+s+'</i>').join('')+'</span></label>')
+    +'</div>'
+    +'<textarea id="tfRefl" class="tf-refl" rows="3" maxlength="400" placeholder="'+(wish?'想去的理由（风景 / 故事 / 心愿）…':'那次的感受 / 一句记忆 / 还想再去的理由…')+'">'+(t?tripEscape(t.refl||''):'')+'</textarea>'
+    +'<div class="tf-foot">'
+      +'<label class="tf-toggle"><input id="tfWish" type="checkbox" '+(wish?'checked':'')+' onchange="_tripWish=this.checked"> 还没去 · 标记为「想去」</label>'
+      +(id?'<button class="btn xs ghost" onclick="tripDel(\''+id+'\')">删除</button>':'')
+      +'<button class="btn sm primary" onclick="tripSubmit('+(id?'\''+id+'\'':'null')+')">'+(id?'更新':'写入')+'</button>'
+    +'</div>'
+    +'</div>';
+}
+function tripListHtml(list,kind){
+  if(!list.length) return '<div class="trips-empty">'+(kind==='wish'?'还没有「想去」的地方——把心里挂着的城市写下来，让远方先在心里抵达。':'还没有到访记录。从下一段旅程开始，把脚步与感受留下。')+'</div>';
+  return '<div class="trip-list">'+list.map(t=>{
+    const date=t.date?t.date:(t.createdAt||'').slice(0,10);
+    return '<div class="trip-card" onclick="tripEdit(\''+t.id+'\')">'
+      +'<div class="tc-head"><span class="tc-name">'+tripEscape(t.name)+(t.sub?' <span class="tc-sub">'+tripEscape(t.sub)+'</span>':'')+'</span><span class="tc-date">📅 '+tripEscape(date||'—')+'</span></div>'
+      +(t.rating?'<div class="tc-rating">'+tripStars(t.rating)+'</div>':'')
+      +(t.refl?'<div class="tc-refl">'+tripEscape(t.refl)+'</div>':'')
+    +'</div>';
+  }).join('')+'</div>';
+}
+function tripSubmit(id){
+  const nameEl=document.getElementById('tfName'); if(!nameEl) return;
+  const name=nameEl.value.trim(); if(!name){ nameEl.focus(); nameEl.classList.add('shake'); setTimeout(()=>nameEl.classList.remove('shake'),420); return; }
+  if(!Array.isArray(S.trips)) S.trips=[];
+  const sub=(document.getElementById('tfSub')||{}).value||'';
+  const refl=(document.getElementById('tfRefl')||{}).value||'';
+  const wish=!document.getElementById('tfWish')?!!_tripWish:document.getElementById('tfWish').checked;
+  let rating=0,date='';
+  if(!wish){
+    rating=parseInt((document.querySelector('#tfStars i.on')||{}).dataset?.n||'0',10)||0;
+    date=((document.getElementById('tfDate')||{}).value||'');
+    if(!date) date=todayStr();
+  }
+  if(id){
+    const t=S.trips.find(x=>x.id===id);
+    if(t){ t.name=name; t.sub=sub.trim(); t.refl=refl.trim(); t.wish=wish; t.rating=wish?0:rating; t.date=wish?'':date; }
+    _tripEditId=null;
+  }else{
+    S.trips.push({id:'t_'+Date.now()+'_'+Math.floor(Math.random()*1e4),name,sub:sub.trim(),refl:refl.trim(),wish,rating:wish?0:rating,date:wish?'':date,createdAt:new Date().toISOString().slice(0,10)});
+  }
+  _tripWish=wish;
+  tripSave();
+  try{ touchActivity(todayStr()); }catch(_){}
+  try{ addHist((wish?'✈️':'📍')+' 旅行脚印'+(wish?'想去':'去过')+' · '+name, 0, todayStr()); }catch(_){}
+  try{ celebrateTask((wish?'想把远方写下来 — ':'一城一帧 — ')+name); }catch(_){}
+  renderTripsPage(); render();
+}
+function tripEdit(id){ _tripEditId=id; const t=S.trips.find(x=>x.id===id); if(t) _tripWish=!!t.wish; renderTripsPage(); setTimeout(()=>{document.getElementById('tfName')?.focus();},30); }
+function tripDel(id){
+  const t=S.trips.find(x=>x.id===id); if(!t) return;
+  if(!confirm('确定删除「'+t.name+'」？')) return;
+  S.trips=S.trips.filter(x=>x.id!==id);
+  if(_tripEditId===id) _tripEditId=null;
+  tripSave(); renderTripsPage(); render();
+}
+function tripCancelEdit(){ _tripEditId=null; renderTripsPage(); }
+document.addEventListener('click',function(e){
+  const i=e.target.closest && e.target.closest('#tfStars i'); if(!i) return;
+  const starsEl=document.getElementById('tfStars'); if(!starsEl) return;
+  const n=parseInt(i.dataset.n||'0',10);
+  [...starsEl.children].forEach((s,idx)=>s.classList.toggle('on',idx<n));
+});
+
 // —— 通知中心：仪表盘小喇叭 + 左侧导航红点 ——
 function notifList(){
   const arr=[];
@@ -761,8 +868,16 @@ function notifList(){
 }
 function notifGo(el){
   const p=el.dataset.page, s=el.dataset.scroll;
-  if(s){ const t=document.getElementById(s); if(t) t.scrollIntoView({behavior:'smooth'}); }
-  else if(p){ showPage(p); }
+  if(s){
+    const t=document.getElementById(s);
+    if(t){ t.scrollIntoView({behavior:'smooth',block:'center'}); t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); }
+  }
+  if(p && p!==getActivePage()){ showPage(p); }
+  else if(!s && p){ showPage(p); }
+  return false;
+}
+function getActivePage(){
+  const a=document.querySelector('.page.active'); return a?a.id.replace(/^page-/,''):null;
 }
 function renderNotifications(){
   const el=document.getElementById('notifBox'); if(!el) return;
