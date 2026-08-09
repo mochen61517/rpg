@@ -1910,6 +1910,8 @@ function render(){
   try{ renderSaveSafety(); }catch(e){}
   try{ renderQuote(); }catch(e){ console.warn('v5.18 render',e); }
   try{ renderLifeBanner(); }catch(e){ console.warn('life banner render',e); }
+  // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
+  try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
   try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）

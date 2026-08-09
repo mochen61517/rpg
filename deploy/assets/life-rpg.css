@@ -1275,3 +1275,46 @@ html.theme-dark .ledger-cat-bar div{background:var(--career);}
 .dks-card:hover{transform:translateY(-2px);border-color:var(--gold)}.dks-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--dim)}.dks-value{font-size:22px;font-weight:800;margin:7px 0 3px}.dks-sub{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dks-arrow{opacity:.55}
 .today-cockpit.dash-minimal{padding:18px}.dash-focus-row{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.dash-focus-kicker{font-size:10px;color:var(--gold);letter-spacing:1.6px}.dash-focus-title{font-size:20px;font-weight:800;margin:5px 0;line-height:1.4}.dash-focus-meta{font-size:11px;color:var(--dim)}.dash-focus-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.today-detail-cockpit{margin-bottom:12px}
 @media(max-width:760px){.dash-key-summary{grid-template-columns:repeat(2,1fr)}.dash-focus-row{display:block}.dash-focus-actions{justify-content:flex-start;margin-top:12px}.dash-focus-title{font-size:18px}}
+
+/* ===== 今日运势 · 天象 · 宜忌（v5.39） ===== */
+.panel.fortune-panel{padding:0;overflow:hidden}
+.fo-top{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 16px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.fo-gz{text-align:center;flex:0 0 auto;padding-right:14px;border-right:1px solid var(--line)}
+.fo-gz-c{font-size:26px;font-weight:800;letter-spacing:2px;line-height:1.15;color:var(--txt)}
+.fo-gz-l{font-size:10px;color:var(--dim);margin-top:3px;white-space:nowrap}
+.fo-tone{min-width:0}
+.fo-tone-t{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fo-stars{font-size:12px;letter-spacing:1px;font-weight:400}
+.fo-tone-d{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.5}
+.fo-tone.lv5 .fo-tone-t,.fo-tone.lv5 .fo-stars{color:var(--grw)}
+.fo-tone.lv4 .fo-tone-t,.fo-tone.lv4 .fo-stars{color:var(--mint)}
+.fo-tone.lv3 .fo-tone-t,.fo-tone.lv3 .fo-stars{color:var(--txt)}
+.fo-tone.lv2 .fo-tone-t,.fo-tone.lv2 .fo-stars{color:var(--gold)}
+.fo-tone.lv1 .fo-tone-t,.fo-tone.lv1 .fo-stars{color:var(--warn)}
+.fo-wx{flex:0 0 auto;text-align:right;min-width:118px}
+.fo-wx-city{font-size:10px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 4px;margin-bottom:4px;cursor:pointer;outline:none}
+.fo-wx-main{display:flex;align-items:baseline;gap:5px;justify-content:flex-end;line-height:1.1}
+.fo-wx-ic{font-size:19px}
+.fo-wx-t{font-size:21px;font-weight:800}
+.fo-wx-d{font-size:11px;color:var(--dim)}
+.fo-wx-sub{font-size:10px;color:var(--dim);margin-top:3px;white-space:nowrap}
+.fo-wx-load{font-size:11px;color:var(--dim);line-height:1.5}
+.fo-cols{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.fo-col{padding:12px 16px 13px}
+.fo-col+.fo-col{border-left:1px solid var(--line)}
+.fo-col-h{font-size:13px;font-weight:800;width:24px;height:24px;line-height:24px;text-align:center;border-radius:6px;margin-bottom:9px}
+.fo-yi .fo-col-h{background:rgba(126,196,143,.16);color:var(--grw);border:1px solid rgba(126,196,143,.4)}
+.fo-ji .fo-col-h{background:rgba(214,120,106,.14);color:var(--warn);border:1px solid rgba(214,120,106,.36)}
+.fo-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.fo-col li{font-size:12px;line-height:1.55;padding-left:13px;position:relative;color:var(--txt)}
+.fo-col li:before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%}
+.fo-yi li:before{background:var(--grw)}
+.fo-ji li:before{background:var(--warn)}
+.fo-note{font-size:10px;color:var(--dim);line-height:1.6;padding:9px 16px 12px;border-top:1px solid var(--line);background:var(--panel2)}
+@media(max-width:760px){
+  .fo-top{grid-template-columns:auto 1fr;gap:10px;row-gap:10px}
+  .fo-wx{grid-column:1/-1;text-align:left;border-top:1px solid var(--line);padding-top:9px}
+  .fo-wx-main{justify-content:flex-start}
+  .fo-cols{grid-template-columns:1fr}
+  .fo-col+.fo-col{border-left:none;border-top:1px solid var(--line)}
+}

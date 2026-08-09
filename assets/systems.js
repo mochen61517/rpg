@@ -1224,7 +1224,6 @@ function reorganizeDetailPages(){
   // 高频信息在前；设置、录入和内容管理沉到底部或归入设置页。
   move('data','身体指标','energy');
   move('data','资产快照','ledger','每日搬砖打卡');
-  move('data','人生时间轴设置','journey','修行履历');
   move('current','羽毛球专精','growth','修行卷册');
   move('data','周报 / 月报','week','月行大计');
   move('current','任务生成器','data','补充灵感');
@@ -1281,28 +1280,28 @@ function reorganizeDetailPages(){
 // reading 用真实历史基数 182h（不虚构拆分自「精神享受」）；身体/职业/生涯教练沿用 S.goals 真实基数。
 // realms：按「总累计小时」自动升级的武侠境界阶梯（每轨道自带风味名）。
 const LIFE_TRACKS={
-  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BADMINTON_LIFETIME_HOURS*60,unit:'终身',paused:false,
+  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BADMINTON_LIFETIME_HOURS*60,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[2000,'向名扬俱乐部'],[4000,'区里成名'],[6000,'省队水准'],[8000,'全国新锐'],[10000,'一代宗师']],
     variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。']},
-  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:0,unit:'今日起',paused:false,
+  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:0,unit:'今日起',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'敢开嗓'],[150,'麦上常客'],[400,'小有所成'],[800,'一曲倾城'],[1500,'绕梁宗师']],
     variants:['唱一首旧歌，找回当时的自己。','只认真唱最喜欢的一段。','留意哪一句让呼吸真正舒展开。']},
-  reading:{ic:'📖',n:'阅读',a:'MIND',base:182*60,unit:'累计',paused:false,
+  reading:{ic:'📖',n:'阅读',a:'MIND',base:182*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[100,'初窥门径'],[300,'渐入佳境'],[600,'博观约取'],[1000,'胸有丘壑'],[1500,'一代书宗']],
     variants:['读五页，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。']},
-  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:0,unit:'今日起',paused:false,
+  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:0,unit:'今日起',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'认谱'],[150,'小曲流畅'],[400,'小有所成'],[800,'登堂入室'],[1500,'琴心宗师']],
     variants:['只练一个乐句，听它比昨天顺一点。','闭眼弹一次熟悉的片段。','把最卡的两小节放慢一半。']},
-  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:0,unit:'今日起',paused:false,
+  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:0,unit:'今日起',rec:10,paused:false,
     realms:[[0,'初出茅庐'],[50,'舒展'],[150,'柔和'],[400,'松活'],[800,'筋长一寸'],[1500,'养生宗师']],
     variants:['先问身体：今天哪里最需要被照顾？','用三分钟把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。']},
-  body:{ic:'💪',n:'身体健康',a:'BODY',base:898*60,unit:'终身',paused:false,
+  body:{ic:'💪',n:'身体健康',a:'BODY',base:898*60,unit:'终身',rec:20,paused:false,
     realms:[[0,'初出茅庐'],[500,'体魄渐实'],[1000,'小有所成'],[2000,'康健有成'],[3000,'钢筋铁骨']],
     variants:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。']},
-  career:{ic:'💼',n:'职业发展',a:'CAREER',base:1017*60,unit:'终身',paused:false,
+  career:{ic:'💼',n:'职业发展',a:'CAREER',base:1017*60,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[500,'独当一面'],[1000,'小有所成'],[2000,'业内立足']],
     variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']},
-  coach:{ic:'🧭',n:'生涯教练转行',a:'MIND',base:474*60,unit:'终身',paused:true,
+  coach:{ic:'🧭',n:'生涯教练转行',a:'MIND',base:474*60,unit:'终身',rec:30,paused:true,
     realms:[[0,'初出茅庐'],[500,'试水'],[1000,'小有所成'],[2000,'传灯开张']],
     variants:['今天有没有一次「教练式」的对话或觉察？','记一个你想帮人看清的卡点。','哪怕很小，今天为「转行」做了一件事吗？']}
 };
@@ -1313,7 +1312,36 @@ function ensureLifeCompound(){
   if(!Array.isArray(S.lifeCompound.memories))S.lifeCompound.memories=[];
   return S.lifeCompound;
 }
-function lifeTrackOfTask(item){const t=(item&&item.t)||'';if(/羽毛球/.test(t))return'badminton';if(/拉伸|放松|恢复/.test(t))return'stretch';const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);return mind.length===1?mind[0]:'';}
+// v5.39 任务→轨道映射（扩到 body / career / coach，原来只认羽毛球和精神类，
+// 导致「力量训练」「职业行动」做完不进任何轨道 —— 既重复又漏账）。
+function lifeTrackOfTask(item){
+  const t=(item&&item.t)||'';
+  if(/羽毛球|打球|多球|步法/.test(t)) return 'badminton';
+  if(/拉伸|放松|恢复|筋膜/.test(t)) return 'stretch';
+  if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'body';
+  if(/生涯教练|转行/.test(t)) return 'coach';
+  if(/职业|求职|事业编|央企|文职|简历|面试/.test(t)) return 'career';
+  const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|弹琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);
+  return mind.length===1?mind[0]:'';
+}
+// 「精神充电（唱歌/钢琴/阅读任选）」这类一对多的日课，在复利面板里已被拆成独立轨道，
+// 留着只会让同一件事记两遍，故一并列为冗余。
+const REDUNDANT_DAILY=/精神充电|生活复利/;
+// 一次性迁移：把与复利轨道重复的固定日常收走，只留无法映射的真·小习惯（如「23:30 前睡觉」）。
+// 只动 S.daily 清单本身，不碰任何历史记录 / XP / 轨道时长。
+function migrateDailyIntoTracks(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.dailyTracks) return;
+  const keep=[], moved=[];
+  (S.daily||[]).forEach(function(it){
+    const k=lifeTrackOfTask(it);
+    if(k||REDUNDANT_DAILY.test(it.t||'')) moved.push(it.t); else keep.push(it);
+  });
+  if(moved.length) S.daily=keep;
+  S.migr.dailyTracks=todayStr();
+  S.migr.dailyMoved=moved;
+  try{ save(); }catch(e){}
+}
 function practiceLogs(key){return ensureLifeCompound().logs.filter(x=>x.key===key);}
 function practiceNewMinutes(key){return practiceLogs(key).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceTodayMinutes(key){return practiceLogs(key).filter(x=>x.d===todayStr()).reduce((n,x)=>n+(+x.min||0),0);}
@@ -1341,15 +1369,228 @@ function saveLifeMemory(){
   const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:todayStr(),text:textv,key:sel&&sel.value||'life'});if(input)input.value='';save();renderLifeCompound();celebrateTask('✨ 一枚生活碎片已被留下');
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
-function renderLifeCompound(){
-  ensureLifeCompound();const todayActive=Object.keys(LIFE_TRACKS).filter(k=>practiceTodayMinutes(k)>0).length,mems=S.lifeCompound.memories||[],todayMems=mems.filter(x=>x.d===todayStr()).length,prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
-  const quick=document.getElementById('lifeBlendBox');if(quick)quick.innerHTML='<div class="lc-head"><div><b>🌱 今日生活复利</b><span>长期价值与当下感受，在同一次行动里发生</span></div><div class="lc-score">'+todayActive+'/'+Object.keys(LIFE_TRACKS).length+' 轨道 · '+todayMems+' 枚碎片</div></div><div class="lc-grid">'+Object.keys(LIFE_TRACKS).map(k=>{const t=LIFE_TRACKS[k],m=practiceTodayMinutes(k);return'<div class="lc-card '+(m?'active':'')+(t.paused?' paused':'')+'"><div class="lc-card-top"><b>'+t.ic+' '+t.n+'</b><span>'+(m?('今天 +'+m+'m'):'尚未点火')+'</span></div><p>'+lifeVariant(k)+'</p><div class="lc-actions"><button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)">火种 +5</button><button class="btn xs" onclick="addLifePractice(\''+k+'\',15)">稳定 +15</button></div></div>';}).join('')+'</div><div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div><div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'+Object.keys(LIFE_TRACKS).map(k=>'<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>').join('')+'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…"><button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button></div></div>';
-  const detail=document.getElementById('longPracticeBox');if(detail)detail.innerHTML='<div class="lp-head"><div><b>🌳 长期复利轨道</b><span>不追求每天完美，只让总量持续向前</span></div><div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div><div class="lp-grid">'+Object.keys(LIFE_TRACKS).map(k=>{const t=LIFE_TRACKS[k],fresh=practiceNewMinutes(k),total=t.base+fresh,st=trackStage(total,t.realms),pct=st.pct;return'<div class="lp-card'+(t.paused?' paused':'')+'"><div class="lp-title"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div><div class="lp-total">'+(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small></div><div class="lp-bar"><i style="width:'+pct+'%"></i></div><div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span><span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';}).join('')+'</div><div class="lp-note">羽毛球/身体/职业/生涯教练沿用真实累计基数；阅读用真实历史 182h（不虚构拆分自「精神享受」）。由原任务完成产生的投入会自动同步到对应轨道。每个轨道按总累计小时自动点亮武侠境界。</div>';
+// v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。
+// 每条轨道可直接填分钟并标记完成；填了时间即视为今天完成，卡片点亮。
+function recordLifePractice(key){
+  const t=LIFE_TRACKS[key]; if(!t) return;
+  const el=document.getElementById('lcMin_'+key);
+  const v=Math.max(1, Math.round(+((el&&el.value)||t.rec||15)));
+  addLifePractice(key, v);
 }
+function clearLifeToday(key){
+  const t=LIFE_TRACKS[key]; if(!t) return;
+  const d=todayStr(), lc=ensureLifeCompound();
+  const gone=lc.logs.filter(function(x){return x.key===key&&x.d===d;});
+  if(!gone.length) return;
+  const mins=gone.reduce(function(n,x){return n+(+x.min||0);},0);
+  lc.logs=lc.logs.filter(function(x){return !(x.key===key&&x.d===d);});
+  try{ grant(t.a, -mins, false); }catch(e){}
+  addHist(t.ic+' '+t.n+'撤销今日记录 −'+mins+' 分钟', -mins, d);
+  save(); renderLifeCompound(); render();
+}
+function renderLifeCompound(){
+  ensureLifeCompound();
+  const keys=Object.keys(LIFE_TRACKS);
+  const live=keys.filter(function(k){return !LIFE_TRACKS[k].paused;});
+  const todayActive=keys.filter(function(k){return practiceTodayMinutes(k)>0;}).length;
+  const mems=S.lifeCompound.memories||[];
+  const todayMems=mems.filter(function(x){return x.d===todayStr();}).length;
+  const todayMin=keys.reduce(function(n,k){return n+practiceTodayMinutes(k);},0);
+  const prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
+
+  const quick=document.getElementById('lifeBlendBox');
+  if(quick) quick.innerHTML=
+    '<div class="lc-head"><div><b>🌱 今日行动 · 复利轨道</b><span>填上时间就算完成，一处记录，长期累计</span></div>'
+      +'<div class="lc-score">'+todayActive+'/'+live.length+' 条已点亮 · 共 '+todayMin+' 分钟</div></div>'
+    +'<div class="lc-grid">'+keys.map(function(k){
+      const t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), rec=t.rec||15;
+      return '<div class="lc-card '+(m?'active':'')+(t.paused?' paused':'')+'">'
+        +'<div class="lc-card-top"><b>'+t.ic+' '+t.n+'</b>'
+          +'<span class="lc-state">'+(m?('✓ 今天 '+m+' 分钟'):('建议 '+rec+' 分钟'))+'</span></div>'
+        +'<p>'+lifeVariant(k)+'</p>'
+        +'<div class="lc-actions">'
+          +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
+            +'onkeydown="if(event.key===\'Enter\')recordLifePractice(\''+k+'\')">'
+          +'<span class="lc-unit">分钟</span>'
+          +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
+          +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
+          +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销今天这条轨道的全部记录">↺</button>':'')
+        +'</div></div>';
+    }).join('')+'</div>'
+    +'<div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div>'
+      +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
+      +keys.map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
+      +'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…">'
+      +'<button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button></div></div>';
+
+  const detail=document.getElementById('longPracticeBox');
+  if(detail) detail.innerHTML=
+    '<div class="lp-head"><div><b>🌳 长期复利轨道</b><span>不追求每天完美，只让总量持续向前</span></div>'
+      +'<div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div>'
+    +'<div class="lp-grid">'+keys.map(function(k){
+      const t=LIFE_TRACKS[k], fresh=practiceNewMinutes(k), total=t.base+fresh, st=trackStage(total,t.realms);
+      return '<div class="lp-card'+(t.paused?' paused':'')+'">'
+        +'<div class="lp-title"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div>'
+        +'<div class="lp-total">'+(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small></div>'
+        +'<div class="lp-bar"><i style="width:'+st.pct+'%"></i></div>'
+        +'<div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span>'
+        +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';
+    }).join('')+'</div>'
+    +'<div class="lp-note">羽毛球/身体/职业/生涯教练沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。</div>';
+}
+
 function setupLifeCompoundUI(){
-  ensureLifeCompound();if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';document.getElementById('todayDetailCockpit')?.insertAdjacentElement('afterend',p);}
+  ensureLifeCompound();
+  try{ migrateDailyIntoTracks(); }catch(e){ console.warn('daily->tracks migrate',e); }
+  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';document.getElementById('todayDetailCockpit')?.insertAdjacentElement('afterend',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
+}
+
+// ===== 今日运势 · 天象 · 宜忌 =====
+// 日干支用真实 60 甲子推算（2000-01-07 为甲子日，可与万年历核对）；
+// 吉凶依角色命格「丁火 · 身强偏旺 · 喜金水清凉」判定，非通用黄历。
+const GZ_GAN=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const GZ_ZHI=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const GAN_WX=['木','木','火','火','土','土','金','金','水','水'];
+const ZHI_WX=['水','土','木','木','土','火','火','土','金','金','土','水'];
+// 丁火身强偏旺：喜金水（调候/耗泄），土可泄火为平，木火则火上加火。
+const WX_SCORE={'金':2,'水':2,'土':1,'木':-1,'火':-2};
+const WX_IC={'金':'⚔️','水':'💧','木':'🌿','火':'🔥','土':'⛰️'};
+
+function dayGanzhi(ds){
+  const d=ds||todayStr(), p=d.split('-').map(Number);
+  const base=Date.UTC(2000,0,7); // 2000-01-07 = 甲子日
+  const cur=Date.UTC(p[0],p[1]-1,p[2]);
+  const days=Math.floor((cur-base)/86400000);
+  const idx=((days%60)+60)%60;
+  const gan=GZ_GAN[idx%10], zhi=GZ_ZHI[idx%12];
+  return {idx, gan, zhi, gz:gan+zhi, ganWx:GAN_WX[idx%10], zhiWx:ZHI_WX[idx%12]};
+}
+
+// 宜/忌基础规则：按当日主导五行对丁火的作用给方向，不是通用黄历。
+const WX_ADVICE={
+  '金':{yi:['谈事、定合同、把悬着的决定落定','上强度：对抗练球 / 力量训练','说清楚一件一直没说的事'],
+        ji:['反复权衡不下决心','把锋利的话说给在乎的人']},
+  '水':{yi:['沉下来学一样东西 / 阅读','复盘、写规划、整理思路','独处一会儿，不安排社交'],
+        ji:['熬夜耗神（水日透支最伤）','把安静误当停滞而焦虑']},
+  '木':{yi:['见人、社交、聊机会','启动一件小的新事','出门走走，换个场景'],
+        ji:['同时开太多头，样样起头样样浅','答应超过自己容量的事']},
+  '火':{yi:['静守、少做决定','拉伸、慢走、降燥','读点跟自己无关的书'],
+        ji:['冲动做决定 / 签字','为他人背书、担保、当中间人','争执与情绪对撞']},
+  '土':{yi:['整理、归档、收纳、清理','做总结、结账、算账','把半成品收个尾'],
+        ji:['翻旧账、纠结已经过去的事','拖着不开始']}
+};
+// 阈值按实际取值域校准：raw ∈ [-3.5, 3.5]（干权重 1、支权重 0.75）。
+// 60 甲子实测分布 = 大吉 8 / 吉 16 / 平 24 / 小滞 6 / 宜静 6，不会天天大吉，也不会天天倒霉。
+const FORTUNE_TONE=[
+  {min:3.0,lv:5,t:'大吉',d:'金水当令，今天顺水推舟'},
+  {min:1.5,lv:4,t:'吉',  d:'气场清爽，适合往前推一步'},
+  {min:-0.5,lv:3,t:'平',  d:'不好不坏，按本分做事最稳'},
+  {min:-2.0,lv:2,t:'小滞',d:'略有燥意，慢一点没关系'},
+  {min:-99,lv:1,t:'宜静',d:'火旺之日，守住比赢重要'}
+];
+
+function fortuneToday(){
+  const g=dayGanzhi(todayStr());
+  const raw=(WX_SCORE[g.ganWx]||0)+(WX_SCORE[g.zhiWx]||0)*0.75;
+  const tone=FORTUNE_TONE.find(x=>raw>=x.min)||FORTUNE_TONE[FORTUNE_TONE.length-1];
+  // 主导五行：取分值更极端的一方（更能代表当日气质）
+  const main=Math.abs(WX_SCORE[g.ganWx]||0)>=Math.abs(WX_SCORE[g.zhiWx]||0)?g.ganWx:g.zhiWx;
+  const rule=WX_ADVICE[main]||WX_ADVICE['土'];
+  const yi=rule.yi.slice(0,2), ji=rule.ji.slice(0,2);
+  // —— 以下为「真实数据驱动」的追加条目，不是命理，是你自己的记录说话 ——
+  try{
+    const td=todayStr();
+    const logs=(ensureLifeCompound().logs)||[];
+    const bmRecent=[0,1,2].some(i=>{ const dd=shiftDate(td,-i); return logs.some(x=>x.key==='badminton'&&x.d===dd); });
+    if(!bmRecent && raw>=1.5) yi.push('已经 3 天没碰球拍了 · 去活动筋骨');
+    if(practiceWeekMinutes('career')===0) yi.push('本周职业主线还是 0 · 先做 30 分钟');
+    if(practiceTodayMinutes('stretch')===0 && practiceTodayMinutes('badminton')>0) yi.push('今天打过球了 · 补 10 分钟拉伸');
+    const activeToday=Object.keys(LIFE_TRACKS).filter(k=>practiceTodayMinutes(k)>0).length;
+    if(activeToday>=4) ji.push('今天已点亮 '+activeToday+' 条轨道 · 别再加码了');
+  }catch(e){}
+  return {g, raw, tone, main, yi:yi.slice(0,4), ji:ji.slice(0,3)};
+}
+
+// ===== 天气（Open-Meteo · 免 key · 支持 CORS）=====
+const WX_CITIES={
+  beijing:{n:'北京',lat:39.9042,lon:116.4074},
+  kunming:{n:'昆明',lat:25.0389,lon:102.7183},
+  dali:{n:'大理',lat:25.6065,lon:100.2679},
+  lijiang:{n:'丽江',lat:26.8721,lon:100.2299},
+  shanghai:{n:'上海',lat:31.2304,lon:121.4737}
+};
+const WMO={0:['晴','☀️'],1:['少云','🌤'],2:['多云','⛅'],3:['阴','☁️'],45:['雾','🌫'],48:['雾凇','🌫'],
+  51:['小毛雨','🌦'],53:['毛毛雨','🌦'],55:['密毛雨','🌦'],56:['冻毛雨','🌧'],57:['冻毛雨','🌧'],
+  61:['小雨','🌧'],63:['中雨','🌧'],65:['大雨','🌧'],66:['冻雨','🌧'],67:['冻雨','🌧'],
+  71:['小雪','🌨'],73:['中雪','🌨'],75:['大雪','❄️'],77:['米雪','🌨'],
+  80:['阵雨','🌦'],81:['阵雨','🌧'],82:['强阵雨','⛈'],85:['阵雪','🌨'],86:['强阵雪','❄️'],
+  95:['雷阵雨','⛈'],96:['雷暴冰雹','⛈'],99:['强雷暴','⛈']};
+let _wxCache=null;
+function wxCityKey(){ return (S.wxCity && WX_CITIES[S.wxCity]) ? S.wxCity : 'beijing'; }
+function setWxCity(k){ S.wxCity=k; try{save();}catch(e){} _wxCache=null; try{localStorage.removeItem('lifeRPG_wx');}catch(e){} renderFortune(); loadWeather(true); }
+function loadWeather(force){
+  const key=wxCityKey(), c=WX_CITIES[key], now=Date.now();
+  if(!force){
+    try{
+      const raw=localStorage.getItem('lifeRPG_wx');
+      if(raw){ const o=JSON.parse(raw); if(o&&o.key===key&&now-o.ts<3600000){ _wxCache=o.data; renderFortune(); return; } }
+    }catch(e){}
+  }
+  const url='https://api.open-meteo.com/v1/forecast?latitude='+c.lat+'&longitude='+c.lon
+    +'&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m'
+    +'&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max'
+    +'&timezone=Asia%2FShanghai&forecast_days=1';
+  fetch(url).then(r=>r.json()).then(j=>{
+    if(!j||!j.current) throw new Error('bad');
+    const data={t:Math.round(j.current.temperature_2m), ft:Math.round(j.current.apparent_temperature),
+      code:j.current.weather_code, rh:j.current.relative_humidity_2m,
+      hi:Math.round(j.daily.temperature_2m_max[0]), lo:Math.round(j.daily.temperature_2m_min[0]),
+      pop:j.daily.precipitation_probability_max[0]};
+    _wxCache=data;
+    try{ localStorage.setItem('lifeRPG_wx', JSON.stringify({key, ts:now, data})); }catch(e){}
+    renderFortune();
+  }).catch(function(){ _wxCache={err:true}; renderFortune(); });
+}
+// 天气对「今天怎么练」的实际影响，加进宜忌
+function weatherAdvice(w){
+  const yi=[], ji=[];
+  if(!w||w.err) return {yi:yi,ji:ji};
+  if(w.pop>=60){ ji.push('户外安排（降水概率 '+w.pop+'%）'); yi.push('改室内：基本功 / 教学视频'); }
+  if(w.ft>=32){ ji.push('午间高强度（体感 '+w.ft+'°，丁火忌燥）'); yi.push('挪到清晨或傍晚练，随身补水'); }
+  else if(w.ft<=3){ yi.push('热身拉长到 10 分钟再上强度'); }
+  if(w.rh!=null && w.rh<=30) yi.push('空气偏干 · 多喝水');
+  return {yi:yi,ji:ji};
+}
+
+function renderFortune(){
+  const el=document.getElementById('fortuneBox'); if(!el) return;
+  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w);
+  const city=WX_CITIES[wxCityKey()];
+  const stars='★'.repeat(f.tone.lv)+'☆'.repeat(5-f.tone.lv);
+  let wxHtml;
+  if(!w) wxHtml='<div class="fo-wx-load">正在观天象…</div>';
+  else if(w.err) wxHtml='<div class="fo-wx-load">天象未接通<br><small>离线或网络受限</small></div>';
+  else{
+    const m=WMO[w.code]||['—','🌡'];
+    wxHtml='<div class="fo-wx-main"><span class="fo-wx-ic">'+m[1]+'</span><span class="fo-wx-t">'+w.t+'°</span>'
+      +'<span class="fo-wx-d">'+m[0]+'</span></div>'
+      +'<div class="fo-wx-sub">体感 '+w.ft+'° · '+w.lo+'~'+w.hi+'° · 降水 '+(w.pop==null?'—':w.pop+'%')+'</div>';
+  }
+  const opts=Object.keys(WX_CITIES).map(function(k){return '<option value="'+k+'"'+(k===wxCityKey()?' selected':'')+'>'+WX_CITIES[k].n+'</option>';}).join('');
+  const yiAll=f.yi.concat(wa.yi).slice(0,5), jiAll=f.ji.concat(wa.ji).slice(0,4);
+  el.innerHTML=
+    '<div class="fo-top">'
+      +'<div class="fo-gz"><div class="fo-gz-c">'+f.g.gz+'</div><div class="fo-gz-l">'+WX_IC[f.g.ganWx]+f.g.ganWx+' · '+WX_IC[f.g.zhiWx]+f.g.zhiWx+'</div></div>'
+      +'<div class="fo-tone lv'+f.tone.lv+'"><div class="fo-tone-t">'+f.tone.t+'<span class="fo-stars">'+stars+'</span></div><div class="fo-tone-d">'+f.tone.d+'</div></div>'
+      +'<div class="fo-wx"><select class="fo-wx-city" onchange="setWxCity(this.value)">'+opts+'</select>'+wxHtml+'</div>'
+    +'</div>'
+    +'<div class="fo-cols">'
+      +'<div class="fo-col fo-yi"><div class="fo-col-h">宜</div><ul>'+yiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
+      +'<div class="fo-col fo-ji"><div class="fo-col-h">忌</div><ul>'+jiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
+    +'</div>'
+    +'<div class="fo-note">依你的命格「丁火 · 身强偏旺 · 喜金水清凉」判定，非通用黄历。带「·」的条目来自你自己的记录与'+city.n+'实时天气。</div>';
 }
 
 const USAGE_KEY='lifeRPG_usage_v1';
@@ -1400,6 +1641,7 @@ try{
   const _ip=(location.hash||'#dashboard').slice(1);
   showPage(['dashboard','journey','current','longterm','growth','map','ledger','loot','data'].indexOf(_ip)>=0?_ip:'dashboard');
   try{ maybeShowBrief(); }catch(e){}
+  try{ loadWeather(false); }catch(e){}   // 天象：命中 1 小时缓存则不发请求
   fillGhInputs();
   renderAssetEditor();
   const lDate=document.getElementById('lDate'); if(lDate) lDate.value=todayStr();

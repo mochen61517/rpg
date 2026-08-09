@@ -560,15 +560,11 @@ function defaultState(){
     migLf211:false,  // 必须为 false：load() 用 Object.assign(defaultState(), 老存档)，若默认 true 会覆盖掉老存档的缺失值，迁移将永不执行
     weights:{BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0},
     attrs:{BADMINTON:0,CAREER:0,BODY:0,MIND:0},
+    // v5.39 计时型日课全部搬进「复利轨道」（羽毛球/力量/拉伸/精神充电/职业行动），
+    // 那边可直接填分钟并标记完成，此处只留没有时长、纯打勾的小习惯，避免同一件事记两遍。
     daily:[
-      {id:id(),t:'力量训练（按课表）',a:'BODY',xp:0,min:20,mode:'time',done:false,rec:20},
-      {id:id(),t:'羽毛球基本功',a:'BADMINTON',xp:0,min:15,mode:'time',done:false,rec:15},
-      {id:id(),t:'羽毛球视频学习',a:'BADMINTON',xp:0,min:15,mode:'time',done:false,rec:15},
-      {id:id(),t:'羽毛球训练/打球',a:'BADMINTON',xp:0,min:30,mode:'time',done:false,rec:30},
-      {id:id(),t:'拉伸（身体放松/恢复）',a:'BODY',xp:0,min:10,mode:'time',done:false,rec:10},
-      {id:id(),t:'精神充电（唱歌/钢琴/阅读任选，不强制钢琴）',a:'MIND',xp:0,min:15,mode:'time',done:false,rec:15},
-      {id:id(),t:'职业行动（AI/求职/事业编/央企/文职）',a:'CAREER',xp:0,min:30,mode:'time',done:false,rec:30},
       {id:id(),t:'23:30 前睡觉',a:'BODY',xp:10,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'今天喝够水',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
     ],
     supps: defaultSupps(),
     // 固定周常不再自动生成：周任务 = 随机周游（江湖掉落）+ 手动周目标（你明确要做的）。

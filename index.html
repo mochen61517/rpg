@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生修行录 · v5.34.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.38.0">
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.39.0">
 </head>
 <body>
 <div class="layout">
@@ -43,6 +43,9 @@
 
       <!-- 今日一句 -->
       <div class="panel quote-postcard" id="quoteBanner"></div>
+
+      <!-- 今日运势 / 天气 / 宜忌 -->
+      <div class="panel fortune-panel" id="fortuneBox"></div>
 
       <!-- 通知中心：待你回应的互动 -->
       <div class="panel notif-panel" id="notifBox" style="display:none"></div>
@@ -336,21 +339,6 @@
         <div class="hint">八字经万年历 / 多家排盘核对：乙亥 壬午 丁丑 乙巳，日主丁火。起运岁数依小暑精确时刻推算（±数日），仅供参考，非精确命理结论；每月建议为「丁火喜金水」通用调候，非个人批命。</div>
       </div>
       <div class="panel">
-        <h2>📜 修行履历</h2>
-        <div class="timeline">
-          <div class="tl-item done"><div class="tl-dot"></div><div class="tl-body"><b>启蒙 · 译道修行</b>修习翻译之道，获口译硕士学位，打下语言与表达根基。</div></div>
-          <div class="tl-item done"><div class="tl-dot"></div><div class="tl-body"><b>六载 · 海外增长之术</b>于增长一道修行六载，掌 SEO / SEM / 跨境支付 / 数据分析，事业部营收同比翻倍，习得安身立命之术。</div></div>
-          <div class="tl-item done"><div class="tl-dot"></div><div class="tl-body"><b>一程 · 营销门派</b>短暂停留即去——节奏不合、协作混乱，印证所求非此。</div></div>
-          <div class="tl-item cur"><div class="tl-dot"></div><div class="tl-body"><b>现世 · 寄身小门派</b>根基飘摇，难承重托；遂立双线大道：寻锚点门派安身，向云水之乡归处。</div></div>
-          <div class="tl-item done"><div class="tl-dot"></div><div class="tl-body"><b>🏸 羽球修行 · 多年坚持</b>2021 年起打球，终身累计 1649 小时——投入最久、最见成长的事。从入门到 3.0，正向 4.0 业余进阶。</div></div>
-        <div class="tl-item lock"><div class="tl-dot"></div><div class="tl-body"><b>待解锁 · 镇派之基</b>够大够稳的锚点门派（体制内 / 央企 / 海外增长平台）——安身立命。</div></div>
-          <div class="tl-item lock"><div class="tl-dot"></div><div class="tl-body"><b>待解锁 · 云水之乡</b>赴高原清凉之地（云南）修行定居，丁火最合之气场。</div></div>
-          <div class="tl-item lock"><div class="tl-dot"></div><div class="tl-body"><b>待解锁 · 著书立说</b>出一本属于自己的书，留一行字。</div></div>
-          <div class="tl-item lock"><div class="tl-dot"></div><div class="tl-body"><b>待解锁 · 自有工作室</b>一间做自己喜欢之事的工作室。</div></div>
-        </div>
-      </div>
-
-      <div class="panel">
         <h2>🎯 长期目标 · 人生里程碑</h2>
         <div id="goalsBox"></div>
         <div class="hint">进度条按你 iHour 终身数据初始化（羽毛球 1649h / 身体健康 898h / 职业发展 1017h / 生涯教练 474h / 精神享受 670h / 云南探索 0/30 天）。每月从 iHour 同步一次当前累计，或点 +15min/+1h 手动累加。技能类里程碑（如「水平达 3.5」）随对应年目标自动达成，无需手动认领。</div>
@@ -372,7 +360,7 @@
       </div>
       <div class="panel" style="margin-top:-8px">
         <h2>📿 今日行动</h2>
-        <div class="subh">🗓️ 固定日常 <span class="qmin">（你设的日课，每天重置）</span></div>
+        <div class="subh">🌙 今日小习惯 <span class="qmin">（只打勾、不计时；羽毛球/力量/拉伸/阅读等计时项请在上方「复利轨道」直接填时间）</span></div>
         <div id="dailyList"></div>
         <div class="addrow">
           <input type="text" id="dText" placeholder="新日常任务…">
@@ -795,9 +783,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.38.0"></script>
-<script src="assets/tasks-render.js?v=5.38.0"></script>
-<script src="assets/npc-stories.js?v=5.38.0"></script>
-<script src="assets/systems.js?v=5.38.0"></script>
+<script src="assets/core-state.js?v=5.39.0"></script>
+<script src="assets/tasks-render.js?v=5.39.0"></script>
+<script src="assets/npc-stories.js?v=5.39.0"></script>
+<script src="assets/systems.js?v=5.39.0"></script>
 </body>
 </html>

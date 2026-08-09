@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生修行录 · v5.34.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.38.0">
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.39.0">
 </head>
 <body>
 <div class="layout">
@@ -43,6 +43,9 @@
 
       <!-- 今日一句 -->
       <div class="panel quote-postcard" id="quoteBanner"></div>
+
+      <!-- 今日运势 · 天象 · 宜忌 -->
+      <div class="panel fortune-panel" id="fortuneBox"></div>
 
       <!-- 通知中心：待你回应的互动 -->
       <div class="panel notif-panel" id="notifBox" style="display:none"></div>
@@ -355,7 +358,7 @@
       </div>
       <div class="panel" style="margin-top:-8px">
         <h2>📿 今日行动</h2>
-        <div class="subh">🗓️ 固定日常 <span class="qmin">（你设的日课，每天重置）</span></div>
+        <div class="subh">🌙 今日小习惯 <span class="qmin">（只打勾、不计时；羽毛球/力量/拉伸/阅读等计时项请在上方「复利轨道」直接填时间）</span></div>
         <div id="dailyList"></div>
         <div class="addrow">
           <input type="text" id="dText" placeholder="新日常任务…">
@@ -778,9 +781,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.38.0"></script>
-<script src="assets/tasks-render.js?v=5.38.0"></script>
-<script src="assets/npc-stories.js?v=5.38.0"></script>
-<script src="assets/systems.js?v=5.38.0"></script>
+<script src="assets/core-state.js?v=5.39.0"></script>
+<script src="assets/tasks-render.js?v=5.39.0"></script>
+<script src="assets/npc-stories.js?v=5.39.0"></script>
+<script src="assets/systems.js?v=5.39.0"></script>
 </body>
 </html>
