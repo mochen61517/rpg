@@ -1639,7 +1639,6 @@ function renderTodayCockpit(){
     +'<div class="tc-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +'<div class="tc-world"><div class="tc-world-ic">'+weather.ic+'</div><div><b>'+weather.n+'</b><span>'+weather.d+'</span></div></div>'
     +(echo?'<div class="tc-echo"><div>'+echo.ic+'</div><div><b>'+echo.n+'</b><span>'+echo.d+'</span></div></div>':'')
-    +momentumHtml()
     +'<div class="tc-focus"><div class="tc-focus-top"><span class="tc-label">'+(q?'今日唯一主线 · '+q.src:'今日已无待办主线')+'</span>'+(q?'<button class="btn ghost xs" onclick="cycleTodayFocus()">换一条</button>':'')+'</div>'
     +'<div class="tc-main">'+(q?escHtml(q.t):'灯火已安，余下时间归你自己。')+'</div>'
     +'<div class="tc-meta">'+(q?(minimum?'保底版 · 只做 '+suggested+' 分钟，不必补齐清单':('建议投入 '+suggested+' 分钟 · '+ATTRS[q.a].icon+' '+ATTRS[q.a].name)):'今天可以直接结算或安心休息')+'</div>'
@@ -1671,42 +1670,8 @@ const SETTLE_STORIES={
 };
 const FATE_NAMES={break:'⚔️ 破局之签',repair:'🧹 修补之签',wander:'🎐 游心之签'};
 function settlementStory(attr,idv){ const pool=SETTLE_STORIES[attr]||SETTLE_STORIES.MIND; return pool[seededIndex(todayStr()+idv,pool.length)]; }
-const MOMENTUM_STEPS=[{n:'起势',v:3,xp:5},{n:'入流',v:5,xp:10},{n:'成章',v:8,xp:20}];
-function ensureDayRun(){
-  if(!S.dayRun||S.dayRun.date!==todayStr()) S.dayRun={date:todayStr(),ids:[],milestones:[],epilogue:''};
-  S.dayRun.ids=S.dayRun.ids||[]; S.dayRun.milestones=S.dayRun.milestones||[]; return S.dayRun;
-}
-function recordDailyMomentum(info){
-  const r=ensureDayRun(); if(!info||!info.id||r.ids.includes(info.id))return;
-  r.ids.push(info.id);
-  MOMENTUM_STEPS.forEach(s=>{if(r.ids.length>=s.v&&!r.milestones.includes(s.v)){r.milestones.push(s.v);S.bonusXP=(S.bonusXP||0)+s.xp;addHist('🔥 今日连携「'+s.n+'」 · '+s.v+' 项不同的行动 +'+s.xp+' XP',s.xp);setTimeout(()=>celebrateTask('🔥 '+s.v+' 连携 · '+s.n+'！'),260);}});
-  save(); try{renderTodayCockpit();}catch(e){}
-}
-function dayEpilogueText(){
-  const r=ensureDayRun(), n=r.ids.length, fate=ensureTodayPlan().fateChoice;
-  const pools={break:['你没有等局面松动，而是亲手推开了一小段路。','今日的锋芒不在声势，而在一次次真正落地。'],repair:['你拾起散落的小事，把生活重新缝得结实了一点。','今天没有惊天动地，却有许多东西回到了应在的位置。'],wander:['你为好奇心留了门，今日因此有了意料之外的风。','你没有把每一步都拿去交换结果，于是听见了生活本身。'],none:['你做完一件，再做一件，普通的一天因此有了章法。','灯火没有骤然变亮，但你让它稳稳地燃了一整段路。']};
-  const a=pools[fate||'none']; return a[seededIndex(todayStr()+n,a.length)]+'（今日 '+n+' 连携）';
-}
-function sealDayEpilogue(){
-  const r=ensureDayRun(); if(r.ids.length<3||r.epilogue)return; r.epilogue=dayEpilogueText(); S.bonusXP=(S.bonusXP||0)+10; addHist('📖 封存今日篇章：'+r.epilogue,10); save(); render(); celebrateTask('📖 今日已成一章 · +10 XP');
-}
-function momentumHtml(){
-  const r=ensureDayRun(), n=r.ids.length;
-  const pct=Math.min(100, Math.round(n/8*100));
-  const next=MOMENTUM_STEPS.find(s=>n<s.v);
-  const hint=next?('再 '+(next.v-n)+' 项 →「'+next.n+'」+'+next.xp+' XP'):'今日已成章 · 满级';
-  const marks=MOMENTUM_STEPS.map(s=>'<i class="tc-mom-mark '+(n>=s.v?'on':'')+'" style="left:'+(s.v/8*100).toFixed(2)+'%"></i>').join('');
-  const rws=MOMENTUM_STEPS.map(s=>'<span class="tc-mom-rw '+(n>=s.v?'hit':'')+'">'+s.v+'·'+s.n+' +'+s.xp+' XP</span>').join('');
-  const action=r.epilogue
-    ? '<div class="tc-epilogue">📖 '+r.epilogue+'</div>'
-    : (n>=3
-        ? '<div class="tc-mom-action"><button class="btn ghost xs" onclick="sealDayEpilogue()">📖 今日收官 · 封存篇章 +10 XP</button><div class="tc-mom-sub">日终封存：给这一天打上句号，领取 +10 XP 收官奖</div></div>'
-        : '<div class="tc-mom-sub">再完成 '+(3-n)+' 项不同的行动即可起势并领取收官奖</div>');
-  return '<div class="tc-momentum"><div class="tc-mom-head"><b>🔥 今日连携 '+n+'/8</b><span class="tc-mom-next">'+hint+'</span></div><div class="tc-mom-bar"><div class="tc-mom-bar-fill" style="width:'+pct+'%"></div>'+marks+'</div><div class="tc-mom-rewards">'+rws+'</div>'+action+'</div>';
-}
 function showQuestSettlement(info){
   if(!info||!info.id) return;
-  recordDailyMomentum(info);
   const p=ensureTodayPlan();
   const important=info.force || p.focusId===info.id || p.settled.length===0;
   if(!important || p.settled.includes(info.id)) return;

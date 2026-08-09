@@ -644,7 +644,6 @@ function defaultState(){
     npcRel: {},                                 // v5.23 NPC 关系：{npcId:{xp,done}}
     npcEvents: {},                              // v5.24 NPC 专属事件：{npcId:{choice,ts}}
     npcRelics: [],                              // v5.24 故人信物 id 列表（叙事收藏，不加数值）
-    dayRun: {date:'',ids:[],milestones:[],epilogue:''}, // v5.25 今日连携与冒险结语
     weekReview: {focus:{},sealed:{}},                 // v5.26 每周复盘与下周唯一重点
     taskView: {date:'',compact:false},                // v5.27 智能减负：今日三件模式
     uiPrefs: {quiet:false},                           // v5.29 奖励通知合并 / 安静模式
@@ -921,9 +920,6 @@ function migrate(){
   if(!S.npcRel || typeof S.npcRel!=='object') S.npcRel={};
   if(!S.npcEvents || typeof S.npcEvents!=='object') S.npcEvents={};
   if(!Array.isArray(S.npcRelics)) S.npcRelics=[];
-  if(!S.dayRun || typeof S.dayRun!=='object') S.dayRun={date:'',ids:[],milestones:[],epilogue:''};
-  if(!Array.isArray(S.dayRun.ids)) S.dayRun.ids=[];
-  if(!Array.isArray(S.dayRun.milestones)) S.dayRun.milestones=[];
   if(!S.weekReview || typeof S.weekReview!=='object') S.weekReview={focus:{},sealed:{}};
   if(!S.weekReview.focus || typeof S.weekReview.focus!=='object') S.weekReview.focus={};
   if(!S.weekReview.sealed || typeof S.weekReview.sealed!=='object') S.weekReview.sealed={};
