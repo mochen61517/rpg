@@ -664,40 +664,85 @@ function renderEncounter(){
   el.innerHTML=h;
 }
 
-// —— ⑤ 成就羁绊 ——
-const BONDS=[
-  {id:'b_body', name:'强健之契', npc:'云娘', title:'守拙·体道', ids:['body1','s7','s30'],
-   line:'云娘抚了抚你的肩：「身子是修行之本。你肯规律、肯不硬撑，这契，算立下了。」'},
-  {id:'b_bm', name:'羽道之契', npc:'林教头', title:'穿林·羽道', ids:['bm1k'],
-   line:'林教头难得笑了笑：「拍子没白拿。羽道这一契，你早就该立。」'},
-  {id:'b_mind', name:'灵台之契', npc:'白鹭先生', title:'清音·灵台', ids:['piano1','mindGuard','mindBound'],
-   line:'白鹭先生拨了下琴弦：「心里有这一样只为自己做的事，灵台就乱不了。契成。」'},
-  {id:'b_career', name:'立基之契', npc:'沈掌柜', title:'安身·业道', ids:['ashore','careerCrown','coachOpen'],
-   line:'沈掌柜拍板：「安身立命，先有可立之处。你一步一步在走，这契，掌柜认了。」'},
-  {id:'b_yun', name:'云水之契', npc:'白鹭先生', title:'清凉·云水', ids:['yunnan'],
-   line:'白鹭先生指了指远方的水：「丁火喜金水清凉，云南那汪水，你迟早要去。这契，先替你备着。」'},
-];
-function achUn(id){ const a=(S.ach||[]).find(x=>x.id===id); return !!(a&&a.un); }
-function bondDone(b){ return b.ids.every(id=>achUn(id)); }
-function grantBond(b){
-  if(S.bonds.awarded.indexOf(b.id)>=0) return;
-  S.bonds.awarded.push(b.id);
-  addHist('🔗 成就羁绊达成：'+b.name+' → 称号「'+b.title+'」'); save();
+// —— ⑤ 故人 · 我们的链接（原「成就羁绊」改为关系视角） ——
+let _blessOff=0;
+function npcBlessingsOf(pid){ return (typeof NPC_BLESSINGS!=='undefined' && NPC_BLESSINGS[pid]) || []; }
+function blessSeed(){
+  const d=todayStr();
+  let h=2166136261>>>0;
+  for(let i=0;i<d.length;i++) h=Math.imul(h^d.charCodeAt(i),16777619)>>>0;
+  h=Math.imul(h^(_blessOff+1),0x9E3779B1)>>>0;
+  return h>>>0;
 }
+function todayBlessing(){
+  const ids=NPCS.map(p=>p.id);
+  const s=blessSeed();
+  const pid=ids[s%ids.length];
+  const arr=npcBlessingsOf(pid);
+  const p=NPCS.find(x=>x.id===pid);
+  const text=arr.length? arr[s%arr.length] : (p?p.d:'');
+  return {pid, npc:p?p.n:'', ic:p?p.ic:'', text};
+}
+function nextBlessing(){ _blessOff=(_blessOff+1)%97; renderBonds(); }
 function renderBonds(){
   const el=document.getElementById('bondBox'); if(!el) return;
-  let h='<h2>🔗 成就羁绊 <span class="note">集齐一系，故人赠你一句 · 一枚称号</span></h2><div class="bond-list">';
-  BONDS.forEach(b=>{
-    const done=bondDone(b);
-    const lit=b.ids.filter(id=>achUn(id)).length;
-    const awarded=S.bonds.awarded.indexOf(b.id)>=0;
-    h+='<div class="bond'+(done?' bond-done':'')+'" onclick="openBond(\''+b.id+'\')">'
-      +'<div class="bond-h"><span class="bond-n">'+b.name+'</span><span class="bond-c">'+lit+'/'+b.ids.length+'</span></div>'
-      +'<div class="bond-npc">'+b.npc+' · 称号「'+b.title+'」</div>'
-      +'<div class="bond-state">'+(done?(awarded?'已授称号':'可领取称号'):'修行中')+'</div></div>';
+  let h='<h2>🤝 故人 · 我们的链接 <span class="note">印象 · 好感度 · 一封来自他们的信</span></h2>';
+  h+='<div class="rel-list">';
+  NPCS.forEach(p=>{
+    const ri=npcRelInfo(p.id);
+    const mem=npcMemory(p,ri);
+    const bar=ri.pct;
+    const isTop=ri.level>=NPC_REL_STEPS.length-1;
+    const nextName = isTop? '已至莫逆' : ri.next;
+    const need = isTop? 0 : (NPC_REL_STEPS[ri.level+1].v-ri.xp);
+    h+='<div class="rel-card" onclick="openRel(\''+p.id+'\')">'
+      +'<div class="rel-ic">'+p.ic+'</div>'
+      +'<div class="rel-body">'
+      +'<div class="rel-h"><span class="rel-n">'+p.n+'</span><span class="rel-link">'+ri.name+'</span></div>'
+      +'<div class="rel-mem">「'+mem+'」</div>'
+      +'<div class="rel-bar"><i style="width:'+bar+'%"></i></div>'
+      +'<div class="rel-fav">好感 '+ri.xp+' · 下一阶「'+nextName+'」还差 '+need+'</div>'
+      +'</div></div>';
   });
-  h+='</div>'; el.innerHTML=h;
-  BONDS.forEach(b=>{ if(bondDone(b) && S.bonds.awarded.indexOf(b.id)<0) grantBond(b); });
+  h+='</div>';
+  const bl=todayBlessing();
+  const isNew = S.bonds && S.bonds.blessRead!==todayStr();
+  h+='<div class="rel-letter" id="relLetter">'
+    +'<div class="rl-head">✉️ 今日一封信 · 来自 '+bl.ic+' '+bl.npc+'</div>'
+    +'<div class="rl-body">'+bl.text+'</div>'
+    +'<div class="rl-foot"><button class="btn sm ghost" onclick="nextBlessing()">换一封 ›</button>'
+    +(isNew?'<span class="rl-new">· 新</span>':'')+'</div></div>';
+  el.innerHTML=h;
+}
+function openRel(pid){
+  const p=NPCS.find(n=>n.id===pid); if(!p) return;
+  const ri=npcRelInfo(pid);
+  const mem=npcMemory(p,ri);
+  const st=NPC_REL_STEPS;
+  const isTop=ri.level>=st.length-1;
+  const nextName = isTop? ri.name : ri.next;
+  const need = isTop? 0 : (st[ri.level+1].v-ri.xp);
+  const arr=npcBlessingsOf(pid);
+  let hsh=2166136261>>>0; const key=pid+ri.level;
+  for(let i=0;i<key.length;i++) hsh=Math.imul(hsh^key.charCodeAt(i),16777619)>>>0;
+  const letter = arr.length? arr[hsh%arr.length] : p.d;
+  let body='<div class="rel-detail">'
+    +'<div class="rd-head">'+p.ic+' '+p.n+' <span class="rd-link">'+ri.name+'</span></div>'
+    +'<div class="rd-desc">'+p.d+'</div>'
+    +'<div class="rd-sec"><b>他们对我的印象</b><div class="rd-mem">「'+mem+'」</div></div>'
+    +'<div class="rd-sec"><b>好感度</b><div class="rd-bar"><i style="width:'+ri.pct+'%"></i></div><div class="rd-fav">'+ri.xp+' 点 · 距「'+nextName+'」还差 '+need+'</div></div>'
+    +'<div class="rd-sec"><b>我们的链接</b><div class="rd-linktxt">'+relLinkText(ri.level)+'</div></div>'
+    +'<div class="rd-sec"><b>一封来自 '+p.n+' 的信</b><div class="rd-letter">'+letter+'</div></div>'
+    +'<div class="hint">完成本周委托、触发专属事件，好感度会慢慢累积；关系越深，他们留给你的话也越不一样。</div>'
+    +'</div>';
+  showModal('bondModal', body);
+}
+function relLinkText(lv){
+  if(lv>=4) return '你们已是莫逆。彼此不必多说，沉默也自在。';
+  if(lv>=3) return '你已是他愿意托付心事的人。';
+  if(lv>=2) return '熟了。他开始在建议你之前，先听你说完。';
+  if(lv>=1) return '比初识近了些。他记得你肯做、也肯复盘。';
+  return '才刚认识。多接几次他的委托，关系会自己长出来。';
 }
 
 // —— 通知中心：仪表盘小喇叭 + 左侧导航红点 ——
@@ -742,7 +787,7 @@ function navBadgeCount(page){
     return c;
   }
   if(page==='map') return letterUnread();
-  if(page==='growth') return (S.bonds.awarded||[]).filter(id=>(S.bonds.viewed||[]).indexOf(id)<0).length;
+  if(page==='growth'){ if(!S.bonds) return 0; return S.bonds.blessRead!==todayStr()?1:0; }
   return 0;
 }
 function renderNavBadges(){
@@ -760,46 +805,12 @@ function markSideSeen(){
   if(ch){ try{ save(); }catch(e){} }
 }
 function markBondsSeen(){
-  if(!S.bonds) return;
-  const aw=S.bonds.awarded||[];
-  if(aw.length){ S.bonds.viewed=aw.slice(); try{ save(); }catch(e){} }
-}
-function openBond(id){
-  const b=BONDS.find(x=>x.id===id); if(!b) return;
-  const done=bondDone(b);
-  const lit=b.ids.filter(x=>achUn(x)).length;
-  let body='<div class="letter-head">'+b.name+'</div>'
-    +'<div class="bond-sub">'+b.npc+' · 称号「'+b.title+'」 · 进度 '+lit+'/'+b.ids.length+'</div>'
-    +'<div class="letter-body">'+b.line+'</div>'
-    +'<div class="hint">集齐 '+b.ids.length+' 枚相关徽章即可缔结此契，获赠称号与故人评语。</div>';
-  if(done && S.bonds.awarded.indexOf(b.id)>=0){
-    body+='<button class="btn sm" style="margin-top:8px" onclick="shareBond(\''+b.id+'\')">🖼 生成名帖分享图</button>';
-  } else if(done){
-    grantBond(b); body+='<div class="letter-done">✦ 称号已授予「'+b.title+'」</div>';
-  }
-  showModal('bondModal', body);
-}
-function wrapText(c, text, x, y, maxW, lh){
-  const chars=(text||'').split(''); let line='', yy=y;
-  for(let i=0;i<chars.length;i++){ const t=line+chars[i]; if(c.measureText(t).width>maxW && line){ c.fillText(line,x,yy); line=chars[i]; yy+=lh; } else line=t; }
-  if(line) c.fillText(line,x,yy);
-}
-function shareBond(id){
-  const b=BONDS.find(x=>x.id===id); if(!b) return;
-  const c=document.createElement('canvas'); c.width=600; c.height=360;
-  const x=c.getContext('2d');
-  x.fillStyle='#0f1a26'; x.fillRect(0,0,600,360);
-  x.fillStyle='#d4a84b'; x.font='bold 24px serif'; x.fillText('江湖名帖 · 成就羁绊', 40, 52);
-  x.fillStyle='#ffffff'; x.font='bold 40px serif'; x.fillText(b.name, 40, 124);
-  x.fillStyle='#9fc7e0'; x.font='19px serif'; x.fillText(b.npc+' 赠言', 40, 170);
-  x.fillStyle='#e8e8e8'; x.font='17px serif'; wrapText(x, b.line, 40, 205, 520, 27);
-  x.fillStyle='#d4a84b'; x.font='bold 20px serif'; x.fillText('称号「'+b.title+'」', 40, 322);
-  try{
-    const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='名帖-'+b.name+'.png'; a.click();
-    addHist('🖼 生成名帖分享图：'+b.name);
-  }catch(e){ alert('分享图生成失败：'+e.message); }
+  if(!S.bonds) S.bonds={blessRead:''};
+  S.bonds.blessRead=todayStr();
+  try{ save(); }catch(e){}
 }
 
+// 成就羁绊已改为「故人 · 我们的链接」关系面板（见 renderBonds / openRel / todayBlessing）
 // 通用模态
 function showModal(id, html){
   const m=document.getElementById(id); if(!m) return;

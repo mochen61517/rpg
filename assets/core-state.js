@@ -658,7 +658,7 @@ function defaultState(){
     draw: { date:'', yi:'', ji:'', claimed:false }, // 每日宜忌抽签：当日签文 + 是否已承接气运
     letters: { unlocked:[], pointer:0 },             // 远方来信：已解锁信件队列
     enc: { cur:null, done:[], seen:false },          // 江湖偶遇：当前偶遇 + 已完成记录 + 已读标记
-    bonds: { awarded:[], viewed:[] },                // 成就羁绊：已解锁的系 + 已看过的系
+    bonds: { blessRead:'' },                        // 故人·我们的链接：今日祝福信是否已读
     bioAge: {                                   // 身体年龄 / 心理年龄系统
       sleepHours:null, steps:null, restingHR:null, // 可选手动录入健康数据
       lastCompute:'', bodyAge:0, mentalAge:0,     // 缓存：上次计算日期 / 结果

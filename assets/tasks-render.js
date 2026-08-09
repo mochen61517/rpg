@@ -1169,6 +1169,9 @@ function closeCustomModal(){ _cmId=null; _cmPreset=null; const m=document.getEle
 
 /* ---------- 通用 checklist 渲染（年/月/周主线共用） ---------- */
 let yearOpen = new Set();
+const yearStepsOpen = new Set();
+const mpOpen = new Set();
+function toggleMpOpen(k){ if(mpOpen.has(k))mpOpen.delete(k); else mpOpen.add(k); renderMonthPlanEdit(); }
 function yearDone(i){ const c=S.year[i]; if(!c) return false; if(Array.isArray(c.items) && c.items.length>0) return c.items.every(x=>isDoneEver(x)); return !!c.done; }
 function toggleYearOpen(i){ if(yearOpen.has(i))yearOpen.delete(i); else yearOpen.add(i); render(); }
 function toggleYearDone(i){
@@ -1178,7 +1181,7 @@ function toggleYearDone(i){
   addHist((c.done?'✔ ':'✘ ')+'[year]'+c.t, 0, REC_DATE);
   save(); checkAch(); render();
 }
-function checklistBlock(c,i,kind){
+function checklistBlock(c,i,kind,sub){
   const paused = !!c.paused && kind==='year';   // 仅年主线支持休眠折叠
   const d=REC_DATE||todayStr();
   const items = c.items||[];
@@ -1243,8 +1246,8 @@ function checklistBlock(c,i,kind){
     <input type="number" id="${kind}Xp${i}" value="50" min="1" title="XP(固定)" style="width:60px">
     <button class="btn sm" onclick="addChecklistItem('${kind}',${i})">+ 步骤</button>
   </div>`;
-  return `<div class="qblock ${paused?'paused':''}">
-    <div class="qbtop">${head}<span class="qbp">${prog}</span></div>
+  return `<div class="qblock ${paused?'paused':''}${sub?' sub':''}">
+    ${sub?'':`<div class="qbtop">${head}<span class="qbp">${prog}</span></div>`}
     <div class="qbbar"><div class="qbf" style="width:${pct}%"></div></div>
     <div style="margin-top:8px">${list}</div>
     ${add}
@@ -1321,6 +1324,86 @@ function todayAttrStatus(a){
   const done=items.filter(q=>isDone(q, todayStr())).length;
   return {total,done};
 }
+/* ---------- 年度主线 · 数据分析引擎（非任务清单） ---------- */
+function toggleYearSteps(i){ if(yearStepsOpen.has(i))yearStepsOpen.delete(i); else yearStepsOpen.add(i); render(); }
+function yearTrackFor(t){
+  if(/羽毛球|羽球|球类/.test(t)) return 'badminton';
+  if(/职业|平台|央企|体制内|文职|offer|上岸|工作|增长|海外/.test(t)) return 'career';
+  if(/教练|转行|生涯/.test(t)) return 'coach';
+  if(/阅读|读书|小说|看书|书/.test(t)) return 'reading';
+  if(/钢琴|琴|弹琴|乐器/.test(t)) return 'piano';
+  if(/唱歌|声乐|歌|合唱/.test(t)) return 'singing';
+  if(/身体|健康|健身|拉伸|恢复|体能/.test(t)) return 'body';
+  return '';
+}
+function yearGoalAnalysis(c,i){
+  const now=new Date(), y=now.getFullYear();
+  const start=new Date(y,0,1), endY=new Date(y,11,31);
+  const totalDays=Math.round((endY-start)/86400000)+1;
+  const elapsedDays=Math.max(1,Math.round((now-start)/86400000)+1);
+  const elapsedPct=Math.max(0,Math.min(100,Math.round(elapsedDays/totalDays*1000)/10));
+  const items=c.items||[], doneEv=items.filter(x=>isDoneEver(x)).length, total=items.length;
+  const itemPct= total? Math.round(doneEv/total*100):0;
+  const trackKey=yearTrackFor(c.t), track=LIFE_TRACKS[trackKey];
+  let progressPct=itemPct, progressNote='';
+  if(track){
+    const H=(track.base||0)/60;
+    const tgt = track.realms.length>=5? track.realms[4][0] : (track.realms[track.realms.length-1][0]||10000);
+    const tpct=Math.min(100,Math.round(H/tgt*100));
+    if(!total){ progressPct=tpct; progressNote='（按'+track.ic+track.n+'累计 '+Math.round(H)+'h 估算）'; }
+  }
+  const projected = elapsedPct>0 ? Math.min(300,Math.round(progressPct/elapsedPct*100)) : progressPct;
+  let predLabel,predClass;
+  if(projected>=100){ predLabel='可如期达成'; predClass='ok'; }
+  else if(projected>=85){ predLabel='基本能达成'; predClass='ok'; }
+  else if(projected>=60){ predLabel='节奏偏慢，需提速'; predClass='warn'; }
+  else { predLabel='大概率完不成，建议调整'; predClass='bad'; }
+  const advice=[];
+  if(trackKey==='badminton'){
+    const wm=windowAttrMinutes(S.weekly, shiftDate(todayStr(),-56), todayStr());
+    const h8=(wm.hrs.BADMINTON||0)/60, wkAvg=(h8/8);
+    advice.push('近 8 周周均打球约 '+wkAvg.toFixed(1)+' 小时；想稳稳上 3.5，建议每周 ≥1 次对抗 + 1 次课 + 基本功练习，目标周均 ≥2 小时。');
+    advice.push('羽毛球终身已累计 '+Math.round((track.base||0)/60)+' 小时——按当前周均可再涨，节奏不断，水平自然到。');
+    if(wkAvg<2) advice.push('当前周均低于 2 小时，想冲 3.5 得把频率提上来：先从「每周固定一场对抗」开始最稳。');
+  } else if(track){
+    advice.push('主线关联 '+track.ic+track.n+'（累计 '+Math.round((track.base||0)/60)+'h）。把它拆成每周可勾选的小动作，进度才看得清。');
+  }
+  if(total>0 && itemPct<elapsedPct) advice.push('步骤完成 '+itemPct+'%，落后时间进度 '+elapsedPct+'%——要么加快，要么把目标收小一点，别让清单变成心理负担。');
+  else if(total===0 && !track) advice.push('这条还没可追踪的步骤，也没关联到复利轨道。加 2–3 个可勾选的小动作，分析才有数据。');
+  if(elapsedPct<12) advice.push('今年才刚开始，先稳住节奏比冲进度重要。');
+  return {elapsedDays:elapsedDays,elapsedPct:elapsedPct,progressPct:progressPct,progressNote:progressNote,projected:projected,predLabel:predLabel,predClass:predClass,advice:advice,trackKey:trackKey,track:track,doneEv:doneEv,total:total};
+}
+function yearAnalysisCard(c,i){
+  const a=yearGoalAnalysis(c,i);
+  const paused=!!c.paused;
+  const trackTag = a.track? ('<span class="ya-track">'+a.track.ic+' '+a.track.n+'</span>') : '<span class="ya-track muted">未关联轨道</span>';
+  const adviceHtml = a.advice.length? a.advice.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('') : '<li class="dim">继续推进，分析会随之更新。</li>';
+  const collapsed = paused && !yearOpen.has(i);
+  const head = paused
+    ? '<span class="qt" onclick="toggleYearOpen('+i+')">'+escHtml(c.t)+'<span class="ptag">⏸ 休眠</span></span>'
+    : (a.total===0
+        ? '<span style="display:inline-flex;align-items:center;cursor:pointer" onclick="toggleYearDone('+i+')"><span style="display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-radius:5px;text-align:center;line-height:15px;margin-right:8px">'+((c.done)?'✔':'')+'</span><span class="qt">'+escHtml(c.t)+'</span></span>'
+        : '<span class="qt" onclick="renameQuest(\'year\','+i+')">'+escHtml(c.t)+'</span>');
+  if(collapsed){
+    return '<div class="qblock paused"><div class="qbtop">'+head+'<span class="qbp">'+trackTag+'</span></div>'
+      +'<div class="qbstep"><span class="note" onclick="toggleYearOpen('+i+')">▶ 展开（休眠中 · 不计入进度，随时可复活）</span></div></div>';
+  }
+  const stepsBody = yearStepsBody(c,i,a);
+  return '<div class="ya-card'+(paused?' paused':'')+'">'
+    +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+'</span></div>'
+    +'<div class="ya-elapsed">📅 今年已过 <b>'+a.elapsedDays+'</b> 天 · 占 <b>'+a.elapsedPct+'%</b></div>'
+    +'<div class="ya-prog"><div class="ya-bar"><i class="ya-fill ya-'+a.predClass+'" style="width:'+a.progressPct+'%"></i></div>'
+    +'<div class="ya-prog-label">数据进度 <b>'+a.progressPct+'%</b>'+(a.progressNote||'')+' · 预计年末达成度 <b class="ya-'+a.predClass+'">'+a.predLabel+'</b>（'+a.projected+'%）</div></div>'
+    +'<div class="ya-advice"><div class="ya-advice-h">📌 分析建议</div><ul>'+adviceHtml+'</ul></div>'
+    +stepsBody
+    +'</div>';
+}
+function yearStepsBody(c,i,a){
+  const open=yearStepsOpen.has(i);
+  const head='<div class="ya-steps-h" onclick="toggleYearSteps('+i+')">'+(open?'▾':'▸')+' 步骤（'+a.doneEv+'/'+a.total+(a.total?' 已推进':'')+(a.total?'':' · 暂无')+'）</div>';
+  const body= open? ('<div class="ya-steps-body">'+checklistBlock(c,i,'year',true)+'</div>') : '';
+  return '<div class="ya-steps">'+head+body+'</div>';
+}
 function renderLongterm(){
   const dpEl=document.getElementById('decadePlan');
   if(dpEl) dpEl.innerHTML=DECADE_PLAN.map(p=>`
@@ -1331,7 +1414,7 @@ function renderLongterm(){
     </div>`).join('');
 
   const ylEl=document.getElementById('yearListLong');
-  if(ylEl) ylEl.innerHTML=S.year.map((c,i)=>checklistBlock(c,i,'year')).join('')||'<div class="hint">还没有设定今年大道。</div>';
+  if(ylEl) ylEl.innerHTML=S.year.map((c,i)=>yearAnalysisCard(c,i)).join('')||'<div class="hint">还没有设定今年大道。</div>';
   try{ renderMonthPlanEdit(); }catch(e){ console.warn('monthPlanEdit',e); }
   try{ renderDayunNote(); }catch(e){ console.warn('dayunNote',e); }
 }
@@ -1362,7 +1445,7 @@ function renderMonthPlanEdit(){
     if(st==='miss')return'<span class="mp-chip mp-miss">✘ 未达</span>';
     return'<span class="mp-chip mp-todo">— 待评</span>';
   };
-  let html='<div class="lt-hint">12 个月日历 · 当前月高亮，过去月置灰，未来月可预先填「预期主线」。月底集中回填「实际」与「复盘」。</div>';
+  let html='<div class="lt-hint">12 个月日历 · 当前月高亮可填「实际/复盘」，过去月置灰——点一下过去月即可补录（预期 / 实际 / 达成 / 复盘），未来月可预先填「预期主线」。</div>';
   html+='<div class="mp-year">'+yk+' 年</div>';
   html+='<div class="mp-grid">';
   for(let m=1;m<=12;m++){
@@ -1372,18 +1455,32 @@ function renderMonthPlanEdit(){
     const cur = m===nowMM;
     const future = m>nowMM;
     const cls = 'mp-cell'+(past?' mp-past':'')+(cur?' mp-cur':'')+(future?' mp-future':'')+((r.plan||r.actual||r.reason)?' mp-has':'');
-    const head = '<div class="mp-head"><span class="mp-label">'+monthLabel[m-1]+'月</span>'+statusChip(r.status)+'</div>';
+    const head = '<div class="mp-head'+(past?' mp-head-click':'')+'"'+(past?' onclick="toggleMpOpen(\''+k+'\')"':'')+'><span class="mp-label">'+monthLabel[m-1]+'月</span>'+statusChip(r.status)+'</div>';
     let body;
     if(past){
-      // 过去月：折叠显示。有 plan/actual/reason 任意一行才展开
       const has = r.plan||r.actual||r.reason;
-      body = has
-        ? ('<div class="mp-past-detail">'
+      const open = mpOpen.has(k);
+      if(open){
+        body = '<div class="mp-form">'
+          + '<label class="lt-lab">预期主线</label>'
+          + '<textarea class="lt-ta" id="mPlan_'+k+'" placeholder="这个月本来想推进什么">'+escHtml(r.plan)+'</textarea>'
+          + '<label class="lt-lab">实际推进</label>'
+          + '<textarea class="lt-ta" id="mActual_'+k+'" placeholder="补录：这个月实际做了什么">'+escHtml(r.actual)+'</textarea>'
+          + '<label class="lt-lab">达成情况</label>'
+          + '<select class="lt-sel" id="mStatus_'+k+'">'+selFor('',r)+selFor('done',r)+selFor('part',r)+selFor('miss',r)+'</select>'
+          + '<label class="lt-lab">原因 / 复盘</label>'
+          + '<textarea class="lt-ta" id="mReason_'+k+'" placeholder="为什么达成 / 没达成？下月怎么调">'+escHtml(r.reason)+'</textarea>'
+          + '<div class="mp-actions"><button class="btn sm" onclick="saveMonthPlanKey(\''+k+'\')">💾 保存补录</button></div>'
+          + '</div>';
+      } else if(has){
+        body = '<div class="mp-past-detail">'
           +(r.plan?'<div class="mp-past-line"><b>预期</b>'+escHtml(r.plan)+'</div>':'')
           +(r.actual?'<div class="mp-past-line"><b>实际</b>'+escHtml(r.actual)+'</div>':'')
           +(r.reason?'<div class="mp-past-line"><b>复盘</b>'+escHtml(r.reason)+'</div>':'')
-          +'</div>')
-        : '<div class="mp-empty">— 未填 —</div>';
+          +'</div>';
+      } else {
+        body = '<div class="mp-empty mp-add" onclick="toggleMpOpen(\''+k+'\')">＋ 补录这个月</div>';
+      }
     } else if (cur) {
       body = '<div class="mp-form">'
         + '<label class="lt-lab">预期主线</label>'
@@ -1419,17 +1516,17 @@ function saveMonthPlanKey(key){
   const yk = key.slice(0,4);
   if(!S.monthPlansByYear) S.monthPlansByYear = {};
   if(!S.monthPlansByYear[yk]) S.monthPlansByYear[yk] = {};
-  const mkKey = key.slice(5,7);
-  const prefix = (key===thisMonth()) ? 'm' : 'mPlan_'+key;
-  const getEl = id => document.getElementById(id);
   const cur = S.monthPlansByYear[yk][key] || (S.monthPlansByYear[yk][key]={plan:'',actual:'',status:'',reason:''});
+  const isCur = key===thisMonth();
+  const getEl = id => document.getElementById(id);
   const planEl = getEl('mPlan_'+key) || getEl('mPlan');
   if(planEl) cur.plan = planEl.value;
-  if(key===thisMonth()){
-    const aEl = getEl('mActual'); if(aEl) cur.actual = aEl.value;
-    const sEl = getEl('mStatus'); if(sEl) cur.status = sEl.value;
-    const rEl = getEl('mReason'); if(rEl) cur.reason = rEl.value;
-  }
+  const aEl = getEl('mActual_'+key) || (isCur?getEl('mActual'):null);
+  if(aEl) cur.actual = aEl.value;
+  const sEl = getEl('mStatus_'+key) || (isCur?getEl('mStatus'):null);
+  if(sEl) cur.status = sEl.value;
+  const rEl = getEl('mReason_'+key) || (isCur?getEl('mReason'):null);
+  if(rEl) cur.reason = rEl.value;
   save(); render();
 }
 function renderDayunNote(){
