@@ -1595,7 +1595,17 @@ function sealDayEpilogue(){
 }
 function momentumHtml(){
   const r=ensureDayRun(), n=r.ids.length;
-  return '<div class="tc-momentum"><div class="tc-mom-head"><b>🔥 今日连携 · '+n+'</b><span>'+(n<3?'再完成 '+(3-n)+' 项不同的行动即可起势':n<5?'连携已起势':n<8?'行动正在入流':'今日已成章')+'</span></div><div class="tc-mom-track">'+MOMENTUM_STEPS.map(s=>'<i class="tc-mom-node '+(n>=s.v?'on':'')+'"></i>').join('')+'</div><div class="tc-mom-labels">'+MOMENTUM_STEPS.map(s=>'<span>'+s.v+' · '+s.n+'</span>').join('')+'</div>'+(r.epilogue?'<div class="tc-epilogue">📖 '+r.epilogue+'</div>':(n>=3?'<div class="tc-mom-action"><button class="btn ghost xs" onclick="sealDayEpilogue()">封存今日篇章 · +10 XP</button></div>':''))+'</div>';
+  const pct=Math.min(100, Math.round(n/8*100));
+  const next=MOMENTUM_STEPS.find(s=>n<s.v);
+  const hint=next?('再 '+(next.v-n)+' 项 →「'+next.n+'」+'+next.xp+' XP'):'今日已成章 · 满级';
+  const marks=MOMENTUM_STEPS.map(s=>'<i class="tc-mom-mark '+(n>=s.v?'on':'')+'" style="left:'+(s.v/8*100).toFixed(2)+'%"></i>').join('');
+  const rws=MOMENTUM_STEPS.map(s=>'<span class="tc-mom-rw '+(n>=s.v?'hit':'')+'">'+s.v+'·'+s.n+' +'+s.xp+' XP</span>').join('');
+  const action=r.epilogue
+    ? '<div class="tc-epilogue">📖 '+r.epilogue+'</div>'
+    : (n>=3
+        ? '<div class="tc-mom-action"><button class="btn ghost xs" onclick="sealDayEpilogue()">📖 今日收官 · 封存篇章 +10 XP</button><div class="tc-mom-sub">日终封存：给这一天打上句号，领取 +10 XP 收官奖</div></div>'
+        : '<div class="tc-mom-sub">再完成 '+(3-n)+' 项不同的行动即可起势并领取收官奖</div>');
+  return '<div class="tc-momentum"><div class="tc-mom-head"><b>🔥 今日连携 '+n+'/8</b><span class="tc-mom-next">'+hint+'</span></div><div class="tc-mom-bar"><div class="tc-mom-bar-fill" style="width:'+pct+'%"></div>'+marks+'</div><div class="tc-mom-rewards">'+rws+'</div>'+action+'</div>';
 }
 function showQuestSettlement(info){
   if(!info||!info.id) return;
