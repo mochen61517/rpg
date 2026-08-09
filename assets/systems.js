@@ -1361,7 +1361,7 @@ function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
 function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(todayStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
   const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=todayStr(),lc=ensureLifeCompound();
-  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick'});grant(t.a,min,false);touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' 今天又向前了一点 · +'+min+' 分钟');
+  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick'});grant(t.a,min,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(min*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+min+' 分钟 · +'+xpGain+' XP');
 }
 function syncLifePracticeFromTask(item,d,min,remove){
   const key=lifeTrackOfTask(item);if(!key)return;const lc=ensureLifeCompound(),lid='task:'+(item.id||item.t)+':'+d,idx=lc.logs.findIndex(x=>x.id===lid);
@@ -1392,6 +1392,11 @@ function clearLifeToday(key){
   addHist(t.ic+' '+t.n+'撤销今日记录 −'+mins+' 分钟', -mins, d);
   save(); renderLifeCompound(); render();
 }
+// v5.42 复利轨道改为图标优先：默认只显示图标，点击图标展开时间录入器；
+// 记录后图标从暗(未记录)变亮(已记录)，已点亮的再点可继续叠加时间。
+let _lcOpenTrack=null;
+function lcToggle(key){ _lcOpenTrack=key; renderLifeCompound(); const i=document.getElementById('lcMin_'+key); if(i) i.focus(); }
+function lcClose(){ _lcOpenTrack=null; renderLifeCompound(); }
 function renderLifeCompound(){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
@@ -1404,23 +1409,30 @@ function renderLifeCompound(){
 
   const quick=document.getElementById('lifeBlendBox');
   if(quick) quick.innerHTML=
-    '<div class="lc-head"><div><b>🌱 今日行动 · 复利轨道</b><span>填上时间就算完成，一处记录，长期累计</span></div>'
+    '<div class="lc-head"><div><b>🌱 今日行动 · 复利轨道</b><span>点图标记一笔，今天完成的会亮起来</span></div>'
       +'<div class="lc-score">'+todayActive+'/'+live.length+' 条已点亮 · 共 '+todayMin+' 分钟</div></div>'
-    +'<div class="lc-grid">'+keys.map(function(k){
-      const t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), rec=t.rec||15;
-      return '<div class="lc-card '+(m?'active':'')+(t.paused?' paused':'')+'">'
-        +'<div class="lc-card-top"><b>'+t.ic+' '+t.n+'</b>'
-          +'<span class="lc-state">'+(m?('✓ 今天 '+m+' 分钟'):('建议 '+rec+' 分钟'))+'</span></div>'
-        +'<p>'+lifeVariant(k)+'</p>'
-        +'<div class="lc-actions">'
-          +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
-            +'onkeydown="if(event.key===\'Enter\')recordLifePractice(\''+k+'\')">'
-          +'<span class="lc-unit">分钟</span>'
-          +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
-          +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
-          +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销今天这条轨道的全部记录">↺</button>':'')
-        +'</div></div>';
+    +'<div class="lc-ic-row">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
+      const t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), lit=m>0;
+      return '<button class="lc-ic-btn '+(lit?'lit':'dim')+(_lcOpenTrack===k?' open':'')+'" onclick="lcToggle(\''+k+'\')" title="'+escHtml(lifeVariant(k))+'">'
+        +'<span class="lc-ic">'+t.ic+'</span>'
+        +'<span class="lc-ic-name">'+t.n+'</span>'
+        +(lit?'<span class="lc-ic-badge">'+m+'</span>':'')
+        +'</button>';
     }).join('')+'</div>'
+    +(_lcOpenTrack?(function(){
+        const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), rec=t.rec||15;
+        return '<div class="lc-expand">'
+          +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>今天已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
+          +'<button class="btn xs ghost lc-close" onclick="lcClose()" title="收起">✕</button></div>'
+          +'<div class="lc-expand-body">'
+            +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
+              +'onkeydown="if(event.key===\'Enter\')recordLifePractice(\''+k+'\')">'
+            +'<span class="lc-unit">分钟</span>'
+            +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
+            +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
+            +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销今天这条轨道的全部记录">↺</button>':'')
+          +'</div></div>';
+      })():'')
     +'<div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div>'
       +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
       +keys.map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
