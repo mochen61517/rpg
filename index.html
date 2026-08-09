@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生修行录 · v5.34.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.43.0">
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.44.0">
 </head>
 <body>
 <div class="layout">
@@ -32,7 +32,7 @@
     <div class="page active dash-grid" id="page-dashboard">
 <div class="panel quote-postcard" id="quoteBanner"></div>
 <div class="panel fortune-panel" id="fortuneBox"></div>
-<div class="panel life-banner" id="lifeBanner" data-dash-id="life"></div>
+<div class="panel life-banner" id="lifeBanner"></div>
 <div class="dash-row mainrow">
   <div class="main-left">
     <div class="panel dash-card col6" data-dash-id="month" onclick="showPage('longterm')">
@@ -76,7 +76,7 @@
 <div class="panel dash-card col6" data-dash-id="daily" onclick="showPage('current')">
         <h2>📿 今日行动</h2>
         <div id="dashDaily">加载中…</div>
-        <div class="hint" style="margin:8px 0 0">固定 · 随机 · 委托，点击进入做</div>
+        <div class="hint" style="margin:8px 0 0">今日主线 · 小习惯 · 江湖日榜，点击进入做</div>
       </div>
 <div class="panel dash-card col6" data-dash-id="weekly" onclick="showPage('week')">
         <h2>🗓️ 本周任务</h2>
@@ -300,29 +300,28 @@
         </details>
         <div class="hint">八字经万年历 / 多家排盘核对：乙亥 壬午 丁丑 乙巳，日主丁火。起运岁数依小暑精确时刻推算（±数日），仅供参考，非精确命理结论；每月建议为「丁火喜金水」通用调候，非个人批命。</div>
       </div>
-      <div class="panel">
-        <h2>🎯 长期目标 · 人生里程碑</h2>
-        <div id="goalsBox"></div>
-        <div class="hint">进度条按你 iHour 终身数据初始化（羽毛球 1649h / 身体健康 898h / 职业发展 1017h / 生涯教练 474h / 精神享受 670h / 云南探索 0/30 天）。每月从 iHour 同步一次当前累计，或点 +15min/+1h 手动累加。技能类里程碑（如「水平达 3.5」）随对应年目标自动达成，无需手动认领。</div>
-      </div>
+      <!-- 📜 修行履历已移除：经历叙事已融入「长期复利轨道」武侠境界与「长期主线」 -->
+
+      <!-- 🎯 长期目标已合并进「长期复利轨道」（修行成长页），此处不再单独展示 -->
 
       <div class="side-foot" style="margin-top:8px">丁火 · 喜金水清凉<br>INTJ · 双子座</div>
     </div>
 
     <!-- ===== 短期任务 ===== -->
     <div class="page" id="page-current">
-      <div class="phead">今日行动<span class="psub">固定日课 · 随机日行 · 四方委托 · 混在一处做</span></div>
+      <div class="phead">今日行动<span class="psub">今日主线 · 复利轨道 · 江湖任务日榜</span></div>
       <div class="panel today-cockpit today-detail-cockpit" id="todayDetailCockpit"></div>
-      <div class="panel load-card"><div id="loadAdvisorBox"></div></div>
+      <!-- 「复利轨道」面板由 systems.js 动态插入在此之后 -->
+      <div class="panel jianghu-card"><div id="jianghuBox"></div></div>
       <div class="recbar">
         <span class="reclabel">记录于</span>
         <input id="recDate" type="date" class="recinput" onchange="setRecDate(this.value)">
         <button class="btn ghost xs" onclick="setRecDate('')">今天</button>
         <span class="rechint" id="recHint">默认记今天；要补录过去某天，先选日期再勾任务。</span>
       </div>
-      <div class="panel" style="margin-top:-8px">
-        <h2>📿 今日行动</h2>
-        <div class="subh">🌙 今日小习惯 <span class="qmin">（只打勾、不计时；羽毛球/力量/拉伸/阅读等计时项请在上方「复利轨道」直接填时间）</span></div>
+      <div class="panel">
+        <h2>🌙 今日小习惯</h2>
+        <div class="subh">只打勾、不计时 <span class="qmin">（羽毛球/力量/拉伸/阅读等计时项，请在上方「复利轨道」直接填时间）</span></div>
         <div id="dailyList"></div>
         <div class="addrow">
           <input type="text" id="dText" placeholder="新日常任务…">
@@ -341,14 +340,6 @@
             <button class="btn sm" onclick="addQuest('supps')">+ 添加</button>
           </div>
         </div>
-        <div class="subh" style="margin-top:10px">🎲 随机日行 <span class="qmin">（江湖掉落，每天刷新；🔴强制必做）</span></div>
-        <div id="sideDailyList"></div>
-        <div class="hint">随机日行由下方「任务生成器」抽一则生成（🔴强制必做）；每天自动刷新。</div>
-      </div>
-      <div class="panel">
-        <h2>📜 四方委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
-          <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
-        <div id="npcBox"></div>
       </div>
       <div class="panel">
         <h2>🏸 羽毛球专精 · 你的人生主题</h2>
@@ -365,18 +356,17 @@
       <div class="panel">
         <h2>🎲 任务生成器 · 江湖掉落</h2>
         <div class="row" style="justify-content:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <button class="btn" onclick="drawSideQuest('daily')">🎲 抽一则日行（强制）</button>
           <button class="btn" onclick="drawSideQuest('weekly')">🎲 抽一则周游（强制）</button>
           <button class="btn" onclick="drawSideQuest('monthly')">🎲 抽一则月行（强制）</button>
           <button class="btn ghost" onclick="resetSidePool()">🔄 重置任务库</button>
         </div>
-        <div class="hint">每天自动刷新日行、每周一刷新周游、每月 1 日刷新月行（不管完成与否）。「抽一则」会生成一条 <b>🔴 强制</b> 任务（其他为选择性），进到对应页面做。完成 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
+        <div class="hint">日任务已由上方「江湖任务日榜」接管（每天自动换榜）。这里只保留周游 / 月行：每周一刷新周游、每月 1 日刷新月行。「抽一则」会生成一条 <b>🔴 强制</b> 任务，进到「周月任务」页做。完成 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
       </div>
     </div>
 
     <!-- ===== 周月任务（重构：随机周游 + 手动周目标 + 月行大计；周任务和日任务分开） ===== -->
     <div class="page" id="page-week">
-      <div class="phead">周月任务<span class="psub">随机周游 · 手动周目标 · 月行大计 · 周任务和日任务分开</span></div>
+      <div class="phead">周月任务<span class="psub">随机周游 · 手动周目标 · 江湖委托 · 月行大计</span></div>
       <div class="panel wr-card"><div id="weeklyReviewBox"></div></div>
       <div class="panel">
         <h2>🌀 本周行动</h2>
@@ -392,6 +382,11 @@
           <input type="number" id="wXp" value="30" min="1" title="XP">
           <button class="btn sm" onclick="addQuest('weekly')">+ 添加</button>
         </div>
+      </div>
+      <div class="panel">
+        <h2>📜 江湖委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
+          <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
+        <div id="npcBox"></div>
       </div>
       <div class="panel">
         <h2>🌙 月行大计 <span class="note">每月 1 日刷新</span></h2>
@@ -438,25 +433,13 @@
         <div class="lvl-xp" id="growthXpText">0 / 50 加权经验</div>
         <div class="streak"><span class="flame">🔥</span><span>灯火不熄 <b id="growthStreak" style="color:var(--txt)">0</b> 日</span><span id="growthPoints" class="note" style="margin-left:auto"></span></div>
       </div>
-      <div class="panel">
-        <div id="skillBox"></div>
-      </div>
-      <div class="panel">
-        <div id="seasonBox"></div>
-      </div>
-      <div class="panel">
-        <h2>📖 修行卷册 <span class="note">四卷 · 每卷有开场与终章</span></h2>
-        <div id="sagaBox"></div>
-      </div>
+      <!-- 🏆 赛季称号已移除（与复利轨道 / 成就重复） -->
+      <!-- 📖 修行卷册已移除（与长期复利轨道重复） -->
       <div class="panel">
         <h2>✅ 已扬名</h2>
         <div class="achs" id="achsUnlocked"></div>
       </div>
-      <div class="panel">
-        <h2>🔒 待揭帖</h2>
-        <div class="achs" id="achsLocked"></div>
-        <div class="hint">完成对应修行即可点亮；带「认领」的成就需手动认领。</div>
-      </div>
+      <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
       <div class="panel">
         <div id="bondBox"></div>
       </div>
@@ -477,8 +460,7 @@
       <div class="phead">🗺️ 旅行脚印<span class="psub">把到访与心愿写下来，让脚步有迹可循</span></div>
       <div id="tripsPage"></div>
     </div>
-<!-- 地点编辑弹窗 -->
-    <!-- 远方来信 阅读弹窗 -->
+<!-- 远方来信 阅读弹窗 -->
     <div id="letterModal" class="modal-mask" style="display:none" onclick="if(event.target===this)hideModal('letterModal')">
       <div class="modal"><div class="modal-x" onclick="hideModal('letterModal')">×</div><div class="modal-body"></div></div>
     </div>
@@ -673,15 +655,27 @@
 
       <!-- 周报 / 月报 -->
       <div class="panel">
-        <h2>📊 周报 / 月报</h2>
-        <div class="row" style="gap:8px;flex-wrap:wrap">
-          <button class="btn sm" onclick="genReport('week')">📝 预览周报</button>
-          <button class="btn sm" onclick="genReport('week',true)">📲 周报推送微信</button>
-          <button class="btn sm" onclick="genReport('month')">📝 预览月报</button>
-          <button class="btn sm" onclick="genReport('month',true)">📲 月报推送微信</button>
+        <h2>📊 周报 / 月报 <span class="note">周 / 月分开放，互不覆盖，自动留痕</span></h2>
+        <div class="rep-actions">
+          <span class="rep-actions-g">📅 本周</span>
+          <button class="btn sm" onclick="genReport('week')">预览</button>
+          <button class="btn sm ghost" onclick="genReport('week',true)">推送微信</button>
+          <span class="rep-actions-g" style="margin-left:14px">🌕 本月</span>
+          <button class="btn sm" onclick="genReport('month')">预览</button>
+          <button class="btn sm ghost" onclick="genReport('month',true)">推送微信</button>
         </div>
-        <div id="reportOut" class="report-box" style="margin-top:10px;white-space:pre-wrap;display:none"></div>
-        <div class="hint">汇总本期已完成行动、四系投入时长、点亮徽章、嘉奖掉落、新到访、当前等级。纯静态页无法后台自动推送；可在 WorkBuddy 设「每周一 / 每月 1 日 9:00」定时提醒你来点一下生成。</div>
+        <div class="rep-wrap">
+          <div class="rep-pane">
+            <div class="rep-pane-h">📅 本周报</div>
+            <div id="reportWeek" class="report-box"></div>
+          </div>
+          <div class="rep-pane">
+            <div class="rep-pane-h">🌕 本月报</div>
+            <div id="reportMonth" class="report-box"></div>
+          </div>
+        </div>
+        <div id="reportHist" class="rep-hist"></div>
+        <div class="hint">汇总本期已完成行动、四系投入时长、点亮徽章、嘉奖掉落、新到访、当前等级。周报/月报各自留在自己的框里，不会互相覆盖；下方自动保存最近 12 次记录，点一下即可重看。纯静态页无法后台自动推送；可在 WorkBuddy 设「每周一 / 每月 1 日 9:00」定时提醒你来点一下生成。</div>
       </div>
 
       <div class="panel">
@@ -724,9 +718,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.43.0"></script>
-<script src="assets/tasks-render.js?v=5.43.0"></script>
-<script src="assets/npc-stories.js?v=5.43.0"></script>
-<script src="assets/systems.js?v=5.43.0"></script>
+<script src="assets/core-state.js?v=5.44.0"></script>
+<script src="assets/tasks-render.js?v=5.44.0"></script>
+<script src="assets/npc-stories.js?v=5.44.0"></script>
+<script src="assets/systems.js?v=5.44.0"></script>
 </body>
 </html>

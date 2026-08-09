@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生修行录 · v5.34.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.43.0">
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.44.0">
 </head>
 <body>
 <div class="layout">
@@ -76,7 +76,7 @@
 <div class="panel dash-card col6" data-dash-id="daily" onclick="showPage('current')">
         <h2>📿 今日行动</h2>
         <div id="dashDaily">加载中…</div>
-        <div class="hint" style="margin:8px 0 0">固定 · 随机 · 委托，点击进入做</div>
+        <div class="hint" style="margin:8px 0 0">今日主线 · 小习惯 · 江湖日榜，点击进入做</div>
       </div>
 <div class="panel dash-card col6" data-dash-id="weekly" onclick="showPage('week')">
         <h2>🗓️ 本周任务</h2>
@@ -309,18 +309,19 @@
 
     <!-- ===== 短期任务 ===== -->
     <div class="page" id="page-current">
-      <div class="phead">今日行动<span class="psub">固定日课 · 随机日行 · 四方委托 · 混在一处做</span></div>
+      <div class="phead">今日行动<span class="psub">今日主线 · 复利轨道 · 江湖任务日榜</span></div>
       <div class="panel today-cockpit today-detail-cockpit" id="todayDetailCockpit"></div>
-      <div class="panel load-card"><div id="loadAdvisorBox"></div></div>
+      <!-- 「复利轨道」面板由 systems.js 动态插入在此之后 -->
+      <div class="panel jianghu-card"><div id="jianghuBox"></div></div>
       <div class="recbar">
         <span class="reclabel">记录于</span>
         <input id="recDate" type="date" class="recinput" onchange="setRecDate(this.value)">
         <button class="btn ghost xs" onclick="setRecDate('')">今天</button>
         <span class="rechint" id="recHint">默认记今天；要补录过去某天，先选日期再勾任务。</span>
       </div>
-      <div class="panel" style="margin-top:-8px">
-        <h2>📿 今日行动</h2>
-        <div class="subh">🌙 今日小习惯 <span class="qmin">（只打勾、不计时；羽毛球/力量/拉伸/阅读等计时项请在上方「复利轨道」直接填时间）</span></div>
+      <div class="panel">
+        <h2>🌙 今日小习惯</h2>
+        <div class="subh">只打勾、不计时 <span class="qmin">（羽毛球/力量/拉伸/阅读等计时项，请在上方「复利轨道」直接填时间）</span></div>
         <div id="dailyList"></div>
         <div class="addrow">
           <input type="text" id="dText" placeholder="新日常任务…">
@@ -339,14 +340,6 @@
             <button class="btn sm" onclick="addQuest('supps')">+ 添加</button>
           </div>
         </div>
-        <div class="subh" style="margin-top:10px">🎲 随机日行 <span class="qmin">（江湖掉落，每天刷新；🔴强制必做）</span></div>
-        <div id="sideDailyList"></div>
-        <div class="hint">随机日行由下方「任务生成器」抽一则生成（🔴强制必做）；每天自动刷新。</div>
-      </div>
-      <div class="panel">
-        <h2>📜 四方委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
-          <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
-        <div id="npcBox"></div>
       </div>
       <div class="panel">
         <h2>🏸 羽毛球专精 · 你的人生主题</h2>
@@ -363,18 +356,17 @@
       <div class="panel">
         <h2>🎲 任务生成器 · 江湖掉落</h2>
         <div class="row" style="justify-content:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <button class="btn" onclick="drawSideQuest('daily')">🎲 抽一则日行（强制）</button>
           <button class="btn" onclick="drawSideQuest('weekly')">🎲 抽一则周游（强制）</button>
           <button class="btn" onclick="drawSideQuest('monthly')">🎲 抽一则月行（强制）</button>
           <button class="btn ghost" onclick="resetSidePool()">🔄 重置任务库</button>
         </div>
-        <div class="hint">每天自动刷新日行、每周一刷新周游、每月 1 日刷新月行（不管完成与否）。「抽一则」会生成一条 <b>🔴 强制</b> 任务（其他为选择性），进到对应页面做。完成 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
+        <div class="hint">日任务已由上方「江湖任务日榜」接管（每天自动换榜）。这里只保留周游 / 月行：每周一刷新周游、每月 1 日刷新月行。「抽一则」会生成一条 <b>🔴 强制</b> 任务，进到「周月任务」页做。完成 / 点 👍 / 记心情好，会让这类任务以后更常 <b>返场</b>。</div>
       </div>
     </div>
 
     <!-- ===== 周月任务（重构：随机周游 + 手动周目标 + 月行大计；周任务和日任务分开） ===== -->
     <div class="page" id="page-week">
-      <div class="phead">周月任务<span class="psub">随机周游 · 手动周目标 · 月行大计 · 周任务和日任务分开</span></div>
+      <div class="phead">周月任务<span class="psub">随机周游 · 手动周目标 · 江湖委托 · 月行大计</span></div>
       <div class="panel wr-card"><div id="weeklyReviewBox"></div></div>
       <div class="panel">
         <h2>🌀 本周行动</h2>
@@ -390,6 +382,11 @@
           <input type="number" id="wXp" value="30" min="1" title="XP">
           <button class="btn sm" onclick="addQuest('weekly')">+ 添加</button>
         </div>
+      </div>
+      <div class="panel">
+        <h2>📜 江湖委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
+          <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
+        <div id="npcBox"></div>
       </div>
       <div class="panel">
         <h2>🌙 月行大计 <span class="note">每月 1 日刷新</span></h2>
@@ -721,9 +718,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.43.0"></script>
-<script src="assets/tasks-render.js?v=5.43.0"></script>
-<script src="assets/npc-stories.js?v=5.43.0"></script>
-<script src="assets/systems.js?v=5.43.0"></script>
+<script src="assets/core-state.js?v=5.44.0"></script>
+<script src="assets/tasks-render.js?v=5.44.0"></script>
+<script src="assets/npc-stories.js?v=5.44.0"></script>
+<script src="assets/systems.js?v=5.44.0"></script>
 </body>
 </html>

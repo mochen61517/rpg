@@ -1539,128 +1539,192 @@ function renderDayunNote(){
 }
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-/* ---------- v5.22 今日驾驶舱：一个主线、三张命运签、状态自适应 ---------- */
-const TODAY_WEATHERS=[
-  {ic:'🌊',n:'灵感潮汐',d:'心流行动更容易进入状态，先做一点喜欢的。',attr:'MIND'},
-  {ic:'⚔️',n:'破局之日',d:'把最抗拒的事缩小后开始，行动本身就是胜利。',attr:'CAREER'},
-  {ic:'🌿',n:'回春细雨',d:'恢复优先；拉伸、散步和早睡同样算推进。',attr:'BODY'},
-  {ic:'🏸',n:'风羽相助',d:'身体记得每一次练习，今天适合碰一碰球。',attr:'BADMINTON'},
-  {ic:'🕯️',n:'灯火平稳',d:'不求爆发，只求让最重要的事向前一寸。',attr:''},
-  {ic:'☁️',n:'云深路缓',d:'允许减量。完成保底版，便算安然过关。',attr:'BODY'},
-  {ic:'✨',n:'星落有声',d:'留意偶然出现的人、念头和小机会。',attr:'MIND'},
-];
+/* ---------- v5.44 今日主线 + 江湖任务日榜（替代 命运之签 / 减负官 / 随机日行） ---------- */
 function seededIndex(key,len){ let h=2166136261>>>0; for(let i=0;i<key.length;i++) h=Math.imul(h^key.charCodeAt(i),16777619)>>>0; return h%len; }
 function ensureTodayPlan(){
   const d=todayStr();
-  if(!S.todayPlan || typeof S.todayPlan!=='object' || S.todayPlan.date!==d) S.todayPlan={date:d,focusId:'',mode:'normal',fateChoice:'',settled:[]};
+  if(!S.todayPlan || typeof S.todayPlan!=='object' || S.todayPlan.date!==d) S.todayPlan={date:d,focusId:'',mode:'normal',main:[],settled:[]};
   if(!Array.isArray(S.todayPlan.settled)) S.todayPlan.settled=[];
+  if(!Array.isArray(S.todayPlan.main)) S.todayPlan.main=[];
   return S.todayPlan;
+}
+function liveTrackKeys(){ try{ return Object.keys(LIFE_TRACKS).filter(function(k){return !LIFE_TRACKS[k].paused;}); }catch(e){ return []; } }
+function todayMainKeys(){ const p=ensureTodayPlan(), live=liveTrackKeys(); return (p.main||[]).filter(function(k){return live.indexOf(k)>=0;}); }
+function toggleTodayMain(k){
+  const p=ensureTodayPlan(), i=(p.main||[]).indexOf(k);
+  if(i>=0) p.main.splice(i,1);
+  else{
+    if(p.main.length>=3){ try{ celebrateTask('🎯 今日主线最多 3 条 · 先取消一条再选'); }catch(e){} return; }
+    p.main.push(k);
+  }
+  save(); renderTodayCockpit(); try{ renderLifeCompound(); }catch(e){}
+}
+function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(); }
+function focusTrackInput(k){
+  try{ if(typeof lcToggle==='function'){ lcToggle(k); } }catch(e){}
+  setTimeout(function(){
+    const el=document.getElementById('lcMin_'+k);
+    if(el){ try{ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); el.select&&el.select(); }catch(e){} return; }
+    const box=document.getElementById('lifeBlendBox'); if(box){ try{ box.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+  },30);
 }
 function cockpitCandidates(){
   const d=todayStr(), out=[];
-  (S.daily||[]).forEach(x=>out.push({id:x.id,t:x.t,a:safeAttr(x.a),done:isDone(x,d),min:x.rec||x.min||0,src:'固定'}));
-  (S.sideDaily||[]).forEach(x=>out.push({id:x.id,t:x.t,a:safeAttr(x.a),done:!!x.done,min:x.min||0,src:'随机'}));
-  (((S.npc||{}).active)||[]).forEach(x=>out.push({id:x.id,t:x.t,a:safeAttr(x.a),done:!!x.done,min:x.min||0,src:'委托'}));
+  (S.daily||[]).forEach(function(x){ out.push({id:x.id,t:x.t,a:safeAttr(x.a),done:isDone(x,d),min:x.rec||x.min||0,src:'小习惯'}); });
+  try{ (ensureJianghu().list||[]).forEach(function(x){ out.push({id:x.id,t:x.t,a:safeAttr(x.a),done:!!x.done,min:0,src:'江湖'}); }); }catch(e){}
   return out;
 }
-function ensureTaskView(){if(!S.taskView||S.taskView.date!==todayStr())S.taskView={date:todayStr(),compact:false};return S.taskView;}
-function adaptivePicks(){
-  const all=cockpitCandidates().filter(x=>!x.done),focus=cockpitFocus(),e=energyState(),out=[];
-  const add=x=>{if(x&&!out.some(y=>y.id===x.id))out.push(x);}; add(focus);
-  if(e.v<50)add(all.find(x=>x.a==='BODY'));
-  add(all.find(x=>x.a!==(focus&&focus.a))); all.forEach(add); return out.slice(0,3);
-}
-function lowFollowTask(){
-  const ds=[];for(let i=0;i<14;i++)ds.push(shiftDate(todayStr(),-i));
-  return (S.daily||[]).filter(x=>x.mode==='time'||x.min||x.rec).map(x=>({x,n:ds.filter(d=>isDone(x,d)).length})).sort((a,b)=>a.n-b.n)[0]||null;
-}
-function toggleCompactTaskView(){const v=ensureTaskView();v.compact=!v.compact;save();renderLoadAdvisor();}
-function shrinkDailyTask(idv){
-  const x=(S.daily||[]).find(q=>q.id===idv);if(!x)return;const old=parseInt(x.rec||x.min||10),next=Math.max(5,Math.round(old/2/5)*5);x.rec=next;if(x.min)x.min=next;addHist('🪶 减负：'+x.t+' 调整为 '+next+' 分钟');save();render();celebrateTask('🪶 已把任务缩小到 '+next+' 分钟');
-}
-function renderLoadAdvisor(){
-  const el=document.getElementById('loadAdvisorBox');if(!el)return;const v=ensureTaskView(),all=cockpitCandidates().filter(x=>!x.done),picks=adaptivePicks(),allowed=new Set(picks.map(x=>x.id)),e=energyState(),mins=all.reduce((s,x)=>s+(parseInt(x.min)||15),0),low=lowFollowTask();
-  const currentPage=document.getElementById('page-current');if(currentPage)currentPage.classList.toggle('compact-mode',v.compact);
-  const reason=e.v<50?'精力偏低，今天优先保留恢复任务。':(mins>180?'待办预计较多，先收束到三件即可。':'当前负荷尚可，仍可随时切换到三件模式。');
-  el.innerHTML='<div class="load-head"><div><div class="load-title">🪶 今日减负官</div><div class="load-summary">待办 '+all.length+' 项 · 预计约 '+h(mins)+' · '+reason+'</div></div><button class="btn sm '+(v.compact?'primary':'ghost')+'" onclick="toggleCompactTaskView()">'+(v.compact?'退出三件模式':'只看今日三件')+'</button></div>'
-    +'<div class="load-picks">'+(picks.length?picks.map((x,i)=>'<span class="load-pick">'+(i===0?'主线':'支线')+' · '+escHtml(x.t)+'</span>').join(''):'<span class="load-pick">今天已经没有待办，可以收工。</span>')+'</div>'
-    +(low&&low.n<=2?'<div class="load-tip">连续 14 天里，「'+escHtml(low.x.t)+'」只完成了 '+low.n+' 次。也许不是你不自律，而是任务太大。'+((low.x.mode==='time'||low.x.min||low.x.rec)?' <button class="btn xs ghost" onclick="shrinkDailyTask(\''+low.x.id+'\')">缩小为一半</button>':'')+'</div>':'')
-    +(v.compact?'<div class="load-quiet">安静模式已开启：其余任务只是暂时隐藏，随时可以恢复，不会删除或暂停。</div>':'');
-  ['dailyList','sideDailyList','npcBox'].forEach(idv=>{const box=document.getElementById(idv);if(!box||!box.querySelectorAll)return;box.querySelectorAll('.qitem,.npcq').forEach(row=>row.classList.toggle('load-hidden',v.compact&&!allowed.has((row.id||'').replace(/^qi_/,''))));});
-}
-function cockpitFocus(){
-  const p=ensureTodayPlan(), items=cockpitCandidates();
-  let q=items.find(x=>x.id===p.focusId && !x.done);
-  if(!q){
-    const e=energyState();
-    const preferred=e.v<50?'BODY':'CAREER';
-    q=items.find(x=>!x.done&&x.a===preferred) || items.find(x=>!x.done&&x.id===S.mainQ) || items.find(x=>!x.done) || null;
-    p.focusId=q?q.id:'';
-  }
-  return q;
-}
-function setTodayFocus(fid){ const p=ensureTodayPlan(); p.focusId=fid||''; save(); renderTodayCockpit(); }
-function setTodayMode(mode){ const p=ensureTodayPlan(); p.mode=mode==='minimum'?'minimum':'normal'; save(); renderTodayCockpit(); }
-function chooseTodayFate(key){
-  const p=ensureTodayPlan(); p.fateChoice=(p.fateChoice===key?'':key);
-  S.story=S.story||{lastDate:'',lastFate:'',history:[]}; S.story.lastDate=todayStr(); S.story.lastFate=p.fateChoice;
-  if(p.fateChoice){ S.story.history=S.story.history||[]; S.story.history.push({d:todayStr(),f:p.fateChoice}); if(S.story.history.length>60) S.story.history=S.story.history.slice(-60); }
-  save(); renderTodayCockpit();
-}
-const FATE_ECHOES={
-  break:{ic:'⚔️',n:'昨日余波 · 剑已出鞘',d:'昨天你选择了破局。今天不必再猛烈，只要确认那道口子仍然开着。'},
-  repair:{ic:'🧵',n:'昨日余波 · 裂隙已补',d:'昨天你修补了一处生活。留意今天是否因此少了一点隐形阻力。'},
-  wander:{ic:'🎐',n:'昨日余波 · 风仍在吹',d:'昨天你把时间还给了喜欢。那不是绕路，而是在提醒自己为何出发。'},
-};
-function fateEcho(){
-  const s=S.story||{}, d=s.lastDate; if(!d||!s.lastFate||d>=todayStr()) return null;
-  const gap=Math.round((new Date(todayStr()+'T00:00:00')-new Date(d+'T00:00:00'))/86400000);
-  return gap===1?FATE_ECHOES[s.lastFate]:null;
-}
-function cycleTodayFocus(){
-  const p=ensureTodayPlan(), items=cockpitCandidates().filter(x=>!x.done); if(!items.length) return;
-  const i=items.findIndex(x=>x.id===p.focusId); p.focusId=items[(i+1)%items.length].id; save(); renderTodayCockpit();
-}
 function renderTodayCockpit(){
-  const el=document.getElementById('todayCockpit'),detail=document.getElementById('todayDetailCockpit'); if(!el&&!detail) return;
-  const p=ensureTodayPlan(), e=energyState(), q=cockpitFocus();
-  const weather=TODAY_WEATHERS[seededIndex(todayStr(),TODAY_WEATHERS.length)];
-  const echo=fateEcho();
-  if(e.v<30 && p.mode!=='minimum') p.mode='minimum';
-  const minimum=p.mode==='minimum';
-  const baseMin=q?(parseInt(q.min)||25):0;
-  const suggested=q?(minimum?Math.max(5,Math.min(15,baseMin||15)):(e.v<50?Math.max(10,Math.min(25,baseMin||25)):(baseMin||30))):0;
-  const fates=[
-    {k:'break',ic:'⚔️',n:'破局',d:'处理一件抗拒的小事 15 分钟'},
-    {k:'repair',ic:'🧹',n:'修补',d:'解决一个拖延已久的小问题'},
-    {k:'wander',ic:'🎐',n:'游心',d:'做一件纯粹因为喜欢的事'},
-  ];
-  const full='<div class="tc-head"><div><div class="tc-kicker">TODAY · 今日一局</div><div class="tc-title">'+(minimum?'保底修行':'今日驾驶舱')+'</div><div class="tc-date">'+fmtFull(new Date())+'</div></div>'
-    +'<div class="tc-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
-    +'<div class="tc-world"><div class="tc-world-ic">'+weather.ic+'</div><div><b>'+weather.n+'</b><span>'+weather.d+'</span></div></div>'
-    +(echo?'<div class="tc-echo"><div>'+echo.ic+'</div><div><b>'+echo.n+'</b><span>'+echo.d+'</span></div></div>':'')
-    +'<div class="tc-focus"><div class="tc-focus-top"><span class="tc-label">'+(q?'今日唯一主线 · '+q.src:'今日已无待办主线')+'</span>'+(q?'<button class="btn ghost xs" onclick="cycleTodayFocus()">换一条</button>':'')+'</div>'
-    +'<div class="tc-main">'+(q?escHtml(q.t):'灯火已安，余下时间归你自己。')+'</div>'
-    +'<div class="tc-meta">'+(q?(minimum?'保底版 · 只做 '+suggested+' 分钟，不必补齐清单':('建议投入 '+suggested+' 分钟 · '+ATTRS[q.a].icon+' '+ATTRS[q.a].name)):'今天可以直接结算或安心休息')+'</div>'
-    +'<div class="tc-actions">'+(q?'<button class="btn sm" onclick="showPage(\'current\')">▶ 开始主线</button>':'<button class="btn sm" onclick="showBrief(todayStr())">查看今日战报</button>')
-    +'<button class="btn ghost sm" onclick="setTodayMode(\''+(minimum?'normal':'minimum')+'\')">'+(minimum?'恢复普通模式':'今天只保底')+'</button></div></div>'
-    +'<div class="tc-fates-label">命运之签 · 可选一张，也可以一张都不选</div><div class="tc-fates">'
-    +fates.map(x=>'<button class="tc-fate '+(p.fateChoice===x.k?'on':'')+'" onclick="chooseTodayFate(\''+x.k+'\')"><b>'+x.ic+' '+x.n+(p.fateChoice===x.k?' · 已选':'')+'</b><span>'+x.d+'</span></button>').join('')+'</div>'
-    +'<div class="tc-foot">系统会记住今天的选择；明天自动翻开新的一局。</div>';
-  if(detail)detail.innerHTML=full;
-  if(el){el.classList.add('dash-minimal');el.innerHTML='<div class="dash-focus-row"><div><div class="dash-focus-kicker">TODAY FOCUS · 今日唯一主线</div><div class="dash-focus-title">'+(q?escHtml(q.t):'今日重点已经完成')+'</div><div class="dash-focus-meta">'+(q?(ATTRS[q.a].icon+' '+ATTRS[q.a].name+' · 建议 '+suggested+' 分钟'+(minimum?' · 保底模式':'')):'剩余时间可以休息，或前往详情页自由选择。')+'</div></div><div class="dash-focus-actions">'+(q?'<button class="btn sm primary" onclick="showPage(\'current\')">进入行动</button><button class="btn sm ghost" onclick="cycleTodayFocus()">更换主线</button>':'<button class="btn sm ghost" onclick="showPage(\'current\')">查看今日详情</button>')+'</div></div>';}
+  const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
+  const e=energyState(), live=liveTrackKeys(), sel=todayMainKeys();
+  const chip=function(k){
+    const t=LIFE_TRACKS[k], on=sel.indexOf(k)>=0, m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+    return '<button class="tm-chip'+(on?' on':'')+(m>0?' lit':'')+'" onclick="toggleTodayMain(\''+k+'\')">'
+      +'<span class="tm-chip-ic">'+t.ic+'</span><span class="tm-chip-n">'+escHtml(t.n)+'</span>'
+      +(on?'<span class="tm-chip-tick">✓</span>':'')+'</button>';
+  };
+  const rowOf=function(k){
+    const t=LIFE_TRACKS[k], mins=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+    const tgt=t.rec||20, pct=Math.max(0,Math.min(100,Math.round(mins/tgt*100))), ok=mins>=tgt;
+    return '<div class="tm-row'+(ok?' ok':'')+'">'
+      +'<div class="tm-row-ic">'+t.ic+'</div>'
+      +'<div class="tm-row-body"><div class="tm-row-n">'+escHtml(t.n)
+      +'<span class="tm-row-tag">'+(ok?'今日已达成':'今日目标 '+tgt+' 分钟')+'</span></div>'
+      +'<div class="tm-bar"><i style="width:'+pct+'%"></i></div></div>'
+      +'<div class="tm-row-min">'+(mins?mins+'′':'—')+'</div>'
+      +'<button class="btn xs '+(ok?'ghost':'primary')+'" onclick="focusTrackInput(\''+k+'\')">记一笔</button></div>';
+  };
+  const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return m>=(t.rec||20); }).length;
+  detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
+    +'<div class="tm-title">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
+    +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
+    +'<div class="tm-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
+    +'<div class="tm-pick-label">从长期复利轨道里挑（最多 3 条 · 点一下选中）</div>'
+    +'<div class="tm-pick">'+live.map(chip).join('')+'</div>'
+    +(sel.length?('<div class="tm-list">'+sel.map(rowOf).join('')+'</div>')
+      :'<div class="tm-empty">还没选。今天只认 1–3 条就够，其余全算加分。</div>')
+    +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
+    +(sel.length?' <button class="btn xs ghost" onclick="clearTodayMain()">清空重选</button>':'')+'</div>';
   renderDashboardSummary();
 }
 function renderDashboardSummary(){
-  const el=document.getElementById('dashKeySummary');if(!el)return;const all=cockpitCandidates(),done=all.filter(x=>x.done).length,e=energyState(),gxp=overallXP(),lv=lvlOf(gxp),lr=xpInLvl(gxp),wk=Object.keys(ATTRS).reduce((s,a)=>s+weeklyAttrMinutes(a),0);
+  const el=document.getElementById('dashKeySummary'); if(!el) return;
+  const sel=todayMainKeys();
+  const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return m>=(t.rec||20); }).length;
+  const e=energyState(), gxp=overallXP(), lv=lvlOf(gxp), lr=xpInLvl(gxp);
+  const wk=Object.keys(ATTRS).reduce(function(s,a){return s+weeklyAttrMinutes(a);},0);
   const cards=[
-    {ic:'📿',n:'今日行动',v:done+' / '+all.length,s:'完成进度 · 点击进入清单',p:'current'},
+    {ic:'🎯',n:'今日主线',v:sel.length?(doneN+' / '+sel.length):'未选',s:sel.length?'今天认下的事 · 点击进入':'去挑 1–3 条复利轨道',p:'current'},
     {ic:'🗓️',n:'本周投入',v:h(wk),s:'四大领域累计 · 点击查看周复盘',p:'week'},
     {ic:'🔋',n:'当前精力',v:e.v,s:e.label+' · '+(e.v<50?'建议减量':'节奏正常'),p:'energy'},
     {ic:'✦',n:'修行等级',v:'Lv.'+lv,s:Math.round(lr.xp)+' / '+Math.round(lr.need)+' XP',p:'growth'}
   ];
-  el.innerHTML=cards.map(c=>'<button class="dks-card" onclick="showPage(\''+c.p+'\')"><div class="dks-top"><span>'+c.ic+' '+c.n+'</span><span class="dks-arrow">›</span></div><div class="dks-value">'+c.v+'</div><div class="dks-sub">'+c.s+'</div></button>').join('');
+  el.innerHTML=cards.map(function(c){return '<button class="dks-card" onclick="showPage(\''+c.p+'\')"><div class="dks-top"><span>'+c.ic+' '+c.n+'</span><span class="dks-arrow">›</span></div><div class="dks-value">'+c.v+'</div><div class="dks-sub">'+c.s+'</div></button>';}).join('');
 }
+
+/* ---------- v5.44 江湖任务日榜：越靠上越难、积分越高（难度依据过往完成率排定） ---------- */
+const JIANGHU_PIN={id:'jh_sleep',t:'今日早睡 · 23:30 前上床，手机放到床外',a:'BODY',diff:5,xp:40};
+const JIANGHU_BANK=[
+  // ★★★★★ 硬骨头（历史完成率最低：作息 / 抗拒型 / 早晨类）
+  {id:'jh_nophone_am',t:'起床后 30 分钟不碰手机',a:'MIND',diff:5,xp:40},
+  {id:'jh_noshort',t:'今天一条短视频都不刷',a:'MIND',diff:5,xp:40},
+  {id:'jh_overdue',t:'干掉一件拖了 7 天以上的事',a:'CAREER',diff:5,xp:40},
+  {id:'jh_am_move',t:'上午就完成一次运动（不留到晚上）',a:'BODY',diff:5,xp:40},
+  {id:'jh_hardtalk',t:'开一次你一直在回避的对话/邮件',a:'CAREER',diff:5,xp:40},
+  // ★★★★ 要咬牙（需要整块时间或对外动作）
+  {id:'jh_deep45',t:'深度工作 45 分钟 · 中途不切窗口',a:'CAREER',diff:4,xp:30},
+  {id:'jh_apply',t:'投递 / 跟进一个真正想去的岗位',a:'CAREER',diff:4,xp:30},
+  {id:'jh_strength',t:'力量训练 30 分钟',a:'BODY',diff:4,xp:30},
+  {id:'jh_review300',t:'写 300 字复盘 · 只写事实不修辞',a:'MIND',diff:4,xp:30},
+  {id:'jh_reachout',t:'主动联系一位很久没联系的人',a:'CAREER',diff:4,xp:30},
+  {id:'jh_bmdrill',t:'羽毛球专项练习 40 分钟（步法/多球）',a:'BADMINTON',diff:4,xp:30},
+  // ★★★ 需要起身（常规精进）
+  {id:'jh_read20',t:'阅读 20 页',a:'MIND',diff:3,xp:20},
+  {id:'jh_piano20',t:'练琴 20 分钟',a:'MIND',diff:3,xp:20},
+  {id:'jh_sing15',t:'认真唱 15 分钟',a:'MIND',diff:3,xp:20},
+  {id:'jh_ai',t:'学一个 AI 新用法并当天用上',a:'CAREER',diff:3,xp:20},
+  {id:'jh_tidy30',t:'整理 30 分钟（桌面 / 文件 / 衣柜任选）',a:'BODY',diff:3,xp:20},
+  {id:'jh_walk30',t:'出门走 30 分钟，不戴耳机',a:'BODY',diff:3,xp:20},
+  {id:'jh_bmhit',t:'挥拍 / 打球 30 分钟',a:'BADMINTON',diff:3,xp:20},
+  // ★★ 顺手能做
+  {id:'jh_stretch10',t:'拉伸 10 分钟',a:'BODY',diff:2,xp:12},
+  {id:'jh_breath',t:'深呼吸 3 分钟（4-7-8 节律）',a:'BODY',diff:2,xp:12},
+  {id:'jh_water',t:'今天喝够 1.5L 水',a:'BODY',diff:2,xp:12},
+  {id:'jh_note',t:'记一条今天真实的观察（不评判）',a:'MIND',diff:2,xp:12},
+  {id:'jh_shadow',t:'空挥 100 拍',a:'BADMINTON',diff:2,xp:12},
+  // ★ 几乎不费力（但对状态有用）
+  {id:'jh_sun',t:'晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
+  {id:'jh_cook',t:'给自己认真做一顿饭',a:'BODY',diff:1,xp:6},
+  {id:'jh_song',t:'完整听一首歌，什么都不做',a:'MIND',diff:1,xp:6},
+  {id:'jh_next1',t:'睡前写下明天的第一件事',a:'CAREER',diff:1,xp:6},
+  {id:'jh_kind',t:'对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
+];
+function migrateSleepDaily(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.sleepJianghu) return;
+  const before=(S.daily||[]).length;
+  S.daily=(S.daily||[]).filter(function(x){ return !/23:30|早睡|睡觉|深呼吸|呼吸练习/.test(x.t||''); });
+  S.migr.sleepJianghu=todayStr();
+  if(before!==(S.daily||[]).length){ try{ save(); }catch(e){} }
+}
+function ensureJianghu(force){
+  const d=todayStr();
+  try{ migrateSleepDaily(); }catch(e){}
+  if(!S.jianghu||typeof S.jianghu!=='object') S.jianghu={date:'',seed:0,list:[]};
+  if(typeof S.jianghu.seed!=='number') S.jianghu.seed=0;
+  if(force) S.jianghu.seed++;
+  const stale = S.jianghu.date!==d || !Array.isArray(S.jianghu.list) || !S.jianghu.list.length;
+  if(stale || force){
+    const old=(S.jianghu.date===d && Array.isArray(S.jianghu.list))?S.jianghu.list:[];
+    const key=d+'#'+S.jianghu.seed;
+    const list=[Object.assign({},JIANGHU_PIN,{done:false,pin:true})];
+    [5,4,3,2,1].forEach(function(lv){
+      const pool=JIANGHU_BANK.filter(function(x){ return x.diff===lv && !list.some(function(y){return y.id===x.id;}); });
+      if(!pool.length) return;
+      list.push(Object.assign({},pool[seededIndex(key+'|'+lv,pool.length)],{done:false}));
+    });
+    list.forEach(function(x){ const o=old.filter(function(y){return y.id===x.id;})[0]; if(o&&o.done) x.done=true; });
+    S.jianghu.date=d; S.jianghu.list=list;
+  }
+  return S.jianghu;
+}
+function jianghuStars(n){ let s=''; for(let i=0;i<5;i++) s+= (i<n?'<b>★</b>':'<i>★</i>'); return s; }
+function renderJianghu(){
+  const el=document.getElementById('jianghuBox'); if(!el) return;
+  const j=ensureJianghu(), list=j.list||[];
+  const doneList=list.filter(function(x){return x.done;});
+  const got=doneList.reduce(function(n,x){return n+(x.xp||0);},0);
+  const maxXp=list.reduce(function(n,x){return n+(x.xp||0);},0);
+  el.innerHTML='<div class="jh-head"><div><b>🗡️ 江湖任务日榜</b><span>越靠上难度越大 · 积分越高 · 每天零点换榜</span></div>'
+    +'<div class="jh-score">'+doneList.length+' / '+list.length+' · +'+got+' XP<small>满榜 '+maxXp+'</small></div>'
+    +'<button class="btn xs ghost jh-reroll" onclick="jianghuReroll()" title="换一榜（今天已完成的会保留）">🔄 换榜</button></div>'
+    +'<div class="jh-list">'+list.map(function(x,i){
+      const a=ATTRS[safeAttr(x.a)];
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+'">'
+        +'<div class="jh-rank">'+(i+1)+'</div>'
+        +'<div class="jh-body"><div class="jh-t">'+escHtml(x.t)+'</div>'
+        +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
+        +'<span class="jh-attr">'+a.icon+' '+a.name+'</span>'
+        +(x.pin?'<span class="jh-pin">榜首常驻</span>':'')+'</div></div>'
+        +'<div class="jh-xp">+'+x.xp+'</div>'
+        +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuToggle(\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'
+        +'</div>';
+    }).join('')+'</div>'
+    +'<div class="hint">难度按你过往的完成情况排定：作息/抗拒型的事排最上、给最高积分；越往下越顺手。做不到就跳过，榜是给你挑的，不是逼你的。</div>';
+}
+function jianghuToggle(idv){
+  const j=ensureJianghu(), arr=(j.list||[]).filter(function(q){return q.id===idv;});
+  if(!arr.length) return;
+  const x=arr[0], a=safeAttr(x.a);
+  if(!x.done){
+    x.done=true; grant(a,x.xp); addHist('✔【江湖日榜】'+x.t+' +'+x.xp+' XP',x.xp); save(); render();
+    try{ celebrateTask('🗡️ '+x.t+' · +'+x.xp+' XP'); }catch(e){}
+    try{ showQuestSettlement({id:x.id,text:x.t,attr:a,mins:0,xp:x.xp,force:x.diff>=4}); }catch(e){}
+  }else{
+    x.done=false; grant(a,x.xp,true); addHist('✘【江湖日榜】'+x.t,-x.xp); save(); render();
+  }
+}
+function jianghuReroll(){ ensureJianghu(true); save(); render(); try{ celebrateTask('🎲 江湖日榜已换一批'); }catch(e){} }
 
 const SETTLE_STORIES={
   BADMINTON:['拍线轻响，身体又记住了一点。真正的进步往往发生在没人鼓掌的时候。','风从球网两侧穿过。今天的这一拍，会留在下一次更从容的移动里。'],
@@ -1668,22 +1732,22 @@ const SETTLE_STORIES={
   BODY:['身体收到了你的照顾。恢复不是退场，而是在为下一次出发蓄力。','你没有把身体当作工具，而是当作同行者。这本身就是修行。'],
   MIND:['这一小段时间没有用于证明什么，却让内心重新有了回声。','世界安静了一会儿，你又听见了自己的声音。'],
 };
-const FATE_NAMES={break:'⚔️ 破局之签',repair:'🧹 修补之签',wander:'🎐 游心之签'};
 function settlementStory(attr,idv){ const pool=SETTLE_STORIES[attr]||SETTLE_STORIES.MIND; return pool[seededIndex(todayStr()+idv,pool.length)]; }
 function showQuestSettlement(info){
   if(!info||!info.id) return;
   const p=ensureTodayPlan();
-  const important=info.force || p.focusId===info.id || p.settled.length===0;
+  let onMain=false;
+  try{ const k=(typeof lifeTrackOfTask==='function')?lifeTrackOfTask({t:info.text||''}):''; onMain=!!k&&todayMainKeys().indexOf(k)>=0; }catch(e){}
+  const important=info.force || onMain || p.settled.length===0;
   if(!important || p.settled.includes(info.id)) return;
   p.settled.push(info.id); save();
   const body=document.getElementById('settleBody'), mask=document.getElementById('settleMask'); if(!body||!mask) return;
   const attr=safeAttr(info.attr), a=ATTRS[attr], mins=Math.max(0,Math.round(info.mins||0)), xp=Math.max(0,Math.round(info.xp||0));
-  const focusDone=!!info.focusDone || p.focusId===info.id;
+  const focusDone=!!info.focusDone || onMain;
   body.innerHTML='<div class="st-kicker">QUEST CLEAR · 行动结算</div><div class="st-title">'+(focusDone?'今日主线推进':'一程已落定')+'</div>'
     +'<div class="st-quest">'+a.icon+' '+escHtml(info.text||'今日行动')+'</div>'
     +'<div class="st-stats"><div class="st-stat"><b>'+(mins?mins:'—')+'</b><span>投入分钟</span></div><div class="st-stat"><b>+'+xp+'</b><span>获得经验</span></div><div class="st-stat"><b>'+energyState().v+'</b><span>当前精力</span></div></div>'
     +'<div class="st-story">'+settlementStory(attr,info.id)+'</div>'
-    +(p.fateChoice?'<div class="st-fate">今日同行：'+FATE_NAMES[p.fateChoice]+'</div>':'')
     +'<div class="st-actions"><button class="btn ghost sm" onclick="closeQuestSettlement();showPage(\'dashboard\')">回到今日</button><button class="btn sm" onclick="closeQuestSettlement()">收下成果</button></div>';
   mask.style.display='flex';
 }
@@ -1733,14 +1797,16 @@ function render(){
   let yearTotal=0, yearDoneCount=0;
   S.year.forEach((c,i)=>{ if(!c.paused){ yearTotal++; if(yearDone(i)) yearDoneCount++; } });
 
-  // 今日行动摘要（固定日常 + 随机日行 + 四方委托，混合、未完成优先）
+  // 今日行动摘要（今日主线 + 小习惯 + 江湖任务日榜，未完成优先）
+  const _mainKeys = todayMainKeys();
+  const _jhList = (function(){ try{ return ensureJianghu().list||[]; }catch(e){ return []; } })();
   const dashDaily = [
-    ...S.daily.map(x=>({tag:'固定',t:x.t,done:isDone(x,d),xp:itemXpAt(x,d)})),
-    ...S.sideDaily.map(x=>({tag:'随机',t:x.t,done:x.done,mand:x.mandatory})),
-    ...(S.npc.active||[]).map(x=>({tag:'委托',t:x.t,done:x.done,xp:x.xp})),
-  ].sort((a,b)=>(a.done?1:0)-(b.done?1:0)).slice(0,6);
+    ..._mainKeys.map(k=>{ const t=LIFE_TRACKS[k], m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return {tag:'主线',t:t.ic+' '+t.n,done:m>=(t.rec||20),xp:0,mins:m}; }),
+    ...S.daily.map(x=>({tag:'习惯',t:x.t,done:isDone(x,d),xp:itemXpAt(x,d)})),
+    ..._jhList.map(x=>({tag:'江湖',t:x.t,done:!!x.done,xp:x.xp})),
+  ].sort((a,b)=>(a.tag==='主线'?-1:0)-(b.tag==='主线'?-1:0)||(a.done?1:0)-(b.done?1:0)).slice(0,6);
   document.getElementById('dashDaily').innerHTML = dashDaily.length
-    ? dashDaily.map(x=>`<div class="dash-row ${x.done?'done':''}"><span>${x.done?'✔ ':''}<b class="dtag dtag-${x.tag==='固定'?'fix':x.tag==='随机'?'rnd':'npc'}">${x.tag}</b>${x.t}</span><span class="dr-xp">${x.mand?'🔴':(x.xp?('+'+x.xp):'')}</span></div>`).join('')
+    ? dashDaily.map(x=>`<div class="dash-row ${x.done?'done':''}"><span>${x.done?'✔ ':''}<b class="dtag dtag-${x.tag==='主线'?'main':x.tag==='习惯'?'fix':'rnd'}">${x.tag}</b>${x.t}</span><span class="dr-xp">${x.mins?(x.mins+'′'):(x.xp?('+'+x.xp):'')}</span></div>`).join('')
     : '<div class="dash-empty">今日暂无安排</div>';
 
   // 本周任务摘要（随机周游 + 手动周目标）
@@ -1826,7 +1892,6 @@ function render(){
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
   document.getElementById('wAttr').innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
-  const sdEl=document.getElementById('sideDailyList'); if(sdEl) sdEl.innerHTML=sideListHtml(S.sideDaily,'daily');
   const swEl=document.getElementById('sideWeeklyList'); if(swEl) swEl.innerHTML=sideListHtml(S.sideWeekly,'weekly');
   const smEl=document.getElementById('sideMonthlyList'); if(smEl) smEl.innerHTML=sideListHtml(S.sideMonthly,'monthly');
   const sdAttr=document.getElementById('sdAttr'); if(sdAttr) sdAttr.innerHTML=optAttrs('MIND');
@@ -1869,7 +1934,7 @@ function render(){
   // v5.17
   try{ checkVolume(); }catch(e){}
   try{ renderEnergy(); renderLiunian(); renderDayun(); renderNpc(); }catch(e){ console.warn('v5.17 render',e); }
-  try{ renderLoadAdvisor(); }catch(e){ console.warn('load advisor',e); }
+  try{ renderJianghu(); }catch(e){ console.warn('jianghu',e); }
   try{ if(typeof renderLifeCompound==='function') renderLifeCompound(); }catch(e){ console.warn('life compound',e); }
   try{ renderQuietMode(); }catch(e){}
   try{ renderSaveSafety(); }catch(e){}
@@ -2134,7 +2199,7 @@ function showPage(p){
   const t=document.getElementById('page-'+p);
   if(t) t.classList.add('active');
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
-  if(p==='current'||p==='dashboard'){ markSideSeen(); }
+  if(p==='current'||p==='dashboard'||p==='week'){ markSideSeen(); }
   if(p==='growth'){ markBondsSeen(); }
   if(p==='data'){ try{ fillProfileInputs(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }

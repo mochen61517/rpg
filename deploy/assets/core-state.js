@@ -563,7 +563,6 @@ function defaultState(){
     // v5.39 计时型日课全部搬进「复利轨道」（羽毛球/力量/拉伸/精神充电/职业行动），
     // 那边可直接填分钟并标记完成，此处只留没有时长、纯打勾的小习惯，避免同一件事记两遍。
     daily:[
-      {id:id(),t:'23:30 前睡觉',a:'BODY',xp:10,min:0,mode:'fixed',done:false,rec:'每日'},
       {id:id(),t:'今天喝够水',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
     ],
     supps: defaultSupps(),
@@ -659,7 +658,8 @@ function defaultState(){
       factors:{},                                // 各因素明细（供展示）
       sleepLog:{}, ageLog:{}                     // 每日睡眠时长 / 体龄脑龄快照（精力页趋势用）
     },
-    todayPlan: {date:'', focusId:'', mode:'normal', fateChoice:'', settled:[]}, // v5.22 今日驾驶舱；仅保存当天选择，不影响旧任务数据
+    todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
+    jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
   };
 }

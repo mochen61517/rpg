@@ -115,7 +115,7 @@ function npcRoll(force){
     t:p.qs[Math.floor(Math.random()*p.qs.length)],
     a:p.a, xp:30, done:false
   }));
-  addHist('📜 本周委托已刷新（四位故人各留一言）');
+  addHist('📜 本周江湖委托已刷新（四位故人各留一言）');
 }
 function npcDone(qid){
   const q=S.npc.active.find(x=>x.id===qid); if(!q) return;
@@ -125,18 +125,18 @@ function npcDone(qid){
   if(q.done){
     S.bonusXP=(S.bonusXP||0)+q.xp;
     touchActivity(todayStr());
-    addHist('✔【委托】'+(p?p.n:'')+'：'+q.t+' +'+q.xp+' XP', q.xp);
+    addHist('✔【江湖委托】'+(p?p.n:'')+'：'+q.t+' +'+q.xp+' XP', q.xp);
     if(p){ const before=npcRelInfo(p.id).level, rel=npcRel(p.id); rel.xp=(rel.xp||0)+1; rel.done=(rel.done||0)+1; const after=npcRelInfo(p.id); if(after.level>before) setTimeout(()=>celebrateTask(p.ic+' 与'+p.n+'的关系升为「'+after.name+'」'),420); if(before<2&&after.level>=2&&!S.npcEvents[p.id]) setTimeout(()=>celebrateTask('📜 '+p.n+'的专属事件已解锁'),800); }
-    celebrateTask((p?p.ic+' '+p.n+'点了点头。':'✔ 委托达成'));
+    celebrateTask((p?p.ic+' '+p.n+'点了点头。':'✔ 江湖委托达成'));
     setTimeout(()=>showQuestSettlement({id:q.id,text:q.t,attr:q.a,mins:q.min||0,xp:q.xp||0,focusDone:wasTodayFocus}),180);
     // 四人全清 → 额外嘉奖
     if(S.npc.active.every(x=>x.done)){
-      addHist('🏮 本周四方委托全清');
-      try{ const drp=dropReward('medium','本周委托全清'); if(drp) setTimeout(()=>celebrateTask('🎁 四方尽欢：'+findReward(drp.rewardId).name),200); }catch(e){}
+      addHist('🏮 本周江湖委托全清');
+      try{ const drp=dropReward('medium','本周江湖委托全清'); if(drp) setTimeout(()=>celebrateTask('🎁 四方尽欢：'+findReward(drp.rewardId).name),200); }catch(e){}
     }
   } else {
     S.bonusXP=Math.max(0,(S.bonusXP||0)-q.xp);
-    addHist('✘【委托】'+(p?p.n:'')+'：'+q.t, -q.xp);
+    addHist('✘【江湖委托】'+(p?p.n:'')+'：'+q.t, -q.xp);
     if(p){ const rel=npcRel(p.id); rel.xp=Math.max(0,(rel.xp||0)-1); rel.done=Math.max(0,(rel.done||0)-1); }
   }
   save(); checkAch(); render();

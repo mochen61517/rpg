@@ -262,7 +262,7 @@ function renderLiunian(){
 }
 function renderNpc(){
   const el=document.getElementById('npcBox'); if(!el) return;
-  if(!S.npc.active.length){ el.innerHTML='<div class="dash-empty">本周委托待刷新</div>'; return; }
+  if(!S.npc.active.length){ el.innerHTML='<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
   el.innerHTML=S.npc.active.map(q=>{
     const p=NPCS.find(n=>n.id===q.npc)||{n:'?',ic:'❓',d:''};
     const ri=npcRelInfo(p.id);
@@ -280,7 +280,7 @@ function renderNpc(){
       +'</div>';
   }).join('')
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
-  +'<div class="hint">每周一自动刷新四方委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
+  +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
 // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
 // 赛季称号已移除（与复利轨道 / 成就重复）
@@ -733,7 +733,7 @@ function openRel(pid){
     +'<div class="rd-sec"><b>好感度</b><div class="rd-bar"><i style="width:'+ri.pct+'%"></i></div><div class="rd-fav">'+ri.xp+' 点 · 距「'+nextName+'」还差 '+need+'</div></div>'
     +'<div class="rd-sec"><b>我们的链接</b><div class="rd-linktxt">'+relLinkText(ri.level)+'</div></div>'
     +'<div class="rd-sec"><b>一封来自 '+p.n+' 的信</b><div class="rd-letter">'+letter+'</div></div>'
-    +'<div class="hint">完成本周委托、触发专属事件，好感度会慢慢累积；关系越深，他们留给你的话也越不一样。</div>'
+    +'<div class="hint">完成本周江湖委托、触发专属事件，好感度会慢慢累积；关系越深，他们留给你的话也越不一样。</div>'
     +'</div>';
   showModal('bondModal', body);
 }
@@ -742,7 +742,7 @@ function relLinkText(lv){
   if(lv>=3) return '你已是他愿意托付心事的人。';
   if(lv>=2) return '熟了。他开始在建议你之前，先听你说完。';
   if(lv>=1) return '比初识近了些。他记得你肯做、也肯复盘。';
-  return '才刚认识。多接几次他的委托，关系会自己长出来。';
+  return '才刚认识。多接几次他的江湖委托，关系会自己长出来。';
 }
 
 // ===== v5.43 旅行脚印（纯文字版，替代自绘世界地图） =====
@@ -858,7 +858,7 @@ function notifList(){
   if(S.enc && S.enc.cur && !S.enc.seen)
     arr.push({page:'dashboard', ic:'🪄', t:'江湖偶遇待回应', d:(S.enc.cur.who||'故人')+'在等你', key:'enc'});
   if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length)
-    arr.push({page:'current', ic:'📜', t:'本周委托已刷新', d:'四位故人各留一言', key:'npc'});
+    arr.push({page:'week', ic:'📜', t:'本周江湖委托已刷新', d:'四位故人各留一言 · 在周月任务页', key:'npc'});
   const lu=letterUnread();
   if(lu>0)
     arr.push({page:'map', ic:'✉️', t:lu+' 封远方来信未读', d:'点开看看', key:'letter'});
@@ -1389,7 +1389,7 @@ function reorganizeDetailPages(){
   setHead('energy','精力 · 恢复','今日状态优先 · 身体指标 · 趋势放后');
   setHead('ledger','钱庄 · 金币人生','目标与资产优先 · 记录与分析随后');
   setHead('journey','角色设定','角色档案 · 命格历程 · 时间轴设置');
-  setHead('current','今日行动','先完成今天 · 委托与事件随后');
+  setHead('current','今日行动','今日主线 · 复利轨道 · 江湖任务日榜');
   setHead('week','本周卷册','本周重点 · 周期复盘 · 月度衔接');
   setHead('growth','修行 · 成长','等级与专精优先 · 成就愿望随后');
   setHead('data','设置与内容管理','存档与反馈 · 通知 · 随机内容库');
@@ -1419,10 +1419,7 @@ const LIFE_TRACKS={
     variants:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。']},
   career:{ic:'💼',n:'职业发展',a:'CAREER',base:1017*60,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[500,'独当一面'],[1000,'小有所成'],[2000,'业内立足']],
-    variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']},
-  coach:{ic:'🧭',n:'生涯教练转行',a:'MIND',base:474*60,unit:'终身',rec:30,paused:true,
-    realms:[[0,'初出茅庐'],[500,'试水'],[1000,'小有所成'],[2000,'传灯开张']],
-    variants:['今天有没有一次「教练式」的对话或觉察？','记一个你想帮人看清的卡点。','哪怕很小，今天为「转行」做了一件事吗？']}
+    variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']}
 };
 const LIFE_PROMPTS=['今天哪个普通瞬间值得被保存？','今天有什么声音、气味或光线让你停了一下？','哪一刻你感觉自己不是在赶路，而是在生活？','今天身体给了你什么细小反馈？','今天有什么东西比预想中更好？','如果只留下一帧，你想留下什么？'];
 function ensureLifeCompound(){
@@ -1431,14 +1428,13 @@ function ensureLifeCompound(){
   if(!Array.isArray(S.lifeCompound.memories))S.lifeCompound.memories=[];
   return S.lifeCompound;
 }
-// v5.39 任务→轨道映射（扩到 body / career / coach，原来只认羽毛球和精神类，
+// v5.39 任务→轨道映射（扩到 body / career，原来只认羽毛球和精神类，
 // 导致「力量训练」「职业行动」做完不进任何轨道 —— 既重复又漏账）。
 function lifeTrackOfTask(item){
   const t=(item&&item.t)||'';
   if(/羽毛球|打球|多球|步法/.test(t)) return 'badminton';
   if(/拉伸|放松|恢复|筋膜/.test(t)) return 'stretch';
   if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'body';
-  if(/生涯教练|转行/.test(t)) return 'coach';
   if(/职业|求职|事业编|央企|文职|简历|面试/.test(t)) return 'career';
   const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|弹琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);
   return mind.length===1?mind[0]:'';
@@ -1567,7 +1563,7 @@ function renderLifeCompound(){
         +'<div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span>'
         +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';
     }).join('')+'</div>'
-    +'<div class="lp-note">羽毛球/身体/职业/生涯教练沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。</div>';
+    +'<div class="lp-note">羽毛球/身体/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。</div>';
 }
 
 function setupLifeCompoundUI(){
