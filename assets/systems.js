@@ -767,7 +767,11 @@ function notifGo(el){
 function renderNotifications(){
   const el=document.getElementById('notifBox'); if(!el) return;
   const list=notifList();
-  if(!list.length){ el.style.display='none'; el.innerHTML=''; return; }
+  if(!list.length){
+    el.style.display='';
+    el.innerHTML='<div class="notif-h">🔔 待你回应</div><div class="notif-empty">暂无待你回应的互动 ✨<br><small>完成江湖偶遇、查收远方来信、承接今日宜忌后，这里会亮起提醒</small></div>';
+    return;
+  }
   el.style.display='';
   let h='<div class="notif-h">🔔 待你回应 <span class="notif-cnt">'+list.length+'</span></div><div class="notif-rows">';
   list.forEach(n=>{
