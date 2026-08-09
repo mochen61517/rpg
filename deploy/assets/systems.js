@@ -189,7 +189,6 @@ function renderLifeBanner(){
   const livedPct=Math.max(0,Math.min(100,Math.round(livedYears/le*1000)/10));
   const totalDays=Math.floor(lifeMs/86400000);
   const livedDays=Math.floor(livedMs/86400000);
-  const remDays=Math.max(0, totalDays-livedDays);
 
   // 每日 seed（YYYY-MM-DD 哈希 → 伪随机），保证当日稳定、次日换
   const todayKey=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
@@ -197,45 +196,39 @@ function renderLifeBanner(){
   for(let i=0;i<todayKey.length;i++){ h=((h^(todayKey.charCodeAt(i)))*16777619)>>>0; }
   function rng(){ h=((h+0x6D2B79F5)*0x9E3779B1)>>>0; return (h>>>0)/4294967296; }
 
-  // 主题池：日出/日落/春樱 必含，其余每日抽 1
-  const pool=[
-    {icon:'🌅', name:'日出', past:livedDays,                  total:totalDays},
-    {icon:'🌇', name:'日落', past:livedDays,                  total:totalDays},
-    {icon:'🌸', name:'春樱', past:Math.floor(livedYears),     total:le},
-    {icon:'🌕', name:'月圆', past:Math.floor(livedDays/29.53),total:Math.floor(totalDays/29.53)},
-    {icon:'❄️', name:'初雪', past:Math.floor(livedYears),     total:le},
-    {icon:'🌧', name:'夏雨', past:Math.floor(livedDays*0.25), total:Math.floor(totalDays*0.25)},
-    {icon:'🍂', name:'秋叶', past:Math.floor(livedYears),     total:le},
-    {icon:'🛌', name:'周末', past:Math.floor(livedDays/7),    total:Math.floor(totalDays/7)},
+  // 网易云风格：每日一位「生活主角」大数字 + 三句生活小记（各主题不同措辞，不重复句式）
+  const themes=[
+    {icon:'🌅', name:'日出', past:livedDays, total:totalDays,
+     line:(p,r)=>'你已迎来 <b>'+p.toLocaleString()+'</b> 次日出，余生还有约 '+r.toLocaleString()+' 场——请别错过任何一个清晨。'},
+    {icon:'🌇', name:'日落', past:livedDays, total:totalDays,
+     line:(p,r)=>'你看过 <b>'+p.toLocaleString()+'</b> 场日落，余下的每一场，都值得停下脚步好好看。'},
+    {icon:'🌸', name:'春天', past:Math.floor(livedYears), total:le,
+     line:(p)=>'你路过 <b>'+p+'</b> 个春天，第 '+(p+1)+' 个正在悄悄发芽。'},
+    {icon:'🌕', name:'满月', past:Math.floor(livedDays/29.53), total:Math.floor(totalDays/29.53),
+     line:(p)=>'你见过 <b>'+p.toLocaleString()+'</b> 轮满月，每一轮都曾有人为你点亮一盏灯。'},
   ];
-  const must=pool.slice(0,3);
-  const extra=pool.slice(3);
-  const pick=extra[Math.floor(rng()*extra.length)];
-  const all=[must[0], must[1], must[2], pick];
-  // 随机排序
-  for(let i=all.length-1;i>0;i--){
-    const j=Math.floor(rng()*(i+1));
-    [all[i],all[j]]=[all[j],all[i]];
-  }
-
-  const cards=all.map(p=>{
-    const rem=Math.max(0, p.total-p.past);
-    return '<div class="lb-card">'
-         +   '<div class="lb-icon">'+p.icon+'</div>'
-         +   '<div class="lb-poem">'
-         +     '已看过 <b class="lb-num">'+p.past.toLocaleString()+'</b> 次<span class="lb-name">'+p.name+'</span>，'
-         +     '<br>还剩 <b class="lb-num">'+rem.toLocaleString()+'</b> 次'
-         +   '</div>'
-         + '</div>';
-  }).join('');
-
+  const feat=themes[Math.floor(rng()*themes.length)];
+  const others=themes.filter(t=>t!==feat);
+  const openers=[
+    '今天，是你余生里最年轻的一天。',
+    '此刻的你，比往后任何一天都更接近清晨。',
+    '余生还长，但今天的太阳，只会升起这一次。',
+  ];
+  const opener=openers[Math.floor(rng()*openers.length)];
+  const remF=Math.max(0, feat.total-feat.past);
   el.innerHTML=
-     '<div class="lb-top">☀️ 今天，是你余下生命里<b>最年轻</b>的一天。</div>'
-    +'<div class="lb-poem-grid">'+cards+'</div>'
+     '<div class="lb-head">☀️ 今天，是你余生里最年轻的一天</div>'
+    +'<div class="lb-hero">'
+    +  '<div class="lb-hero-ic">'+feat.icon+' '+feat.name+'</div>'
+    +  '<div class="lb-hero-num">'+feat.past.toLocaleString()+'</div>'
+    +  '<div class="lb-hero-sentence">'+feat.line(feat.past,remF)+'</div>'
+    +'</div>'
+    +'<div class="lb-notes">'+others.map(t=>{ const r=Math.max(0,t.total-t.past); return '<div class="lb-note"><span class="lb-note-ic">'+t.icon+'</span><span class="lb-note-t">'+t.line(t.past,r)+'</span></div>'; }).join('')+'</div>'
     +'<div class="lb-bar-wrap">'
-    +   '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
-    +   '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
-    +'</div>';
+    +  '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
+    +  '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
+    +'</div>'
+    +'<div class="lb-foot">'+opener+'</div>';
 }
 // 修行卷册已移除（与长期复利轨道重复）
 function renderDayun(){
@@ -409,7 +402,35 @@ const QUOTES=[
  {t:'春华秋实，一分耕耘一分收获。', s:'《后汉书》', j:['立秋','处暑','白露','秋分']},
  {t:'凡事豫则立，不豫则废。', s:'《礼记·中庸》', j:['小满','芒种','谷雨']},
  {t:'梅花香自苦寒来。', s:'《警世贤文》', j:['小雪','大雪','冬至']},
- {t:'海纳百川，有容乃大；壁立千仞，无欲则刚。', s:'林则徐', j:['立冬','小雪','大雪','冬至','小寒','大寒']},
+  {t:'海纳百川，有容乃大；壁立千仞，无欲则刚。', s:'林则徐', j:['立冬','小雪','大雪','冬至','小寒','大寒']},
+];
+// 名人小故事：按日与名言混排，主题围绕「善待自己 / 享受当下 / 自己的节奏 / 允许休息 / 慢慢来」。
+// 目的：激励，让人更愿意好好对待自己和今天。
+const SOUL_STORIES=[
+ {kind:'story', tag:'慢慢来', s:'村上春树',
+  t:'村上春树三十岁前只是个开爵士酒吧的年轻人。有一天看棒球赛，他忽然想：「我能不能写一本小说？」于是每晚打烊后，伏在厨房桌上写，一写就是半年。方向可以来得很晚，但只要今天比昨天多走一步，路会自己显形。'},
+ {kind:'story', tag:'低谷里的光', s:'J.K.罗琳',
+  t:'罗琳在离婚、领救济金、被十二家出版社拒绝的那些年里，常在咖啡馆里写一个小巫师的故事。她说，低谷不是终点，只是你还没走到故事好看的地方。请对自己温柔一点，你正在写的故事才刚开头。'},
+ {kind:'story', tag:'画自己的光', s:'莫奈',
+  t:'莫奈晚年患了白内障，视线越来越模糊，却仍天天支起画架画睡莲。他说：「我想在最困难的时候，画下最美的光。」即使世界在你眼里失了焦，你依然可以为自己留下一点明亮。'},
+ {kind:'story', tag:'认真生活', s:'袁隆平',
+  t:'袁隆平九十岁仍下田弯腰看稻子，也爱拉小提琴、游泳、逗孙子。他说研究是为了让人人吃饱，而生活本身也值得好好过。努力的人，也可以是个会玩的大孩子。'},
+ {kind:'story', tag:'风雨里逍遥', s:'苏轼',
+  t:'苏轼被贬到黄州，穷得自己开荒种地，却写出了「一蓑烟雨任平生」。他说，竹杖芒鞋轻胜马，谁怕？人生的雨来了就来了，撑着伞慢慢走，也能走出自己的潇洒。'},
+ {kind:'story', tag:'热爱不退休', s:'宫崎骏',
+  t:'宫崎骏七十多岁还在每天画图，说「不想画给孩子的，是谎言」。他说自己画了一辈子，是因为真的喜欢。你不必急着抵达哪里，喜欢的事本身，就是回来的理由。'},
+ {kind:'story', tag:'善良是礼物', s:'奥黛丽·赫本',
+  t:'赫本晚年放下光环，去做联合国儿童基金会的亲善大使，蹲在泥地里抱起饥饿的孩子。她说，人有两个名字，一个是父母取的，一个是自己活出来的。好好对待别人，也好好对待自己。'},
+ {kind:'story', tag:'允许休息', s:'李娜',
+  t:'李娜退役后第一次能安心吃一顿饭、睡一个整觉。她说，原来「什么都不做」也可以这么踏实。你不必时刻紧绷，休息不是偷懒，是把弦松一松，好让下一首曲子更准。'},
+ {kind:'story', tag:'开始不晚', s:'塔莎·杜朵',
+  t:'塔莎·杜朵五十岁才独自搬去乡下，自己盖木屋、种花草、养山羊，把日子过成了童话。她说，想做的事，什么时候开始都不算晚。今天，就是你去过想过的生活的最好时机。'},
+ {kind:'story', tag:'内心安宁', s:'丰子恺',
+  t:'丰子恺在战乱年月里，仍画着孩子的笑脸、檐下的猫、田埂的风。他说，不乱于心，不困于情，不畏将来，不念过往。把今天安顿好，世界就安静了一大半。'},
+ {kind:'story', tag:'一人成光', s:'珍妮·古道尔',
+  t:'珍妮·古道尔二十六岁只身去非洲丛林，研究黑猩猩，一待就是一辈子。她说，唯一能改变世界的，是少数不肯放弃的人。你一个人的坚持，可能正悄悄照亮某片角落。'},
+ {kind:'story', tag:'不被定义', s:'王贞仪',
+  t:'清代女子王贞仪，在「女子无才便是德」的年代，自学天文、数学、地理，写下一卷卷算稿。她说，足行万里，眼观八方。别让环境替你写结局，你的人生由你落笔。'},
 ];
 // 确定性按日取一句：优先当令节气专属，否则按日期种子轮换；_qoff 为当日换一句偏移
 let _qoff=0, _qLoaded=false;
@@ -420,8 +441,8 @@ function dailyQuote(off){
   const seed=[...todayStr()].reduce((a,c)=>a+c.charCodeAt(0),0);
   const o=off||0;
   if(themed.length>0 && o===0) return themed[seed % themed.length]; // 基线优先当令（带「当令」标）
-  if(themed.length>1) return themed[(seed + o) % themed.length];    // 换一句且当令≥2条：当令池内轮换
-  const gen=QUOTES.filter(q=>!q.j);                                 // 当令≤1条：落入通库，保证「换一句」有变化
+  // 换一句 / 无当令：在「通库名言 + 名人小故事」中轮换，保证有变化也更丰富
+  const gen=QUOTES.filter(q=>!q.j).concat(SOUL_STORIES);
   return gen[(seed + o) % gen.length];
 }
 function renderQuote(){
@@ -429,16 +450,27 @@ function renderQuote(){
   if(!_qLoaded) _loadQoff();
   const q=dailyQuote(_qoff);
   const j=curJieqi();
-  const tag=(q.j && q.j.indexOf(j.name)>=0)?(' · 当令 '+j.name):'';
+  const isStory=(q.kind==='story');
+  const tag=(!isStory && q.j && q.j.indexOf(j.name)>=0)?(' · 当令 '+j.name):'';
   const d=todayStr()||'';
   const pm=(d.length>=10)? d.slice(5).replace('-','·') : d;
-  el.innerHTML='<div class="pc-inner">'
-    +'<div class="pc-main"><div class="pc-text">'+q.t+'</div><div class="pc-src">—— '+q.s+tag+'</div></div>'
-    +'<div class="pc-divider"></div>'
-    +'<div class="pc-side">'
-    +'<div class="pc-postmark">'+pm+'</div>'
-    +'<button class="pc-shuffle" onclick="shuffleQuote()">换一句 ›</button>'
-    +'</div></div>';
+  if(isStory){
+    el.innerHTML='<div class="pc-inner pc-story">'
+      +'<div class="pc-main">'
+      +'<div class="pc-story-tag">✷ 今日小记 · '+(q.tag||'')+'</div>'
+      +'<div class="pc-text pc-story-text">'+q.t+'</div>'
+      +'<div class="pc-src">—— 关于 '+q.s+'</div>'
+      +'</div>'
+      +'<div class="pc-divider"></div>'
+      +'<div class="pc-side"><div class="pc-postmark">'+pm+'</div>'
+      +'<button class="pc-shuffle" onclick="shuffleQuote()">换一句 ›</button></div></div>';
+  } else {
+    el.innerHTML='<div class="pc-inner">'
+      +'<div class="pc-main"><div class="pc-text">'+q.t+'</div><div class="pc-src">—— '+q.s+tag+'</div></div>'
+      +'<div class="pc-divider"></div>'
+      +'<div class="pc-side"><div class="pc-postmark">'+pm+'</div>'
+      +'<button class="pc-shuffle" onclick="shuffleQuote()">换一句 ›</button></div></div>';
+  }
 }
 function shuffleQuote(){ _qoff++; try{ localStorage.setItem('qoff_'+todayStr(), String(_qoff)); }catch(e){} renderQuote(); }
 
