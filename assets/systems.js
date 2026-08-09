@@ -1472,12 +1472,13 @@ function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
 function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(todayStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
   const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=todayStr(),lc=ensureLifeCompound();
-  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick'});grant(t.a,min,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(min*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+min+' 分钟 · +'+xpGain+' XP');
+  // v5.44.1 同步存属性，便于 weeklyReviewStats 直接归类（不必再反查 LIFE_TRACKS）
+  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick',a:t.a});grant(t.a,min,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(min*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+min+' 分钟 · +'+xpGain+' XP');
 }
 function syncLifePracticeFromTask(item,d,min,remove){
   const key=lifeTrackOfTask(item);if(!key)return;const lc=ensureLifeCompound(),lid='task:'+(item.id||item.t)+':'+d,idx=lc.logs.findIndex(x=>x.id===lid);
   if(remove){if(idx>=0)lc.logs.splice(idx,1);return;}
-  min=Math.max(1,+min||+item.rec||+item.min||5);const row={id:lid,key,d,min,src:'task'};if(idx>=0)lc.logs[idx]=row;else lc.logs.push(row);
+  min=Math.max(1,+min||+item.rec||+item.min||5);const a=(LIFE_TRACKS[key]&&LIFE_TRACKS[key].a)||'BODY';const row={id:lid,key,d,min,src:'task',a};if(idx>=0)lc.logs[idx]=row;else lc.logs.push(row);
 }
 function saveLifeMemory(){
   const input=document.getElementById('lifeMemoryInput'),sel=document.getElementById('lifeMemoryTrack');const textv=(input&&input.value||'').trim();if(!textv)return;

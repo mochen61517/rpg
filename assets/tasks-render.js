@@ -2296,9 +2296,17 @@ function allTaskLists(){
   (S.year||[]).forEach(c=>{ if(Array.isArray(c.items)) L.push(c.items); });
   return L;
 }
+// v5.44.1 复利轨道 key→属性 兜底映射（tasks-render.js 加载时 LIFE_TRACKS 还在 systems.js，
+// 历史 lifeCompound.logs 没 a 字段时也能正确归类；若 log 已带 a 字段则优先读它）
+const LIFE_KEY2ATTR={
+  badminton:'BADMINTON', singing:'MIND', reading:'MIND', piano:'MIND',
+  stretch:'BODY', body:'BODY', career:'CAREER', coach:'MIND'
+};
 function minutesOn(dateStr){
   let m=0;
   allTaskLists().forEach(list=>list.forEach(x=>{ if(x.mins&&x.mins[dateStr]) m+=x.mins[dateStr]; }));
+  // v5.44.1 复利轨道：S.lifeCompound.logs 单独存的分钟也要计入（v5.39 之前从未算进周报）
+  (S.lifeCompound&&S.lifeCompound.logs||[]).forEach(x=>{ if(x.d===dateStr) m+=(+x.min||0); });
   return m;
 }
 function doneCountOn(dateStr){
@@ -2309,6 +2317,12 @@ function doneCountOn(dateStr){
 function attrMinutesOn(dateStr){
   const o={BADMINTON:0,CAREER:0,BODY:0,MIND:0};
   allTaskLists().forEach(list=>list.forEach(x=>{ if(x.mins&&x.mins[dateStr]) o[safeAttr(x.a)]+=x.mins[dateStr]; }));
+  // v5.44.1 复利轨道：补 lifeCompound.logs 的 4 道归类
+  (S.lifeCompound&&S.lifeCompound.logs||[]).forEach(x=>{
+    if(x.d!==dateStr) return;
+    const a=x.a || LIFE_KEY2ATTR[x.key] || 'BODY';
+    o[safeAttr(a)]+=(+x.min||0);
+  });
   return o;
 }
 function shiftDate(dateStr,n){ const d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); const p=v=>String(v).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
