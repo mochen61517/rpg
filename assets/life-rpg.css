@@ -708,6 +708,9 @@
   .reward.t-small{border-left-color:#7c9cff}
   .reward.t-micro{border-left-color:#5fd0a0}
   .reward.claimed{opacity:.55;filter:grayscale(.7)}
+  /* v5.45 「已享用」按钮：禁用但仍可见，区分于可点的「我享用啦」 */
+  .claimed-btn{background:transparent!important;color:var(--text2)!important;border:1px dashed var(--text2)!important;cursor:not-allowed!important;opacity:.7}
+  .claimed-btn:hover{background:transparent!important;color:var(--text2)!important}
   .reward.claimed::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,18,30,.42),rgba(10,18,30,.18));pointer-events:none;border-radius:12px}
   .reward.claimed::before{content:'已享用';position:absolute;top:50%;right:14px;transform:translateY(-50%) rotate(-12deg);z-index:2;font-size:13px;font-weight:800;letter-spacing:2px;color:#ff9a9a;border:2px solid #ff9a9a;border-radius:8px;padding:2px 8px;background:rgba(20,10,12,.35);opacity:.9;pointer-events:none}
   .rw-ic{font-size:26px}

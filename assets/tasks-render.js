@@ -35,7 +35,7 @@ function toggle(list,idv){
       const _lg=lfGroupOf(item);
       if(_lg){ const L=lfLogOf(_lg.g); if(!L.includes(d)){ L.push(d); L.sort(); if(L.length>60) S.lfLog[_lg.g]=L.slice(-60); } } }
     newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.a); if(_cm) celebrateTask(_cm);
-    if(Math.random()<0.12){ const drp=dropReward(Math.random()<0.3?'small':'micro','完成：'+item.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
+    if(Math.random()<0.06){ const drp=dropReward(Math.random()<0.3?'small':'micro','完成：'+item.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
     setTimeout(()=>showQuestSettlement({id:item.id,text:item.t,attr:item.a,mins:(item.mins&&item.mins[d])||0,xp:weightedXpAt(item,d),focusDone:wasTodayFocus}),180);
   }
   save();checkAch();render();
@@ -1272,7 +1272,7 @@ function toggleChecklistItem(kind,i,ii){
   }
   addHist((nowDone?'✔ ':'✘ ')+'['+kind+']'+x.t+(c.paused?'（休眠·不计入进度）':'')+(x.mode==='time'&&x.mins&&x.mins[d]?(' '+h(x.mins[d])):''), c.paused?0:(nowDone?xp:-xp), d);
   if(nowDone && !c.paused){ newlyDone.push(x.id); floatXP('+'+weightedXpAt(x,d)+' XP','qi_'+x.id); const _cm=findCelebrate(x.t,x.a); if(_cm) celebrateTask(_cm);
-    if(Math.random()<0.20){ const drp=dropReward(Math.random()<0.35?'big':'medium','完成大项：'+x.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
+    if(Math.random()<0.08){ const drp=dropReward(Math.random()<0.35?'big':'medium','完成大项：'+x.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
   }
   save();checkAch();render();
 }
@@ -2100,7 +2100,9 @@ function renderRewards(){
         <div class="rw-meta">📅 ${d.ts}${d.reason?' · '+escapeHtml(d.reason):''}${d.claimed?(' · ✅ 已享用 '+d.claimedAt):''}</div>
       </div>
       <div class="rw-act">
-        ${d.claimed?'':`<button class="btn sm primary" onclick="claimReward(${idx})">我享用啦</button>`}
+        ${d.claimed
+          ? '<button class="btn sm claimed-btn" disabled title="'+escHtml(d.claimedAt||'')+' 已享用">已享用 ✓</button>'
+          : `<button class="btn sm primary" onclick="claimReward(${idx})">我享用啦</button>`}
       </div>
     </div>`;
   }).join('');

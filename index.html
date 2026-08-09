@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>人生修行录 · v5.34.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.45.0">
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.45.1">
 </head>
 <body>
 <div class="layout">
@@ -441,9 +441,17 @@
       </div>
       <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
       <div class="panel">
+        <div id="bondBox"></div>
+      </div>
+      <div class="panel">
         <h2>🌟 人生愿望 · 人生副本</h2>
         <div class="wishgroups" id="wishGroups"></div>
         <div class="hint">每条都是一枚可点亮的人生徽章：点一下即「点亮 ✔」，再点取消。已点亮的会同步出现在首页徽章版块。把它当作长线支线，逐条点亮。</div>
+      </div>
+      <div class="panel">
+        <h2>🎯 平时兴趣爱好</h2>
+        <div class="wishlist" id="hobbyList"></div>
+        <div class="hint">和人生愿望并列，构成你的「江湖名帖」。点标签切换状态：<b style="color:var(--grw)">在玩</b> / 偶尔 / <span style="opacity:.6">暂歇</span>。</div>
       </div>
     </div>
 
@@ -710,9 +718,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.45.0"></script>
-<script src="assets/tasks-render.js?v=5.45.0"></script>
-<script src="assets/npc-stories.js?v=5.45.0"></script>
-<script src="assets/systems.js?v=5.45.0"></script>
+<script src="assets/core-state.js?v=5.45.1"></script>
+<script src="assets/tasks-render.js?v=5.45.1"></script>
+<script src="assets/npc-stories.js?v=5.45.1"></script>
+<script src="assets/systems.js?v=5.45.1"></script>
 </body>
 </html>

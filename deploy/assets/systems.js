@@ -1407,16 +1407,16 @@ const LIFE_TRACKS={
   badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BADMINTON_LIFETIME_HOURS*60,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[2000,'向名扬俱乐部'],[4000,'区里成名'],[6000,'省队水准'],[8000,'全国新锐'],[10000,'一代宗师']],
     variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。']},
-  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:150*60,unit:'累计',rec:15,paused:false,
+  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:122*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'敢开嗓'],[150,'麦上常客'],[400,'小有所成'],[800,'一曲倾城'],[1500,'绕梁宗师']],
     variants:['唱一首旧歌，找回当时的自己。','只认真唱最喜欢的一段。','留意哪一句让呼吸真正舒展开。']},
   reading:{ic:'📖',n:'阅读',a:'MIND',base:182*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[100,'初窥门径'],[300,'渐入佳境'],[600,'博观约取'],[1000,'胸有丘壑'],[1500,'一代书宗']],
     variants:['读五页，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。']},
-  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:150*60,unit:'累计',rec:15,paused:false,
+  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:178*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'认谱'],[150,'小曲流畅'],[400,'小有所成'],[800,'登堂入室'],[1500,'琴心宗师']],
     variants:['只练一个乐句，听它比昨天顺一点。','闭眼弹一次熟悉的片段。','把最卡的两小节放慢一半。']},
-  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:250*60,unit:'累计',rec:10,paused:false,
+  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:150*60,unit:'累计',rec:10,paused:false,
     realms:[[0,'初出茅庐'],[50,'舒展'],[150,'柔和'],[400,'松活'],[800,'筋长一寸'],[1500,'养生宗师']],
     variants:['先问身体：今天哪里最需要被照顾？','用三分钟把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。']},
   body:{ic:'💪',n:'身体健康',a:'BODY',base:898*60,unit:'终身',rec:20,paused:false,
@@ -1433,6 +1433,16 @@ function ensureLifeCompound(){
   if(!Array.isArray(S.lifeCompound.memories))S.lifeCompound.memories=[];
   // v5.45 用户可改的轨道基数（小时）。改完即写入；首次访问时用 LIFE_TRACKS 默认值兜底。
   if(!S.lifeCompound.bases||typeof S.lifeCompound.bases!=='object')S.lifeCompound.bases={};
+  // v5.45.1 迁移：v5.45 默认 {singing:150*60, piano:150*60, stretch:250*60} → v5.45.1 iHour 真实 {122,178,150}
+  // 只迁「bases 仍是 v5.45 默认」的用户；已用 editLifeBase 自改的不会被覆盖（值不在 v5.45 默认范围）
+  if(!S.lifeCompound._v5451_migrated){
+    var OLD5={singing:150*60, piano:150*60, stretch:250*60};
+    var NEW51={singing:122*60, piano:178*60, stretch:150*60};
+    Object.keys(OLD5).forEach(function(k){
+      if(S.lifeCompound.bases[k]===OLD5[k]) S.lifeCompound.bases[k]=NEW51[k];
+    });
+    S.lifeCompound._v5451_migrated=true;
+  }
   Object.keys(LIFE_TRACKS).forEach(function(k){
     if(typeof S.lifeCompound.bases[k]!=='number') S.lifeCompound.bases[k]=LIFE_TRACKS[k].base;
   });

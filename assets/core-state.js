@@ -319,16 +319,15 @@ const REWARDS = [
   {id:'r_trip',    name:'一次周末短途旅行',icon:'🚆', tier:'big',    money:1500, time:48,  desc:'换个环境充能'},
 ];
 function findReward(rid){ return REWARDS.find(r=>r.id===rid) || (S.customRewards||[]).find(r=>r.id===rid); }
-// 掉落一个指定分级的奖励到嘉奖箱；micro/small 受每日上限（3 次）限制，避免刷屏
+// 掉落一个指定分级的奖励到嘉奖箱；所有 tier 共享每日上限（默认 5 次），避免刷屏
 function dropReward(tier, reason){
   const pool=REWARDS.filter(r=>r.tier===tier);
   if(!pool.length) return null;
-  if(tier==='micro' || tier==='small'){
-    const k=todayStr();
-    if(S.rewards.dailyDate!==k){ S.rewards.dailyDate=k; S.rewards.dailyCount=0; }
-    if(S.rewards.dailyCount>=3) return null;
-    S.rewards.dailyCount++;
-  }
+  // v5.45 全 tier 每日上限统一改为 5 次，micro/small 也走这条
+  const k=todayStr();
+  if(S.rewards.dailyDate!==k){ S.rewards.dailyDate=k; S.rewards.dailyCount=0; }
+  if(S.rewards.dailyCount>=5) return null;
+  S.rewards.dailyCount++;
   const r=pool[Math.floor(Math.random()*pool.length)];
   const drop={rewardId:r.id, ts:new Date().toISOString().slice(0,16).replace('T',' '), tier, reason:reason||''};
   S.rewards.drops.push(drop);
