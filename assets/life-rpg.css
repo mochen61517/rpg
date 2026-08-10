@@ -886,20 +886,17 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 
 /* ===== v5.17 精力 / 卷册 / 流年 / 委托 / 技能树 / 赛季 / 战报 ===== */
 .worn{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;font-size:12px;background:linear-gradient(135deg,#f3c969,#e0a94a);color:#4a3608;font-weight:700;vertical-align:middle}
-/* 精力 */
-.en-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.en-lab{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+/* 精力 —— dashboard 精简卡片 */
+.en-card{display:flex;align-items:center;gap:18px;padding:14px 16px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;transition:box-shadow .2s,border-color .2s}
+.en-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.06);border-color:var(--gold)}
+.en-left{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:78px}
+.en-lab{padding:3px 11px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
 .en-lab.e-good{background:#3fae74}.en-lab.e-ok{background:#5b8fd6}.en-lab.e-low{background:#e0a94a}.en-lab.e-bad{background:#d9534f}
-.en-num{font-size:26px;font-weight:800}
+.en-score{display:flex;align-items:baseline;gap:3px}
+.en-num{font-size:34px;font-weight:800;line-height:1;color:var(--txt)}
 .en-unit{color:var(--dim);font-size:13px}
-.en-bar{height:12px;border-radius:999px;background:rgba(127,127,127,.16);overflow:hidden}
-.en-bar i{display:block;height:100%;border-radius:999px;transition:width .5s}
-.en-bar i.e-good{background:linear-gradient(90deg,#5fd0a0,#3fae74)}
-.en-bar i.e-ok{background:linear-gradient(90deg,#8fc0f0,#5b8fd6)}
-.en-bar i.e-low{background:linear-gradient(90deg,#f3c969,#e0a94a)}
-.en-bar i.e-bad{background:linear-gradient(90deg,#ff9a8a,#d9534f)}
-.en-tip{margin-top:8px;font-size:13px;color:var(--dim)}
-.en-more{color:var(--gold);cursor:pointer;font-weight:600;margin-left:4px}
+.en-right{flex:1}
+.en-tip{font-size:14px;line-height:1.6;color:var(--txt)}
 /* ===== 精力·恢复页 ===== */
 .energy-page{max-width:1120px;margin:0 auto;padding:4px 0 30px}
 .energy-advice{display:flex;gap:18px;align-items:center;background:linear-gradient(100deg,rgba(212,168,75,.10),rgba(212,168,75,.02));border-left:4px solid var(--gold);border-radius:12px;padding:16px 20px;margin-bottom:16px}

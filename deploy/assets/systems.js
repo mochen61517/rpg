@@ -173,9 +173,15 @@ function renderEnergy(){
   const el=document.getElementById('energyBox'); if(!el) return;
   const e=energyState();
   el.innerHTML=
-     '<div class="en-top"><span class="en-lab '+e.cls+'">'+e.label+'</span><b class="en-num">'+e.v+'</b><span class="en-unit">/100</span></div>'
-    +'<div class="en-bar"><i class="'+e.cls+'" style="width:'+e.v+'%"></i></div>'
-    +'<div class="en-tip">'+e.tip+' <a class="en-more" onclick="showPage(\'energy\')">看详情 ›</a></div>';
+     '<div class="en-card" onclick="showPage(\'energy\')" title="查看精力详情">'
+    +  '<div class="en-left">'
+    +    '<span class="en-lab '+e.cls+'">'+e.label+'</span>'
+    +    '<div class="en-score"><b class="en-num">'+e.v+'</b><span class="en-unit">/100</span></div>'
+    +  '</div>'
+    +  '<div class="en-right">'
+    +    '<div class="en-tip">'+e.tip+'</div>'
+    +  '</div>'
+    +'</div>';
 }
 function renderLifeBanner(){
   const el=document.getElementById('lifeBanner'); if(!el) return;
