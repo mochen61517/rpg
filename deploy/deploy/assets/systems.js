@@ -473,10 +473,11 @@ function dailyQuote(off){
   const themed=QUOTES.filter(q=>q.j && q.j.indexOf(j.name)>=0);
   const seed=[...todayStr()].reduce((a,c)=>a+c.charCodeAt(0),0);
   const o=off||0;
-  if(themed.length>0 && o===0) return themed[seed % themed.length]; // 基线优先当令（带「当令」标）
-  // 换一句 / 无当令：在「通库名言 + 名人小故事」中轮换，保证有变化也更丰富
-  const gen=QUOTES.filter(q=>!q.j).concat(SOUL_STORIES);
-  return gen[(seed + o) % gen.length];
+  const pool=QUOTES.concat(SOUL_STORIES); // 全库（含当令名言，抽到时自动带「当令」标）
+  // 当令优先：仅当有多个当令可选时，才在当令池内按日期种子轮换（保证每日都变）
+  if(themed.length>1 && o===0) return themed[seed % themed.length];
+  // 否则在「全部名言 + 名人小故事」中按日期种子轮换，保证每日刷新
+  return pool[(seed + o) % pool.length];
 }
 function renderQuote(){
   const el=document.getElementById('quoteBanner'); if(!el) return;
