@@ -1615,14 +1615,11 @@ function renderTodayCockpit(){
   };
   const rowOf=function(k){
     const t=LIFE_TRACKS[k], mins=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
-    const tgt=t.rec||20, pct=Math.max(0,Math.min(100,Math.round(mins/tgt*100))), ok=mins>=tgt;
+    const tgt=t.rec||20, ok=mins>=tgt;
     return '<div class="tm-row'+(ok?' ok':'')+'">'
       +'<div class="tm-row-ic">'+t.ic+'</div>'
       +'<div class="tm-row-body"><div class="tm-row-n">'+escHtml(t.n)
-      +'<span class="tm-row-tag">'+(ok?'今日已达成':'今日目标 '+tgt+' 分钟')+'</span></div>'
-      +'<div class="tm-bar"><i style="width:'+pct+'%"></i></div></div>'
-      +'<div class="tm-row-min">'+(mins?mins+'′':'—')+'</div>'
-      +'<button class="btn xs '+(ok?'ghost':'primary')+'" onclick="focusTrackInput(\''+k+'\')">记一笔</button></div>';
+      +'<span class="tm-row-tag">'+(ok?'✨ 已点亮':'💡 待点亮 · 目标 '+tgt+' 分钟')+'</span></div></div></div>';
   };
   const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return m>=(t.rec||20); }).length;
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
