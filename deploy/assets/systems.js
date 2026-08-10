@@ -892,7 +892,7 @@ function notifList(){
   if(S.enc && S.enc.cur && !S.enc.seen)
     arr.push({page:'dashboard', ic:'🪄', t:'江湖偶遇待回应', d:(S.enc.cur.who||'故人')+'在等你', key:'enc'});
   if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length)
-    arr.push({page:'action', ic:'📜', t:'本周江湖委托已刷新', d:'四位故人各留一言 · 在今日行动页', key:'npc'});
+    arr.push({page:'action', st:'action', ic:'📜', t:'本周江湖委托已刷新', d:'四位故人各留一言 · 在今日行动页', key:'npc'});
   const lu=letterUnread();
   if(lu>0)
     arr.push({page:'map', ic:'✉️', t:lu+' 封远方来信未读', d:'点开看看', key:'letter'});
@@ -901,7 +901,7 @@ function notifList(){
   // v5.45 嘉奖箱未兑换提醒
   const _unclaim=(S.rewards&&S.rewards.drops||[]).filter(d=>!d.claimed).length;
   if(_unclaim>0){
-    arr.push({page:'loot', ic:'🎁', t:'嘉奖箱有 '+_unclaim+' 个未享用', d:'去翻翻看 · 点选「我享用啦」封存', key:'reward', scroll:'rewardList'});
+    arr.push({page:'growth', ic:'🎁', t:'嘉奖箱有 '+_unclaim+' 个未享用', d:'去翻翻看 · 点选「我享用啦」封存', key:'reward', scroll:'rewardList'});
   }
   // 我的揭榜：未完成的任务（逾期优先）进 dashboard 提示区
   try{
@@ -915,16 +915,29 @@ function notifList(){
   return arr;
 }
 function notifGo(el){
-  const p=el.dataset.page, s=el.dataset.scroll, tab=el.dataset.tab;
+  const p=el.dataset.page, s=el.dataset.scroll, tab=el.dataset.tab, st=el.dataset.st;
+  // 先决定短期任务页内的顶层 tab（江湖榜子 tab 与 action 顶层 tab 分开处理）
   if(tab && typeof S==='object' && S){
     S.stTab='jianghu'; S.jhTab=tab;
+  } else if(st && typeof S==='object' && S){
+    S.stTab=st;
+  }
+  // 先切到目标页（滚动锚点可能在别的页面里）
+  if(p && p!==getActivePage()){ showPage(p); }
+  // 嘉奖箱在「修行」页的「收藏与嘉奖」折叠区：需先切到嘉奖 tab 并展开折叠区
+  if(s==='rewardList'){
+    try{ S.lootTab='rewards'; if(typeof setLootTab==='function') setLootTab('rewards'); }catch(e){}
   }
   if(s){
     const t=document.getElementById(s);
-    if(t){ t.scrollIntoView({behavior:'smooth',block:'center'}); t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); }
+    if(t){
+      // 展开所有祖先 <details>，否则折叠区里的锚点不可见
+      let n=t.parentElement;
+      while(n){ if(n.tagName==='DETAILS' && !n.open) n.open=true; n=n.parentElement; }
+      t.scrollIntoView({behavior:'smooth',block:'center'});
+      t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse');
+    }
   }
-  if(p && p!==getActivePage()){ showPage(p); }
-  else if(!s && p){ showPage(p); }
   if(tab && p==='action'){ try{ switchShortTaskTab('jianghu'); switchJianghuTab(tab); }catch(e){} }
   return false;
 }
@@ -942,7 +955,7 @@ function renderNotifications(){
   el.style.display='';
   let h='<div class="notif-h">🔔 待你回应 <span class="notif-cnt">'+list.length+'</span></div><div class="notif-rows">';
   list.forEach(n=>{
-    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" data-tab="'+(n.tab||'')+'" onclick="notifGo(this)">'
+    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" data-tab="'+(n.tab||'')+'" data-st="'+(n.st||'')+'" onclick="notifGo(this)">'
       +'<span class="notif-ic">'+n.ic+'</span>'
       +'<span class="notif-t">'+n.t+'</span>'
       +'<span class="notif-d">'+n.d+'</span>'
@@ -1874,8 +1887,11 @@ try{
   render();
   applyDashOrder();
   initDashDrag();
-  const _ip=(location.hash||'#dashboard').slice(1);
-  showPage(['dashboard','journey','action','jianghu','longterm','growth','map','ledger','loot','data'].indexOf(_ip)>=0?_ip:'dashboard');
+  const _validPages=['dashboard','journey','action','jianghu','longterm','growth','map','ledger','data'];
+  let _ip=(location.hash||'#dashboard').slice(1);
+  if(_ip==='loot') _ip='growth'; // 战利品页已并入修行页，旧 hash 防空白
+  if(_validPages.indexOf(_ip)<0) _ip='dashboard';
+  showPage(_ip);
   try{ maybeShowBrief(); }catch(e){}
   try{ loadWeather(false); }catch(e){}   // 天象：命中 1 小时缓存则不发请求
   fillGhInputs();
