@@ -2084,13 +2084,16 @@ function render(){
   ledgerHtml();
   const lDate=document.getElementById('lDate'); if(lDate && !lDate.value) lDate.value=todayStr();
 
-  // badminton
-  const bL=bmLevel(BADMINTON_LIFETIME_HOURS);
-  const bP=bmXpInLvl(BADMINTON_LIFETIME_HOURS);
-  document.getElementById('bmLvl').textContent=bL;
-  document.getElementById('bmHours').textContent=BADMINTON_LIFETIME_HOURS;
-  document.getElementById('bmFill').style.width=bP.pct+'%';
-  document.getElementById('bmWeek').textContent=`${h(bmWeekHours())} / 15h`;
+  // 🏸 羽毛球专精卡片已移除（与修行页长期复利轨道重复），相关数据由 growth 页统一展示
+  const _bmLvl=document.getElementById('bmLvl');
+  if(_bmLvl){
+    const bL=bmLevel(BADMINTON_LIFETIME_HOURS);
+    const bP=bmXpInLvl(BADMINTON_LIFETIME_HOURS);
+    _bmLvl.textContent=bL;
+    document.getElementById('bmHours').textContent=BADMINTON_LIFETIME_HOURS;
+    document.getElementById('bmFill').style.width=bP.pct+'%';
+    document.getElementById('bmWeek').textContent=`${h(bmWeekHours())} / 15h`;
+  }
 
   // 🎯 长期目标已合并进「长期复利轨道」（systems.js renderLifeCompound），此处不再渲染
 
