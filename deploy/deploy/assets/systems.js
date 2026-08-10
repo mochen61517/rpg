@@ -196,7 +196,7 @@ function renderLifeBanner(){
   for(let i=0;i<todayKey.length;i++){ h=((h^(todayKey.charCodeAt(i)))*16777619)>>>0; }
   function rng(){ h=((h+0x6D2B79F5)*0x9E3779B1)>>>0; return (h>>>0)/4294967296; }
 
-  // 网易云风格：每日一位「生活主角」大数字 + 三句生活小记（各主题不同措辞，不重复句式）
+  // 每日一句：从生活意象中随机选一位「主角」，只展示一条，浪漫、诗意、不堆叠
   const themes=[
     {icon:'🌅', name:'日出', past:livedDays, total:totalDays,
      line:(p,r)=>'你已迎来 <b>'+p.toLocaleString()+'</b> 次日出，余生还有约 '+r.toLocaleString()+' 场——请别错过任何一个清晨。'},
@@ -206,24 +206,27 @@ function renderLifeBanner(){
      line:(p)=>'你路过 <b>'+p+'</b> 个春天，第 '+(p+1)+' 个正在悄悄发芽。'},
     {icon:'🌕', name:'满月', past:Math.floor(livedDays/29.53), total:Math.floor(totalDays/29.53),
      line:(p)=>'你见过 <b>'+p.toLocaleString()+'</b> 轮满月，每一轮都曾有人为你点亮一盏灯。'},
+    {icon:'🌊', name:'潮汐', past:livedDays, total:totalDays,
+     line:(p,r)=>'你已错过 <b>'+p.toLocaleString()+'</b> 次潮汐，但下一浪，永远正向你赶来。'},
+    {icon:'✨', name:'星光', past:livedDays, total:totalDays,
+     line:(p,r)=>'你与 <b>'+p.toLocaleString()+'</b> 个夜晚擦肩而过，总有一颗星，是为你而亮的。'},
   ];
   const feat=themes[Math.floor(rng()*themes.length)];
-  const others=themes.filter(t=>t!==feat);
+  const remF=Math.max(0, feat.total-feat.past);
   const openers=[
     '今天，是你余生里最年轻的一天。',
     '此刻的你，比往后任何一天都更接近清晨。',
     '余生还长，但今天的太阳，只会升起这一次。',
+    '世界还在，你也还在，这就够了。',
+    '不必追赶时间，你已经是时间本身。',
   ];
   const opener=openers[Math.floor(rng()*openers.length)];
-  const remF=Math.max(0, feat.total-feat.past);
   el.innerHTML=
-     '<div class="lb-head">☀️ 今天，是你余生里最年轻的一天</div>'
-    +'<div class="lb-hero">'
-    +  '<div class="lb-hero-ic">'+feat.icon+' '+feat.name+'</div>'
-    +  '<div class="lb-hero-num">'+feat.past.toLocaleString()+'</div>'
-    +  '<div class="lb-hero-sentence">'+feat.line(feat.past,remF)+'</div>'
+     '<div class="lb-head">☀️ 今日一句</div>'
+    +'<div class="lb-poem">'
+    +  '<span class="lb-poem-ic">'+feat.icon+'</span>'
+    +  '<span class="lb-poem-t">'+feat.line(feat.past,remF)+'</span>'
     +'</div>'
-    +'<div class="lb-notes">'+others.map(t=>{ const r=Math.max(0,t.total-t.past); return '<div class="lb-note"><span class="lb-note-ic">'+t.icon+'</span><span class="lb-note-t">'+t.line(t.past,r)+'</span></div>'; }).join('')+'</div>'
     +'<div class="lb-bar-wrap">'
     +  '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
     +  '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
