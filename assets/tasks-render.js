@@ -36,7 +36,11 @@ function toggle(list,idv){
       if(_lg){ const L=lfLogOf(_lg.g); if(!L.includes(d)){ L.push(d); L.sort(); if(L.length>60) S.lfLog[_lg.g]=L.slice(-60); } } }
     newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.a); if(_cm) celebrateTask(_cm);
     if(Math.random()<0.03){ const drp=dropReward(Math.random()<0.3?'small':'micro','完成：'+item.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
-    setTimeout(()=>showQuestSettlement({id:item.id,text:item.t,attr:item.a,mins:(item.mins&&item.mins[d])||0,xp:weightedXpAt(item,d),focusDone:wasTodayFocus}),180);
+    // 补剂不弹全屏结算，只留上面一句轻量庆祝 toast
+    const isSupp=S.supps && S.supps.some(x=>x.id===idv);
+    if(!isSupp){
+      setTimeout(()=>showQuestSettlement({id:item.id,text:item.t,attr:item.a,mins:(item.mins&&item.mins[d])||0,xp:weightedXpAt(item,d),focusDone:wasTodayFocus}),180);
+    }
   }
   save();checkAch();render();
 }
@@ -2324,17 +2328,17 @@ function celebrate(level){
 
 /* ---------- 勾选庆祝文案：按任务名精确匹配优先，属性/分类兜底 ---------- */
 const SUPP_MSG = {
-  '维生素D':'☀️ 阳光维生素到位，骨骼和情绪都被照拂',
-  '镁':'🛡️ 镁已补充，神经放松，今晚睡得更稳',
-  '鱼油':'🐟 Omega-3 上线，脑子更润、炎症更低',
-  '维生素C':'🍊 维C 打卡，免疫小盾牌 +1',
-  '氨糖':'🦴 氨糖补上，关节被温柔对待',
-  '姜黄饮':'🧡 今天抗炎 +1，姜黄饮已就位',
-  '姜黄奶':'🥛 黄金奶下肚，抗炎助眠双 buff',
-  '羽衣甘蓝粉':'🥬 绿色抗氧化，身体轻盈 +1',
-  '奇亚籽':'🌱 奇亚籽，Omega 与纤维补给到位',
-  '甜菜根粉':'🟣 甜菜根，血氧与耐力小助攻',
-  '电解质粉':'⚡ 电解质充分补充，今天运动表现稳了'
+  '维生素D':['☀️ 阳光维生素到位，骨骼和情绪都被照拂','☀️ 维D 正在帮你把钙锁进骨头里','☀️ 今天的情绪稳了，有一部分是维D 的功劳'],
+  '镁':['🛡️ 镁已补充，神经放松，今晚睡得更稳','🛡️ 紧绷的肌肉正在被镁安抚','🛡️ 神经系统收到了一份温柔的缓冲'],
+  '鱼油':['🐟 Omega-3 上线，脑子更润、炎症更低','🐟 身体有被照顾到，炎症水平快速下降','🐟 心脑血管今天多了一层保护'],
+  '维生素C':['🍊 维C 打卡，免疫小盾牌 +1','🍊 抗氧化小队又添一员','🍊 皮肤和身体都在偷偷感谢你'],
+  '氨糖':['🦴 氨糖补上，关节被温柔对待','🦴 软骨得到了今天的养分','🦴 关节润滑液 +1，动得更轻松'],
+  '姜黄饮':['🧡 今天抗炎 +1，姜黄饮已就位','🧡 身体里的小火苗又被扑灭一点','🧡 关节和肠道都感到被关照'],
+  '姜黄奶':['🥛 黄金奶下肚，抗炎助眠双 buff','🥛 身体被暖到，炎症悄悄退散','🥛 今晚的睡眠多了一份温柔的铺垫'],
+  '羽衣甘蓝粉':['🥬 绿色抗氧化，身体轻盈 +1','🥬 膳食纤维和微量营养素正在上岗','🥬 今天的蔬菜份额被你机智地补上了'],
+  '奇亚籽':['🌱 奇亚籽，Omega 与纤维补给到位','🌱 饱腹感悄悄上线，血糖也更稳了','🌱 一小勺，肠道和心脑血管都受益'],
+  '甜菜根粉':['🟣 甜菜根，血氧与耐力小助攻','🟣 血管舒张，运动表现悄悄 +1','🟣 身体供氧效率被温柔提升'],
+  '电解质粉':['⚡ 电解质充分补充，今天运动表现稳了','⚡ 水分被真正锁住，不再白喝','⚡ 神经和肌肉都恢复了传导节奏']
 };
 const CAT_MSG = {
   '社交':'💬 关系被点亮，你值得被好好对待',
@@ -2356,8 +2360,8 @@ const ATTR_MSG = {
 function findCelebrate(t, key){
   if(!t) return null;
   const norm = String(t).replace(/(粉|饮|奶|片|胶囊|液|膏)$/,'');
-  if(SUPP_MSG[t]) return SUPP_MSG[t];
-  if(SUPP_MSG[norm]) return SUPP_MSG[norm];
+  const pool=SUPP_MSG[t] || SUPP_MSG[norm];
+  if(pool && pool.length) return pool[Math.floor(Math.random()*pool.length)];
   if(CAT_MSG[key]) return CAT_MSG[key];
   if(ATTR_MSG[key]) return ATTR_MSG[key];
   return '✔ 又完成一项，今日修行 +1';
