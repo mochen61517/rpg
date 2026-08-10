@@ -1668,6 +1668,7 @@ const JIANGHU_BANK=[
   {id:'jh_review300',t:'写 300 字复盘 · 只写事实不修辞',a:'MIND',diff:4,xp:30},
   {id:'jh_reachout',t:'主动联系一位很久没联系的人',a:'CAREER',diff:4,xp:30},
   {id:'jh_bmdrill',t:'羽毛球专项练习 40 分钟（步法/多球）',a:'BADMINTON',diff:4,xp:30},
+  {id:'jh_sing_k85',t:'本周 K 歌 1 次并冲 85+（稳定站上舒适区）',a:'MIND',diff:4,xp:35},
   // ★★★ 需要起身（常规精进）
   {id:'jh_read20',t:'阅读 20 页',a:'MIND',diff:3,xp:20},
   {id:'jh_piano20',t:'练琴 20 分钟',a:'MIND',diff:3,xp:20},
@@ -1680,6 +1681,8 @@ const JIANGHU_BANK=[
   // ★★ 顺手能做
   {id:'jh_stretch10',t:'拉伸 10 分钟',a:'BODY',diff:2,xp:12},
   {id:'jh_breath',t:'深呼吸 3 分钟（4-7-8 节律）',a:'BODY',diff:2,xp:12},
+  {id:'jh_sing_push',t:'练「强弱推拉」5 组（长音渐强渐弱，滑顺不破）',a:'MIND',diff:2,xp:12},
+  {id:'jh_sing_record',t:'把一次 K 歌成绩记进年主线进度（声音画像追踪）',a:'MIND',diff:2,xp:12},
   {id:'jh_water',t:'今天喝够 1.5L 水',a:'BODY',diff:2,xp:12},
   {id:'jh_note',t:'记一条今天真实的观察（不评判）',a:'MIND',diff:2,xp:12},
   {id:'jh_shadow',t:'空挥 100 拍',a:'BADMINTON',diff:2,xp:12},

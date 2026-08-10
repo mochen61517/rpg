@@ -591,6 +591,7 @@ function defaultState(){
         {id:id(),t:'跑通第一个付费客户',a:'CAREER',xp:100,min:0,mode:'fixed',done:false},
         {id:id(),t:'建立稳定副业收入流',a:'CAREER',xp:100,min:0,mode:'fixed',done:false},
       ]},
+      makeSingYear(),
     ],
     month:{t:'本月主线：推进求职 / 体制内进度（执行动作，非结果）',items:[
       {id:id(),t:'完成 1 次网申 / 投递',a:'CAREER',xp:0,min:60,mode:'time',done:false},
@@ -614,6 +615,7 @@ function defaultState(){
       {id:'careerCrown',ic:'💼',n:'术法精进',d:'业道连进 四周（主观认领）',un:false,auto:null},
       {id:'mindGuard',ic:'🎹',n:'灵台澄明',d:'心性充盈 四周（主观认领）',un:false,auto:null},
       {id:'mindBound',ic:'🎧',n:'守心有度',d:'心性不溺 四周（主观认领）',un:false,auto:null},
+      {id:'sing1',ic:'🎶',n:'歌艺修行',lv:'0',d:'进行中 · K歌从 80+ 冲击 90+',next:'1.0：单首稳定破 90（年道认领）',un:false,auto:q=>{var i=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';});return i>=0&&yearDone(i);}},
     ],
     goals: defaultGoals(),
     mainQ:null,
@@ -671,6 +673,16 @@ function defaultState(){
 let S = defaultState();
 let lastLevel = 0;     // 上次渲染时的总等级，用于检测升级并触发庆祝
 let newlyDone = [];    // 本帧刚完成的任务 id，用于触发闪光动效
+function makeSingYear(){
+  return {id:'yg_sing90', t:'声乐精进：K歌从 80+ 冲击 90+（2026）', paused:false, done:false, items:[
+    {id:id(), t:'建立每日 30 分钟训练习惯（哼鸣热身 + 长音强弱推拉 + 舒适区曲目）', a:'MIND', xp:0, min:30, mode:'time', done:false},
+    {id:id(), t:'锁定舒适区：柔润气声抒情 ballad（梁静茹/刘若英/郁可唯/王菲气声曲），先不碰爆发型', a:'MIND', xp:0, min:30, mode:'time', done:false},
+    {id:id(), t:'稳定性雷达拉到 88+（重拍亮起、音量不再「轻到听不见」）', a:'MIND', xp:0, min:0, mode:'fixed', done:false},
+    {id:id(), t:'完整跑舒适区曲目，稳定站上 85+（用进度区记每次 K 歌分数）', a:'MIND', xp:0, min:60, mode:'time', done:false},
+    {id:id(), t:'单首突破 90（选 空白格 / 痴心换情深 / 水中花 其一）', a:'MIND', xp:120, min:0, mode:'fixed', done:false},
+  ]};
+}
+
 function migrate(){
   // v5.21 曾误把长期投入 goals 的默认值写成旅行目标对象；旅行目标已有独立 travelGoals 字段。
   if(!Array.isArray(S.goals)) S.goals=defaultGoals();
@@ -848,6 +860,19 @@ function migrate(){
       if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:`年主线「${careerYear.t}」的执行步骤已拆到月主线（移入 ${moved} 项，过滤结果型 ${filtered} 项，去重跳过 ${totalItems-moved-filtered} 项），年目标保留为完整目标`,xp:0});
     }
     S.yearCareerCompact_v1 = true;
+  }
+  // v5.50 年主线新增「声乐精进：K歌 80→90」+ 歌艺成就（兼容旧存档注入）
+  if(!S.yearSingGoal_v1){
+    if(!((S.year||[]).some(function(c){ return /唱歌|声乐|歌艺|K歌|从\s*80|80\s*\+/.test(c.t||''); }))){
+      S.year=S.year||[];
+      S.year.push(makeSingYear());
+      if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'年主线新增「声乐精进：K歌从 80+ 冲击 90+」并接入声音画像进度区',xp:0});
+    }
+    if(!((S.ach||[]).some(function(a){ return a.id==='sing1'; }))){
+      S.ach=S.ach||[];
+      S.ach.push({id:'sing1',ic:'🎶',n:'歌艺修行',lv:'0',d:'进行中 · K歌从 80+ 冲击 90+',next:'1.0：单首稳定破 90（年道认领）',un:false,auto:function(q){ var i=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';}); return i>=0 && yearDone(i); }});
+    }
+    S.yearSingGoal_v1=true;
   }
   // 兼容旧存档：清理月主线中不应存在的结果型项目（offer/体检/背调/入职等），并去重
   if(!S.monthOutcomeClean_v1){
