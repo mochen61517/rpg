@@ -3,22 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v5.50.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=5.50.0">
+<title>人生修行录 · v5.51.0</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=5.51.0">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic">🕯️</div>
-      <div class="brand-t">人生修行录<span>v5.50.0 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v5.51.0 · 生活复利</span></div>
     </div>
     <nav class="nav">
-      <div class="top-tabs">
-        <a class="navitem tt-main" data-page="action" onclick="showPage('action')">📿 今日行动 · 长期复利</a>
-        <a class="navitem tt-main" data-page="jianghu" onclick="showPage('jianghu')">🗡️ 江湖榜<span class="nav-badge" id="navBadge-jianghu"></span></a>
-      </div>
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
+      <a class="navitem tt-main" data-page="action" onclick="showPage('action')">🎯 短期任务<span class="nav-badge" id="navBadge-short"></span></a>
       <a class="navitem" data-page="energy" onclick="showPage('energy')">🔋 精力·恢复</a>
       <a class="navitem" data-page="longterm" onclick="showPage('longterm')">🗺️ 长期主线</a>
       <a class="navitem" data-page="ledger" onclick="showPage('ledger')">💰 钱庄</a>
@@ -311,8 +308,15 @@
 
     <!-- ===== 短期任务 ===== -->
     <div class="page" id="page-action">
-      <div class="phead">今日行动 · 长期复利<span class="psub">今日主线 · 复利轨道 · 江湖日/周/月任务</span></div>
-      <div class="panel today-cockpit today-detail-cockpit" id="todayDetailCockpit"></div>
+      <div class="phead">短期任务<span class="psub">今日行动 · 江湖榜 · 周期揭榜</span></div>
+      <div class="tabbar st-tabs" id="stTabs">
+        <button class="tab on" data-st="action" onclick="switchShortTaskTab('action')">📿 今日行动</button>
+        <button class="tab" data-st="jianghu" onclick="switchShortTaskTab('jianghu')">🗡️ 江湖榜</button>
+      </div>
+
+      <!-- ===== 今日行动 ===== -->
+      <div id="st-action-pane">
+        <div class="panel today-cockpit today-detail-cockpit" id="todayDetailCockpit"></div>
       <!-- 「复利轨道」面板由 systems.js 动态插入在此之后 -->
       <div class="recbar">
         <span class="reclabel">记录于</span>
@@ -402,24 +406,39 @@
         <div id="reportHist" class="rep-hist"></div>
         <div class="hint">汇总本期已完成行动、四系投入时长、点亮徽章、嘉奖掉落、新到访、当前等级。周报/月报各自留在自己的框里，不会互相覆盖；下方自动保存最近 12 次记录，点一下即可重看。</div>
       </div>
-    </div>
-    <!-- ===== 周月任务（重构：江湖周榜 / 江湖月榜 + 随机周游 + 月行大计；手动周目标已移除） ===== -->
-    <div class="page" id="page-jianghu">
-      <div class="phead">江湖榜<span class="psub">江湖日榜 · 周榜 · 月榜 · 我的揭榜</span></div>
-      <div class="panel jianghu-card"><div id="jianghuBox"></div></div>
-      <div class="panel">
-        <h2>🗡️ 江湖周榜 <span class="note">每周一刷新 · 难度高 / 积分高在上</span>
-          <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('week');save();render()">🔄 换榜</button></h2>
-        <div id="jianghuWeekBox"></div>
       </div>
-      <div class="panel">
-        <h2>🗡️ 江湖月榜 <span class="note">每月 1 日刷新 · 难度高 / 积分高在上</span>
-          <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('month');save();render()">🔄 换榜</button></h2>
-        <div id="jianghuMonthBox"></div>
-      </div>
-      <div class="panel">
-        <h2>🗡️ 我的揭榜 <span class="note">你认领的任务 · 状态 / 截止日 一目了然</span></h2>
-        <div id="myJianghuBox"></div>
+
+      <!-- ===== 江湖榜 ===== -->
+      <div id="st-jianghu-pane" style="display:none">
+        <div class="tabbar jh-tabs" id="jhTabs">
+          <button class="tab on" data-jh="day" onclick="switchJianghuTab('day')">☀️ 江湖日榜</button>
+          <button class="tab" data-jh="week" onclick="switchJianghuTab('week')">📅 江湖周榜</button>
+          <button class="tab" data-jh="month" onclick="switchJianghuTab('month')">🌕 江湖月榜</button>
+          <button class="tab" data-jh="my" onclick="switchJianghuTab('my')">📌 我的揭榜</button>
+        </div>
+        <div id="jh-day-pane">
+          <div class="panel jianghu-card"><div id="jianghuBox"></div></div>
+        </div>
+        <div id="jh-week-pane" style="display:none">
+          <div class="panel">
+            <h2>🗡️ 江湖周榜 <span class="note">每周一刷新 · 难度高 / 积分高在上</span>
+              <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('week');save();render()">🔄 换榜</button></h2>
+            <div id="jianghuWeekBox"></div>
+          </div>
+        </div>
+        <div id="jh-month-pane" style="display:none">
+          <div class="panel">
+            <h2>🗡️ 江湖月榜 <span class="note">每月 1 日刷新 · 难度高 / 积分高在上</span>
+              <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('month');save();render()">🔄 换榜</button></h2>
+            <div id="jianghuMonthBox"></div>
+          </div>
+        </div>
+        <div id="jh-my-pane" style="display:none">
+          <div class="panel">
+            <h2>🗡️ 我的揭榜 <span class="note">你认领的任务 · 状态 / 截止日 一目了然</span></h2>
+            <div id="myJianghuBox"></div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- ===== 长期主线 ===== -->
@@ -716,9 +735,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=5.50.0"></script>
-<script src="assets/tasks-render.js?v=5.50.0"></script>
-<script src="assets/npc-stories.js?v=5.50.0"></script>
-<script src="assets/systems.js?v=5.50.0"></script>
+<script src="assets/core-state.js?v=5.51.0"></script>
+<script src="assets/tasks-render.js?v=5.51.0"></script>
+<script src="assets/npc-stories.js?v=5.51.0"></script>
+<script src="assets/systems.js?v=5.51.0"></script>
 </body>
 </html>

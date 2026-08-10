@@ -1786,15 +1786,19 @@ function ensureJianghuPeriod(kind, force){
   const stale = st.key!==key || !Array.isArray(st.list) || !st.list.length;
   if(stale || force){
     const old=(st.key===key && Array.isArray(st.list))?st.list:[];
-    const take = kind==='week'?3:5;
     const list=[];
     [5,4,3,2,1].forEach(function(lv){
-      const pool=JIANGHU_BANK.filter(function(x){ return x.diff===lv; });
+      const pool=JIANGHU_BANK.filter(function(x){ return x.diff===lv && !list.some(function(y){return y.id===x.id;}); });
       if(!pool.length) return;
-      seededShuffle(pool, key+'|'+kind+'|'+lv+'|'+st.seed).slice(0, Math.min(take, pool.length)).forEach(function(x){
-        list.push(Object.assign({},x,{done:false}));
-      });
+      const x=pool[seededIndex(key+'|'+kind+'|'+lv+'|'+st.seed, pool.length)];
+      list.push(Object.assign({},x,{done:false}));
     });
+    // 上限 6 条：再从不重复的池子里补 1 条
+    const extraPool=JIANGHU_BANK.filter(function(x){ return !list.some(function(y){return y.id===x.id;}); });
+    if(extraPool.length){
+      const ex=extraPool[seededIndex(key+'|'+kind+'|extra|'+st.seed, extraPool.length)];
+      list.push(Object.assign({},ex,{done:false}));
+    }
     list.sort(function(a,b){ return (b.diff-a.diff) || (b.xp-a.xp) || (a.id<b.id?-1:1); });
     list.forEach(function(x){ const o=old.filter(function(y){return y.id===x.id;})[0]; if(o&&o.done) x.done=true; });
     st.key=key; st.list=list;
@@ -2378,17 +2382,53 @@ function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=doc
 // 多页路由：切换 page 显示 + 导航高亮 + 同步 hash（刷新/分享不丢当前页）
 function showPage(p){
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
+  // 江湖榜已合并进短期任务页：统一当作 action，并记住要展示江湖榜 tab
+  if(p==='jianghu'){
+    p='action';
+    if(typeof S==='object' && S){ S.stTab='jianghu'; }
+  }
   if(p==='energy') renderEnergyPage();
   if(p==='map'){ try{ renderTripsPage(); }catch(e){ console.warn('trips render',e); } }
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   const t=document.getElementById('page-'+p);
   if(t) t.classList.add('active');
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
-  if(p==='action'||p==='dashboard'||p==='jianghu'){ markSideSeen(); }
+  if(p==='action'){
+    try{
+      const st=(typeof S==='object' && S && S.stTab==='jianghu')?'jianghu':'action';
+      switchShortTaskTab(st);
+    }catch(e){}
+    markSideSeen();
+  }
+  if(p==='dashboard'){ markSideSeen(); }
   if(p==='growth'){ markBondsSeen(); }
   if(p==='data'){ try{ fillProfileInputs(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
   try{ renderNotifications(); renderNavBadges(); }catch(e){}
+}
+
+// 短期任务页内 tab 切换：今日行动 / 江湖榜
+function switchShortTaskTab(tab){
+  const actionPane=document.getElementById('st-action-pane');
+  const jianghuPane=document.getElementById('st-jianghu-pane');
+  if(!actionPane || !jianghuPane) return;
+  if(typeof S==='object' && S) S.stTab=tab;
+  actionPane.style.display=tab==='action'?'block':'none';
+  jianghuPane.style.display=tab==='jianghu'?'block':'none';
+  document.querySelectorAll('#stTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.st===tab));
+  if(tab==='jianghu'){ try{ switchJianghuTab(S.jhTab||'day'); }catch(e){} }
+}
+
+// 江湖榜内 tab 切换：日榜 / 周榜 / 月榜 / 我的揭榜
+function switchJianghuTab(tab){
+  const order=['day','week','month','my'];
+  if(!order.includes(tab)) tab='day';
+  if(typeof S==='object' && S) S.jhTab=tab;
+  order.forEach(t=>{
+    const pane=document.getElementById('jh-'+t+'-pane');
+    if(pane) pane.style.display=(t===tab?'block':'none');
+  });
+  document.querySelectorAll('#jhTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.jh===tab));
 }
 
 // ===== 仪表盘拖拽排序 =====

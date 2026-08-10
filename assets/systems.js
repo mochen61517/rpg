@@ -899,19 +899,23 @@ function notifList(){
     _mj.sort(function(a,b){ return (a.deadline<b.deadline?-1:1); });
     _mj.forEach(function(e){
       const _od=e.deadline<Date.now();
-      arr.push({page:'jianghu', ic:'🗡️', t:'揭榜待完成：'+e.t, d:(_od?'已逾期 · ':'截止 ')+fmtDeadline(e.deadline)+(_od?'（仍可完成）':''), key:'myjianghu', scroll:'myJianghuBox'});
+      arr.push({page:'action', tab:'my', ic:'🗡️', t:'揭榜待完成：'+e.t, d:(_od?'已逾期 · ':'截止 ')+fmtDeadline(e.deadline)+(_od?'（仍可完成）':''), key:'myjianghu', scroll:'myJianghuBox'});
     });
   }catch(e){}
   return arr;
 }
 function notifGo(el){
-  const p=el.dataset.page, s=el.dataset.scroll;
+  const p=el.dataset.page, s=el.dataset.scroll, tab=el.dataset.tab;
+  if(tab && typeof S==='object' && S){
+    S.stTab='jianghu'; S.jhTab=tab;
+  }
   if(s){
     const t=document.getElementById(s);
     if(t){ t.scrollIntoView({behavior:'smooth',block:'center'}); t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); }
   }
   if(p && p!==getActivePage()){ showPage(p); }
   else if(!s && p){ showPage(p); }
+  if(tab && p==='action'){ try{ switchShortTaskTab('jianghu'); switchJianghuTab(tab); }catch(e){} }
   return false;
 }
 function getActivePage(){
@@ -928,7 +932,7 @@ function renderNotifications(){
   el.style.display='';
   let h='<div class="notif-h">🔔 待你回应 <span class="notif-cnt">'+list.length+'</span></div><div class="notif-rows">';
   list.forEach(n=>{
-    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" onclick="notifGo(this)">'
+    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" data-tab="'+(n.tab||'')+'" onclick="notifGo(this)">'
       +'<span class="notif-ic">'+n.ic+'</span>'
       +'<span class="notif-t">'+n.t+'</span>'
       +'<span class="notif-d">'+n.d+'</span>'
@@ -938,18 +942,18 @@ function renderNotifications(){
   el.innerHTML=h;
 }
 function navBadgeCount(page){
-  if(page==='action'||page==='current'){
+  if(page==='short'||page==='action'||page==='current'){
     let c=0;
     if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length) c++;
+    c += (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
     return c;
   }
-  if(page==='jianghu') return (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
   if(page==='map') return letterUnread();
   if(page==='growth'){ if(!S.bonds) return 0; return S.bonds.blessRead!==todayStr()?1:0; }
   return 0;
 }
 function renderNavBadges(){
-  ['action','jianghu','map','growth'].forEach(p=>{
+  ['short','map','growth'].forEach(p=>{
     const sp=document.getElementById('navBadge-'+p); if(!sp) return;
     const c=navBadgeCount(p);
     sp.textContent = c>0 ? (c>99?'99+':String(c)) : '';
@@ -1429,8 +1433,7 @@ function reorganizeDetailPages(){
   setHead('energy','精力 · 恢复','今日状态优先 · 身体指标 · 趋势放后');
   setHead('ledger','钱庄 · 金币人生','目标与资产优先 · 记录与分析随后');
   setHead('journey','角色设定','角色档案 · 命格历程 · 时间轴设置');
-  setHead('action','今日行动 · 长期复利','今日主线 · 复利轨道 · 江湖日 / 周 / 月任务');
-  setHead('jianghu','江湖榜','江湖日榜 · 周榜 · 月榜 · 我的揭榜');
+  setHead('action','短期任务','今日行动 · 江湖榜 · 周期揭榜');
   setHead('growth','修行 · 成长','等级与专精优先 · 成就愿望随后');
   setHead('data','设置与内容管理','存档与反馈 · 通知 · 随机内容库');
 }
@@ -1827,7 +1830,7 @@ function trackUsage(kind,key){
 }
 function usageLabel(row){
   const names={page:'页面',group:'展开',action:'操作'};
-  const pages={dashboard:'仪表盘',energy:'精力恢复',current:'今日行动',week:'本周卷册',longterm:'长期主线',ledger:'钱庄',journey:'角色设定',growth:'修行成长',data:'设置'};
+  const pages={dashboard:'仪表盘',energy:'精力恢复',action:'短期任务',current:'短期任务',week:'本周卷册',longterm:'长期主线',ledger:'钱庄',journey:'角色设定',growth:'修行成长',data:'设置'};
   return (names[row.kind]||row.kind)+' · '+(row.kind==='page'?(pages[row.key]||row.key):row.key);
 }
 function renderUsageInsights(){
