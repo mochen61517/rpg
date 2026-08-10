@@ -15,7 +15,8 @@ ledger_import.json
 ledger_summary.json
 time-analysis.md
 账本汇总_*.md
-账本截图_*.jpg
+*.jpg
+*.jpeg
 
 # --- old RPG snapshot backups (keep repo clean) ---
 life-rpg.pre-*.html
@@ -23,8 +24,9 @@ life-rpg_v5.7.html
 life-rpg_v5.7.zip
 assets/archive/
 
-# --- agent runtime (keep only .workbuddy/memory) ---
+# --- agent runtime + private dev logs (do NOT publish: contain personal profile/job info) ---
 .workbuddy/automations/
+.workbuddy/memory/
 
 # --- OS / editor junk ---
 .DS_Store
