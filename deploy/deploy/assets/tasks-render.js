@@ -1672,6 +1672,7 @@ const JIANGHU_BANK=[
   {id:'jh_read20',t:'阅读 20 页',a:'MIND',diff:3,xp:20},
   {id:'jh_piano20',t:'练琴 20 分钟',a:'MIND',diff:3,xp:20},
   {id:'jh_sing15',t:'认真唱 15 分钟',a:'MIND',diff:3,xp:20},
+  {id:'jh_sing_train30',t:'完成 1 次 30 分钟声乐训练（哼鸣热身+长音强弱推拉+舒适区曲目）',a:'MIND',diff:3,xp:25},
   {id:'jh_ai',t:'学一个 AI 新用法并当天用上',a:'CAREER',diff:3,xp:20},
   {id:'jh_tidy30',t:'整理 30 分钟（桌面 / 文件 / 衣柜任选）',a:'BODY',diff:3,xp:20},
   {id:'jh_walk30',t:'出门走 30 分钟，不戴耳机',a:'BODY',diff:3,xp:20},
@@ -2066,7 +2067,7 @@ function render(){
   renderSupps();
   renderWeeklyReview();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
-  document.getElementById('wAttr').innerHTML=optAttrs('CAREER');
+  const wAttr=document.getElementById('wAttr'); if(wAttr) wAttr.innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
   const swEl=document.getElementById('sideWeeklyList'); if(swEl) swEl.innerHTML=sideListHtml(S.sideWeekly,'weekly');
   const smEl=document.getElementById('sideMonthlyList'); if(smEl) smEl.innerHTML=sideListHtml(S.sideMonthly,'monthly');

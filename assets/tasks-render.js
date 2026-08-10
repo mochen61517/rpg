@@ -2066,7 +2066,7 @@ function render(){
   renderSupps();
   renderWeeklyReview();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
-  document.getElementById('wAttr').innerHTML=optAttrs('CAREER');
+  const wAttr=document.getElementById('wAttr'); if(wAttr) wAttr.innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
   const swEl=document.getElementById('sideWeeklyList'); if(swEl) swEl.innerHTML=sideListHtml(S.sideWeekly,'weekly');
   const smEl=document.getElementById('sideMonthlyList'); if(smEl) smEl.innerHTML=sideListHtml(S.sideMonthly,'monthly');
