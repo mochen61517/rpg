@@ -1,0 +1,31 @@
+# --- scratch build / fix scripts (do not publish) ---
+_*
+
+# --- local backup folders ---
+.sync_backup_*
+
+# --- secrets / tokens (NEVER publish) ---
+pushplus_token.txt
+*.token
+*.secret
+
+# --- unrelated personal ledger / finance files ---
+analyze_ledger.py
+ledger_import.json
+ledger_summary.json
+time-analysis.md
+账本汇总_*.md
+账本截图_*.jpg
+
+# --- old RPG snapshot backups (keep repo clean) ---
+life-rpg.pre-*.html
+life-rpg_v5.7.html
+life-rpg_v5.7.zip
+assets/archive/
+
+# --- agent runtime (keep only .workbuddy/memory) ---
+.workbuddy/automations/
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
