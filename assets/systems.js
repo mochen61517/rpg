@@ -922,6 +922,8 @@ function notifList(){
 }
 function notifGo(el){
   const p=el.dataset.page, s=el.dataset.scroll, tab=el.dataset.tab, st=el.dataset.st;
+  _isDeepLink=true;   // 深层链接期间不强制重置为第一个 tab，保留精准跳转
+  try{
   // 先决定短期任务页内的顶层 tab（江湖榜子 tab 与 action 顶层 tab 分开处理）
   if(tab && typeof S==='object' && S){
     S.stTab='jianghu'; S.jhTab=tab;
@@ -946,6 +948,9 @@ function notifGo(el){
     }
   }
   if(tab && p==='action'){ try{ switchShortTaskTab('jianghu'); switchJianghuTab(tab); }catch(e){} }
+  } finally {
+    _isDeepLink=false;
+  }
   return false;
 }
 function getActivePage(){
@@ -1463,7 +1468,7 @@ function reorganizeDetailPages(){
 
   setupUsageTracking();
   setupLifeCompoundUI();
-  try{ switchGrowthTab(S.gpTab||'compound'); }catch(e){ console.warn('init growth tab',e); }
+  try{ switchGrowthTab('compound'); }catch(e){ console.warn('init growth tab',e); }
 
   setHead('energy','精力 · 恢复','今日状态优先 · 身体指标 · 趋势放后');
   setHead('ledger','钱庄 · 金币人生','目标与资产优先 · 记录与分析随后');

@@ -2366,6 +2366,7 @@ function toggleQuietMode(){S.uiPrefs=S.uiPrefs||{quiet:false};S.uiPrefs.quiet=!S
 function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=document.getElementById('quietModeText'),on=!!((S.uiPrefs||{}).quiet);if(b){b.textContent=on?'关闭安静模式':'开启安静模式';b.classList.toggle('primary',on);}if(t)t.textContent=on?'当前：普通奖励提示已静音':'当前：同一轮奖励自动合并';}
 
 // 多页路由：切换 page 显示 + 导航高亮 + 同步 hash（刷新/分享不丢当前页）
+var _isDeepLink=false;   // notifGo 深层链接期间为 true，期间不强制重置为第一个 tab
 function showPage(p){
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
   // 江湖榜已合并进短期任务页：统一当作 action，并记住要展示江湖榜 tab
@@ -2381,20 +2382,23 @@ function showPage(p){
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
   if(p==='action'){
     try{
-      const st=(typeof S==='object' && S && (S.stTab==='jianghu'||S.stTab==='week'))?S.stTab:'action';
+      // 打开短期任务页：默认展示第一个 tab（今日行动）；深层链接(notifGo)才沿用 S.stTab
+      const st = _isDeepLink ? ((typeof S==='object' && S && (S.stTab==='jianghu'||S.stTab==='week'))?S.stTab:'action') : 'action';
       switchShortTaskTab(st);
     }catch(e){}
     markSideSeen();
   }
+  if(p==='growth'){ try{ if(!_isDeepLink) switchGrowthTab('compound'); }catch(e){} markBondsSeen(); }   // 打开修行页默认第一个 tab
+  if(p==='longterm'){ try{ if(!_isDeepLink) switchLtTab('month'); }catch(e){} }   // 打开长期主线页默认每月主线
   if(p==='dashboard'){ markSideSeen(); }
-  if(p==='growth'){ markBondsSeen(); }
   if(p==='data'){ try{ fillProfileInputs(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
   try{ renderNotifications(); renderNavBadges(); }catch(e){}
 }
 
-// 短期任务页内 tab 切换：今日行动 / 江湖榜
-function switchShortTaskTab(tab){
+// 短期任务页内 tab 切换：今日行动 / 江湖榜 / 本周卷册
+// resetSub=true 表示用户主动点击「江湖榜」父 tab，需把嵌套子 tab 重置到第一个（日榜）
+function switchShortTaskTab(tab, resetSub){
   const actionPane=document.getElementById('st-action-pane');
   const jianghuPane=document.getElementById('st-jianghu-pane');
   const weekPane=document.getElementById('st-week-pane');
@@ -2404,7 +2408,7 @@ function switchShortTaskTab(tab){
   jianghuPane.style.display=tab==='jianghu'?'block':'none';
   weekPane.style.display=tab==='week'?'block':'none';
   document.querySelectorAll('#stTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.st===tab));
-  if(tab==='jianghu'){ try{ switchJianghuTab(S.jhTab||'day'); }catch(e){} }
+  if(tab==='jianghu'){ try{ switchJianghuTab(resetSub ? 'day' : (S.jhTab||'day')); }catch(e){} }
 }
 
 // 江湖榜内 tab 切换：委托 / 日榜 / 周榜 / 月榜 / 我的揭榜
