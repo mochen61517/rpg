@@ -1853,7 +1853,9 @@ function ensureJianghuPeriod(kind, force){
   const st = kind==='week' ? (S.jianghuWeek=S.jianghuWeek||{key:'',seed:0,list:[]}) : (S.jianghuMonth=S.jianghuMonth||{key:'',seed:0,list:[]});
   if(typeof st.seed!=='number') st.seed=0;
   if(force) st.seed++;
-  const stale = st.key!==key || !Array.isArray(st.list) || !st.list.length || st.list.length>6;
+  // 硬上限：存量超过 6 条直接截断保留前 6 条（含已完成），不再整榜重摇
+  if(Array.isArray(st.list) && st.list.length>6) st.list=st.list.slice(0,6);
+  const stale = st.key!==key || !Array.isArray(st.list) || !st.list.length;
   if(stale || force){
     const old=(st.key===key && Array.isArray(st.list))?st.list:[];
     const list=[];
@@ -1878,7 +1880,7 @@ function ensureJianghuPeriod(kind, force){
 function jianghuPeriodDone(kind){ try{ const st=ensureJianghuPeriod(kind); return (st.list||[]).filter(function(x){return x.done;}).length; }catch(e){ return 0; } }
 function renderJianghuPeriod(kind){
   const el=document.getElementById(kind==='week'?'jianghuWeekBox':'jianghuMonthBox'); if(!el) return;
-  const j=ensureJianghuPeriod(kind), list=j.list||[];
+  const j=ensureJianghuPeriod(kind), list=(j.list||[]).slice(0,6);
   const _acc=new Set((S.myJianghu||[]).filter(function(e){return e.src===kind&&e.period===jianghuPeriodKey(kind);}).map(function(e){return e.id;}));
   const doneList=list.filter(function(x){return x.done;});
   const got=doneList.reduce(function(n,x){return n+(x.xp||0);},0);
