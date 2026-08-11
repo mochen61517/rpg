@@ -1899,6 +1899,20 @@ function setupUsageTracking(){
 }
 
 (async ()=>{
+function _initErr(label,e){
+  console.error('[init:'+label+']', e);
+  try{
+    const bar=document.getElementById('__initErrBar');
+    const msg=(e&&e.message)||String(e);
+    if(bar){ bar.textContent='⚠ 初始化警告['+label+']：'+msg+'（不影响登录，可继续使用；某页空白请截图反馈）'; bar.style.display='block'; }
+    else{
+      const b=document.createElement('div'); b.id='__initErrBar';
+      b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#7a2222;color:#fff;padding:10px 12px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+      b.textContent='⚠ 初始化警告['+label+']：'+msg+'（不影响登录，可继续使用；某页空白请截图反馈）';
+      document.body.appendChild(b);
+    }
+  }catch(_){}
+}
 try{
   await load();
   try{ initAvatar(); }catch(e){ console.warn('init avatar',e); }
@@ -1910,27 +1924,29 @@ try{
   lastLevel = lvlOf(overallXP());
   try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
   checkAch();
-  render();
-  applyDashOrder();
-  initDashDrag();
+  try{ render(); }catch(e){ _initErr('render', e); }
+  try{ applyDashOrder(); }catch(e){}
+  try{ initDashDrag(); }catch(e){}
   const _validPages=['dashboard','journey','action','jianghu','longterm','growth','map','ledger','data'];
   let _ip=(location.hash||'#dashboard').slice(1);
   if(_ip==='loot') _ip='growth'; // 战利品页已并入修行页，旧 hash 防空白
   if(_validPages.indexOf(_ip)<0) _ip='dashboard';
-  showPage(_ip);
+  try{ showPage(_ip); }catch(e){ _initErr('showPage', e); }
   try{ maybeShowBrief(); }catch(e){}
   try{ loadWeather(false); }catch(e){}   // 天象：命中 1 小时缓存则不发请求
-  fillGhInputs();
-  renderAssetEditor();
+  try{ fillGhInputs(); }catch(e){}
+  try{ renderAssetEditor(); }catch(e){}
   const lDate=document.getElementById('lDate'); if(lDate) lDate.value=todayStr();
   const _w=document.getElementById('weightInput'); if(_w && S.weight) _w.value=S.weight;
   if(FS_AVAILABLE && !saveFileHandle){
     const b=document.getElementById('fsBanner'); if(b) b.style.display='block';
   }
   const _pc=document.getElementById('pwdCur'); if(_pc) _pc.textContent = ((store.get(PWD_KEY)||'').trim()!=='')? '当前：自定义口令' : '当前：默认口令';
-  setupPwdGate();
-  startAutoBackup();
 }catch(e){
-  document.body.insertAdjacentHTML('afterbegin','<div style="color:var(--warn);padding:12px">初始化出错：'+e.message+'</div>');
+  _initErr('init', e);
+}finally{
+  // 登录门必须无条件绑定：即便上面任何渲染出错，也至少能进入系统（彻底避免“点击进入没反应”）
+  try{ setupPwdGate(); }catch(e){ console.error('setupPwdGate',e); }
+  try{ startAutoBackup(); }catch(e){}
 }
 })();

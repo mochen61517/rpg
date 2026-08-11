@@ -2085,15 +2085,18 @@ function render(){
   const yearProfit=yearIncome-yearExpense;
   const _B=LEDGER_BASELINE; const _yB=_B.byYear[year]||{income:0,expense:0}; const _yp=_yB.income-_yB.expense;
   const _netTxt=_ha?('¥'+A.net.toFixed(2)):'未录入';
-  if(S.ledger.length){
-    document.getElementById('dashLedger').innerHTML = `<div class="dash-row"><span>当前家产</span><span style="color:var(--grw)">${_netTxt}</span></div>
+  const _dl=document.getElementById('dashLedger');
+  if(_dl){
+    if(S.ledger.length){
+      _dl.innerHTML = `<div class="dash-row"><span>当前家产</span><span style="color:var(--grw)">${_netTxt}</span></div>
        <div class="dash-row"><span>今年利润</span><span style="color:${yearProfit>=0?'var(--grw)':'var(--warn)'}">${yearProfit>=0?'+':''}¥${yearProfit.toFixed(2)}</span></div>`;
-  } else if(typeof LEDGER_BASELINE!=='undefined'){
-    document.getElementById('dashLedger').innerHTML = `<div class="dash-row"><span>当前家产</span><span style="color:var(--grw)">${_netTxt}</span></div>
+    } else if(typeof LEDGER_BASELINE!=='undefined'){
+      _dl.innerHTML = `<div class="dash-row"><span>当前家产</span><span style="color:var(--grw)">${_netTxt}</span></div>
        <div class="dash-row"><span>${year} 利润</span><span style="color:${_yp>=0?'var(--grw)':'var(--warn)'}">${_yp>=0?'+':''}¥${_yp.toFixed(2)}</span></div>
        <div class="hint" style="margin-top:6px">账户快照 ${_ha?A.date:'未录入'} · 历史基线 ${_B.range}</div>`;
-  } else {
-    document.getElementById('dashLedger').innerHTML = `<div class="dash-empty">暂无账本数据</div><div class="hint" style="margin-top:6px">进入钱庄导入随手记 xlsx</div>`;
+    } else {
+      _dl.innerHTML = `<div class="dash-empty">暂无账本数据</div><div class="hint" style="margin-top:6px">进入钱庄导入随手记 xlsx</div>`;
+    }
   }
 
   // 四系当前状态（仪表盘）

@@ -26,6 +26,21 @@ const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
 };
+// 运行期错误兜底：任何未捕获 JS 错误显示在页面顶部红条，便于定位（不阻断使用）
+window.onerror=function(msg,src,line,col,err){
+  try{
+    const bar=document.getElementById('__runtimeErrBar');
+    const m=(err&&err.message)||msg||'未知错误';
+    if(bar){ bar.textContent='⚠ 运行错误：'+m+'（如影响使用请截图反馈）'; bar.style.display='block'; }
+    else{
+      const b=document.createElement('div'); b.id='__runtimeErrBar';
+      b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#7a2222;color:#fff;padding:10px 12px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+      b.textContent='⚠ 运行错误：'+m+'（如影响使用请截图反馈）';
+      document.body.appendChild(b);
+    }
+  }catch(_){}
+  return false;
+};
 let SAVE_OK = false;
 let REC_DATE = '';            // 当前「记录于」日期（补录入口），空=今天
 
