@@ -1529,66 +1529,42 @@ function renderMonthPlanEdit(){
     if(st==='miss')return'<span class="mp-chip mp-miss">✘ 未达</span>';
     return'<span class="mp-chip mp-todo">— 待评</span>';
   };
-  let html='<div class="lt-hint">12 个月日历 · 当前月高亮可填「实际/复盘」，过去月置灰——点一下过去月即可补录（预期 / 实际 / 达成 / 复盘），未来月可预先填「预期主线」。</div>';
-  html+='<div class="mp-year">'+yk+' 年</div>';
-  html+='<div class="mp-grid">';
-  for(let m=1;m<=12;m++){
-    const k = yk+'-'+(m<10?'0'+m:m);
-    const r = yrPlans[k] || {plan:'',actual:'',status:'',reason:''};
-    const past = m<nowMM;
-    const cur = m===nowMM;
-    const future = m>nowMM;
-    const cls = 'mp-cell'+(past?' mp-past':'')+(cur?' mp-cur':'')+(future?' mp-future':'')+((r.plan||r.actual||r.reason)?' mp-has':'');
-    const head = '<div class="mp-head'+(past?' mp-head-click':'')+'"'+(past?' onclick="toggleMpOpen(\''+k+'\')"':'')+'><span class="mp-label">'+monthLabel[m-1]+'月</span>'+statusChip(r.status)+'</div>';
-    let body;
-    if(past){
-      const has = r.plan||r.actual||r.reason;
-      const open = mpOpen.has(k);
-      if(open){
-        body = '<div class="mp-form">'
-          + '<label class="lt-lab">预期主线</label>'
-          + '<textarea class="lt-ta" id="mPlan_'+k+'" placeholder="这个月本来想推进什么">'+escHtml(r.plan)+'</textarea>'
-          + '<label class="lt-lab">实际推进</label>'
-          + '<textarea class="lt-ta" id="mActual_'+k+'" placeholder="补录：这个月实际做了什么">'+escHtml(r.actual)+'</textarea>'
-          + '<label class="lt-lab">达成情况</label>'
-          + '<select class="lt-sel" id="mStatus_'+k+'">'+selFor('',r)+selFor('done',r)+selFor('part',r)+selFor('miss',r)+'</select>'
-          + '<label class="lt-lab">原因 / 复盘</label>'
-          + '<textarea class="lt-ta" id="mReason_'+k+'" placeholder="为什么达成 / 没达成？下月怎么调">'+escHtml(r.reason)+'</textarea>'
-          + '<div class="mp-actions"><button class="btn sm" onclick="saveMonthPlanKey(\''+k+'\')">💾 保存补录</button></div>'
-          + '</div>';
-      } else if(has){
-        body = '<div class="mp-past-detail">'
-          +(r.plan?'<div class="mp-past-line"><b>预期</b>'+escHtml(r.plan)+'</div>':'')
-          +(r.actual?'<div class="mp-past-line"><b>实际</b>'+escHtml(r.actual)+'</div>':'')
-          +(r.reason?'<div class="mp-past-line"><b>复盘</b>'+escHtml(r.reason)+'</div>':'')
-          +'</div>';
-      } else {
-        body = '<div class="mp-empty mp-add" onclick="toggleMpOpen(\''+k+'\')">＋ 补录这个月</div>';
-      }
-    } else if (cur) {
-      body = '<div class="mp-form">'
-        + '<label class="lt-lab">预期主线</label>'
-        + '<textarea class="lt-ta" id="mPlan" placeholder="本月想推进什么（一句话）">'+escHtml(r.plan)+'</textarea>'
-        + '<label class="lt-lab">实际推进</label>'
-        + '<textarea class="lt-ta" id="mActual" placeholder="月底回填">'+escHtml(r.actual)+'</textarea>'
-        + '<label class="lt-lab">达成情况</label>'
-        + '<select class="lt-sel" id="mStatus">'+selFor('',r)+selFor('done',r)+selFor('part',r)+selFor('miss',r)+'</select>'
-        + '<label class="lt-lab">原因 / 复盘</label>'
-        + '<textarea class="lt-ta" id="mReason" placeholder="为什么达成 / 没达成？下月怎么调">'+escHtml(r.reason)+'</textarea>'
-        + '<div class="mp-actions"><button class="btn sm" onclick="saveMonthPlan()">💾 保存本月复盘</button></div>'
-        + '</div>';
-    } else {
-      // 未来月：只填预期
-      body = '<div class="mp-future-form">'
-        + '<label class="lt-lab">预期主线</label>'
-        + '<textarea class="lt-ta" id="mPlan_'+k+'" placeholder="提前写下个月想推进什么">'+escHtml(r.plan)+'</textarea>'
-        + '<div class="mp-actions"><button class="btn sm" onclick="saveMonthPlanKey(\''+k+'\')">💾 保存</button></div>'
-        + '<div class="mp-mute">实际 / 复盘 到 '+monthLabel[m-1]+' 月再看</div>'
-        + '</div>';
-    }
-    html += '<div class="'+cls+'" data-mp="'+k+'">'+head+body+'</div>';
-  }
-  html += '</div>';
+  // 每个月一行横排 3 张卡片：预期主线 / 实际推进 / 复盘
+  const mpCard=(label,inner)=>'<div class="mp-card"><div class="mp-card-h">'+label+'</div><div class="mp-card-b">'+inner+'</div></div>';
+  const dispCard=(label,text)=>mpCard(label, text? '<div class="mp-cv">'+escHtml(text)+'</div>' : '<div class="mp-cv mp-cv-empty">—</div>');
+  const editForm=(k,r,isCur,future)=>{
+    const pId=isCur?'mPlan':'mPlan_'+k, aId=isCur?'mActual':'mActual_'+k, sId=isCur?'mStatus':'mStatus_'+k, reId=isCur?'mReason':'mReason_'+k;
+    const saveFn=isCur?'saveMonthPlan()':"saveMonthPlanKey('"+k+"')";
+    const dis=future?' disabled':'';
+    const sel='<select class="lt-sel" id="'+sId+'"'+(future?' disabled':'')+'>'+selFor('',r)+selFor('done',r)+selFor('part',r)+selFor('miss',r)+'</select>';
+    const futureNote=future?'<div class="mp-mute">实际 / 复盘 到 '+monthLabel[parseInt(k.slice(5,7),10)-1]+' 月再回填</div>':'';
+    return '<div class="mp-cards mp-edit'+(future?' mp-future-edit':'')+'">'
+      + mpCard('预期主线','<textarea class="lt-ta" id="'+pId+'" placeholder="这个月想推进什么（一句话）">'+escHtml(r.plan)+'</textarea>')
+      + mpCard('实际推进','<textarea class="lt-ta" id="'+aId+'"'+dis+' placeholder="月底回填实际做了什么">'+escHtml(r.actual)+'</textarea>')
+      + mpCard('复盘','<textarea class="lt-ta" id="'+reId+'"'+dis+' placeholder="为什么达成 / 没达成？下月怎么调">'+escHtml(r.reason)+'</textarea>')
+      + '</div>'
+      + '<div class="mp-rowfoot"><span class="mp-foot-status"><label class="lt-lab" style="margin:0">达成情况</label>'+sel+'</span>'
+      + '<span class="mp-foot-save"><button class="btn sm" onclick="'+saveFn+'">💾 保存</button></span></div>'
+      + futureNote;
+  };
+  const viewForm=(r)=>'<div class="mp-cards mp-view">'+dispCard('预期主线',r.plan)+dispCard('实际推进',r.actual)+dispCard('复盘',r.reason)+'</div>';
+  let html='<div class="lt-hint">每月三个维度横排对照：左边写「预期」，月底中间填「实际」，右边写「复盘」。当前月（'+monthLabel[nowMM-1]+'月）高亮可填；未来月先写预期；过去月置灰，点一下可补录。</div>';
+  html+='<div class="mp-year">'+yk+' 年 · 每月主线</div>';
+  html+='<div class="mp-rows">';
+  // 顺序：当前月 → 未来月（升序）→ 过去月（升序，置灰）
+  const order=[nowMM];
+  for(let m=nowMM+1;m<=12;m++) order.push(m);
+  for(let m=1;m<nowMM;m++) order.push(m);
+  order.forEach(function(m){
+    const k=yk+'-'+(m<10?'0'+m:m);
+    const r=yrPlans[k]||{plan:'',actual:'',status:'',reason:''};
+    const isCur=m===nowMM, future=m>nowMM, past=m<nowMM;
+    const cls='mp-row'+(isCur?' mp-cur':'')+(future?' mp-future':'')+(past?' mp-past':'')+((r.plan||r.actual||r.reason)?' mp-has':'');
+    const head='<div class="mp-rowhead'+(past?' mp-head-click':'')+'"'+(past?' onclick="toggleMpOpen(\''+k+'\')"':'')+'><span class="mp-label">'+monthLabel[m-1]+'月</span>'+statusChip(r.status)+'</div>';
+    const body = past ? (mpOpen.has(k)?editForm(k,r,false,false):viewForm(r)) : editForm(k,r,isCur,future);
+    html+='<div class="'+cls+'">'+head+body+'</div>';
+  });
+  html+='</div>';
   el.innerHTML = html;
 }
 function saveMonthPlan(){
