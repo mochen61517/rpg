@@ -684,6 +684,12 @@ function defaultState(){
     todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
     jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
+    pet: {                          // 灵宠·土豆（可交互猫角色）
+      name:'土豆', birthday:'2021-08-11', adopted:'2021-08-11',
+      breed:'中华田园（狸花橘）', color:'橘黄虎斑', emoji:'🐱',
+      personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],
+      notes:'', lastGreet:'', birthdayShown:''   // lastGreet=最近问候日期; birthdayShown=已展示生日信年份
+    },
   };
 }
 
@@ -1002,6 +1008,14 @@ function migrate(){
   if(!S.bonds || typeof S.bonds!=='object') S.bonds={awarded:[],viewed:[]};
   if(!Array.isArray(S.bonds.awarded)) S.bonds.awarded=[];
   if(!Array.isArray(S.bonds.viewed)) S.bonds.viewed=[];
+  // 灵宠·土豆：缺省补全（老存档无 pet 字段时）
+  if(!S.pet || typeof S.pet!=='object') S.pet={name:'土豆',birthday:'2021-08-11',adopted:'2021-08-11',breed:'中华田园（狸花橘）',color:'橘黄虎斑',emoji:'🐱',personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],notes:'',lastGreet:'',birthdayShown:''};
+  if(typeof S.pet.name!=='string'||!S.pet.name) S.pet.name='土豆';
+  if(typeof S.pet.birthday!=='string') S.pet.birthday='2021-08-11';
+  if(typeof S.pet.adopted!=='string') S.pet.adopted=S.pet.birthday;
+  if(!Array.isArray(S.pet.personality)) S.pet.personality=['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'];
+  if(typeof S.pet.lastGreet!=='string') S.pet.lastGreet='';
+  if(typeof S.pet.birthdayShown!=='string') S.pet.birthdayShown='';
   // v5.21 新字段兜底（身体/心理年龄）
   if(!S.bioAge || typeof S.bioAge!=='object') S.bioAge={sleepHours:null,steps:null,restingHR:null,lastCompute:'',bodyAge:0,mentalAge:0,factors:{}};
   // v5.21.1 低频疗愈组冷却

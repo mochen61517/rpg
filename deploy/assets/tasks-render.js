@@ -2182,7 +2182,7 @@ function render(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v5.20 通知中心

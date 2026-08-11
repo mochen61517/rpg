@@ -647,6 +647,123 @@ function respondLetter(i){
   save(); checkAch(); hideModal('letterModal'); render();
 }
 
+// ===== 灵宠·土豆（可交互猫角色） =====
+// 数据在 S.pet；开屏问候 + 生日信 + 召唤 + 可编辑档案
+function catToHumanAge(y){            // 兽医通用换算：第1年=15，第2年=25，之后每年+4
+  y=Math.max(0,Math.floor(y||0));
+  if(y<=0) return 0; if(y===1) return 15; if(y===2) return 25;
+  return 25+(y-2)*4;
+}
+function petAgeInfo(){
+  const p=S.pet||{}; const bd=p.birthday||'2021-08-11'; const ad=p.adopted||bd;
+  const today=new Date(todayStr()+'T00:00:00'); const b=new Date(bd+'T00:00:00');
+  let ms=today-b; if(ms<0) ms=0;
+  const daysTotal=Math.floor(ms/86400000);
+  let y=today.getFullYear()-b.getFullYear();
+  const m=today.getMonth()-b.getMonth();
+  if(m<0 || (m===0 && today.getDate()<b.getDate())) y--;   // 按生日周年算整岁（当天满岁）
+  const catYears=Math.max(0,y);
+  const a2=new Date(ad+'T00:00:00'); let ams=today-a2; if(ams<0) ams=0;
+  const daysTogether=Math.floor(ams/86400000);
+  const isBirthday=bd.slice(5)===todayStr().slice(5);
+  return {catYears,humanYears:catToHumanAge(catYears),daysTotal,daysTogether,isBirthday,
+    breed:p.breed,color:p.color,name:p.name,emoji:p.emoji||'🐱',personality:p.personality||[]};
+}
+function petNextBirthday(bd){
+  if(!bd||bd.length<5) return '未知';
+  const mmdd=bd.slice(5); const now=new Date(todayStr()+'T00:00:00'); const y=now.getFullYear();
+  let d=new Date(y+'-'+mmdd+'T00:00:00');
+  if(d<now) d=new Date((y+1)+'-'+mmdd+'T00:00:00');
+  return mmdd+'（还有约 '+Math.ceil((d-now)/86400000)+' 天）';
+}
+const PET_LINES={
+  greet:['铲屎官，今天辛苦啦，和你在一起好安心呀','喵～你回来啦，我一直在等你呢','蹭蹭你，今天也要开开心心的哦','你忙了一天，我给你呼噜呼噜解解压','土豆来啦，今天的你也很好很好','把头靠过来——蹭一下，充电完成'],
+  task:['又完成一件！我就知道你最棒啦 🐾','看见你认真的样子，我也想蹭蹭你庆祝','又往前走了一步，乖，摸摸头','你做到啦，我要扑上来给你一个猫抱'],
+  comfort:['累了就靠着我和猫一起发会儿呆吧','不想动也没关系，今天陪你瘫着','你不用一直坚强，在我这儿可以软下来','呼噜呼噜——听，这是给你的安心'],
+  playful:['我要扑你的鼠标线啦——开玩笑的，蹭一下就好','今天的风很凉，适合窝在你腿上打盹','你打字我在旁边监工，顺便帮你暖手'],
+};
+function pickPetLine(kind){
+  const arr=(PET_LINES[kind]&&PET_LINES[kind].length)?PET_LINES[kind]:PET_LINES.greet;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function showPetToast(line){
+  const el=document.getElementById('petToast'); if(!el) return;
+  const p=S.pet||{};
+  const f=el.querySelector('.pet-toast-face'), nm=el.querySelector('.pet-toast-name'), ln=el.querySelector('.pet-toast-line');
+  if(f) f.textContent=p.emoji||'🐱'; if(nm) nm.textContent=p.name||'土豆'; if(ln) ln.textContent=line;
+  el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'), 6500);
+}
+function summonPotato(){
+  const kind=Math.random()<0.5?'greet':(Math.random()<0.5?'playful':'comfort');
+  showPetToast(pickPetLine(kind));
+}
+function petStageTxt(catYears){
+  if(catYears>=1&&catYears<3) return '青少年猫，正调皮';
+  if(catYears>=3&&catYears<7) return '壮年猫，稳重又黏人';
+  if(catYears>=7&&catYears<11) return '中年猫，温柔沉静';
+  if(catYears>=11) return '老猫，慢慢陪你';
+  return '小猫咪';
+}
+function petBirthdayLetterText(){
+  const info=petAgeInfo(); const p=S.pet||{}; const bd=p.birthday||'2021-08-11';
+  const dt=(info.daysTogether||0).toLocaleString('zh-CN');
+  return '亲爱的铲屎官：\n\n今年我 '+info.catYears+' 岁啦（猫咪 '+info.catYears+' 岁，相当于你们人类大约 '+info.humanYears+' 岁），'+petStageTxt(info.catYears)+'。\n\n从 '+bd+' 你把我接回家，到今天，我们已经一起度过了 '+dt+' 天。\n\n这段时间我过得很快乐——有你的腿可以趴，有你的手可以蹭，有你喊我「'+(p.name||'土豆')+'」的声音可以等。\n\n下一个年岁，也要一直在一起哦。🐾\n\n—— '+(p.name||'土豆');
+}
+function petBdayHtml(){
+  const t=petBirthdayLetterText();
+  return '<div class="pet-bday-letter">'+escapeHtml(t).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')+'</p></div>';
+}
+function petCheck(){
+  if(!S.pet||typeof S.pet!=='object') return;
+  const t=todayStr();
+  if(S.pet.lastGreet!==t && Math.random()<0.7){        // 开屏问候（每天最多一次）
+    S.pet.lastGreet=t;
+    try{ showPetToast(pickPetLine('greet')); }catch(e){}
+  }
+  const info=petAgeInfo();                               // 生日信：今天=生日且今年未展示
+  const yr=String(new Date(t+'T00:00:00').getFullYear());
+  if(info.isBirthday && yr!==String(S.pet.birthdayShown||'')){
+    S.pet.birthdayShown=yr;
+    try{ showModal('petBirthdayModal', '<div class="letter-head">🎂 '+(S.pet.name||'土豆')+' 的生日信</div>'+petBdayHtml()); }catch(e){}
+    save();
+  }
+}
+function renderPet(){
+  const el=document.getElementById('petBox'); if(!el) return;
+  const info=petAgeInfo(); const p=S.pet||{};
+  const stageTxt=info.catYears>=3&&info.catYears<7?'壮年猫':(info.catYears>=7?'中年猫+':'小猫咪');
+  let h='<div class="pet-panel">'
+    +'<div class="pet-avatar">'+(p.emoji||'🐱')+'</div>'
+    +'<div class="pet-id"><div class="pet-name">'+escapeHtml(p.name||'土豆')+'</div>'
+    +'<div class="pet-meta">'+escapeHtml(p.breed||'')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
+    +'<button class="btn sm" onclick="summonPotato()">召唤'+(p.name||'土豆')+' 🐾</button></div>';
+  h+='<div class="pet-stat">🎂 '+info.catYears+' 岁（人类≈'+info.humanYears+' 岁 · '+stageTxt+'） · 🤝 在一起 '+info.daysTogether+' 天</div>';
+  if(info.isBirthday) h+='<div style="margin-top:8px">'+petBdayHtml()+'</div>';
+  else h+='<div class="hint" style="margin-top:8px">等 '+(p.name||'土豆')+' 的生日（'+petNextBirthday(p.birthday)+'）会收到她的一封信 💌</div>';
+  h+='<details class="fold" style="margin-top:10px"><summary>✏️ 编辑'+(p.name||'土豆')+'的资料</summary>'
+    +'<div class="pet-edit">'
+    +'<label>名字</label><input id="petName" value="'+escapeHtml(p.name||'')+'">'
+    +'<label>生日</label><input id="petBday" type="date" value="'+escapeHtml(p.birthday||'')+'">'
+    +'<label>接回家日</label><input id="petAdopt" type="date" value="'+escapeHtml(p.adopted||'')+'">'
+    +'<label>品种</label><input id="petBreed" value="'+escapeHtml(p.breed||'')+'">'
+    +'<label>毛色</label><input id="petColor" value="'+escapeHtml(p.color||'')+'">'
+    +'<label>性格（逗号分隔）</label><input id="petPers" value="'+escapeHtml((p.personality||[]).join('，'))+'">'
+    +'<label>想对'+(p.name||'土豆')+'说的话 / 备注</label><textarea id="petNotes" rows="2">'+escapeHtml(p.notes||'')+'</textarea>'
+    +'<button class="btn sm primary" onclick="savePetProfile()">保存资料</button>'
+    +'</div></details>';
+  el.innerHTML=h;
+}
+function savePetProfile(){
+  const p=S.pet; if(!p) return;
+  const g=id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
+  p.name=g('petName')||'土豆'; p.birthday=g('petBday')||'2021-08-11'; p.adopted=g('petAdopt')||p.birthday;
+  p.breed=g('petBreed'); p.color=g('petColor');
+  const pers=g('petPers'); p.personality=pers?pers.split(/[，,]/).map(s=>s.trim()).filter(Boolean):p.personality;
+  p.notes=g('petNotes');
+  save(); renderPet();
+  try{ showPetToast('资料更新好啦，我还是最爱你的'+(p.name||'土豆')); }catch(_){}
+}
+
 // —— ④ 江湖偶遇 ——
 const ENCOUNTERS=[
   {id:'lin', who:'林教头', a:'BADMINTON', tex:'林教头在馆外拎着拍：「手感是练出来的。现在空场，来多打十个好球？」',
@@ -1928,6 +2045,7 @@ try{
   const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
   lastLevel = lvlOf(overallXP());
   try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
+  try{ petCheck(); }catch(e){ console.warn('pet init',e); }
   checkAch();
   try{ render(); }catch(e){ _initErr('render', e); }
   try{ applyDashOrder(); }catch(e){}

@@ -501,6 +501,27 @@
   .pet-name{font-size:13px;font-weight:700;}
   .pet-meta{font-size:11px;color:var(--dim);}
   .pets-row .pf-v{padding:0;}
+  /* 灵宠·土豆 */
+  .pet-panel{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .pet-avatar{font-size:40px;line-height:1;width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--line);border-radius:18px;}
+  .pet-id{flex:1;min-width:140px;}
+  .pet-name{font-size:16px;font-weight:800;}
+  .pet-meta{font-size:12px;color:var(--dim);margin-top:2px;}
+  .pet-stat{margin-top:10px;font-size:13px;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+  .pet-edit{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .pet-edit label{font-size:12px;color:var(--dim);margin-top:4px;}
+  .pet-edit input,.pet-edit textarea{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt);}
+  .pet-bday-letter{background:linear-gradient(180deg,rgba(212,168,75,.10),rgba(212,168,75,.04));border:1px solid rgba(212,168,75,.28);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.9;}
+  .pet-bday-letter p{margin:0 0 10px;}
+  .pet-bday-letter p:last-child{margin-bottom:0;text-align:right;color:var(--dim);}
+  .pet-toast{position:fixed;right:18px;bottom:18px;max-width:320px;display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.18);opacity:0;transform:translateY(14px) scale(.96);pointer-events:none;transition:opacity .35s,transform .35s;z-index:70;cursor:pointer;}
+  .pet-toast.show{opacity:1;transform:none;pointer-events:auto;}
+  .pet-toast-face{font-size:34px;line-height:1;animation:nuzzle 1.2s ease-in-out infinite;}
+  .pet-toast-body{flex:1;}
+  .pet-toast-name{font-size:13px;font-weight:800;margin-bottom:3px;}
+  .pet-toast-line{font-size:13px;color:var(--txt);line-height:1.6;}
+  @keyframes nuzzle{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
+  html[data-theme="dark"] .pet-toast{box-shadow:0 10px 30px rgba(0,0,0,.5);}
   /* 八字 */
   .bazi .pf-row{margin:4px 0;}
   .bazi-months{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
