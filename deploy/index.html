@@ -355,22 +355,21 @@
       <!-- 江湖委托 / WEEKLY CHRONICLE / 周报月报 已移至江湖榜左栏与本周卷册子tab -->
       </div>
 
-      <!-- ===== 江湖榜（江湖委托置于左侧） ===== -->
+      <!-- ===== 江湖榜（江湖委托改为 tab 切换） ===== -->
       <div id="st-jianghu-pane" style="display:none">
-        <div class="jh-layout">
-          <div class="jh-left">
-            <div class="panel">
-              <h2>📜 江湖委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
-                <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
-              <div id="npcBox"></div>
-            </div>
-          </div>
-          <div class="jh-right">
         <div class="tabbar jh-tabs" id="jhTabs">
+          <button class="tab" data-jh="npc" onclick="switchJianghuTab('npc')">📜 江湖委托</button>
           <button class="tab on" data-jh="day" onclick="switchJianghuTab('day')">☀️ 江湖日榜</button>
           <button class="tab" data-jh="week" onclick="switchJianghuTab('week')">📅 江湖周榜</button>
           <button class="tab" data-jh="month" onclick="switchJianghuTab('month')">🌕 江湖月榜</button>
           <button class="tab" data-jh="my" onclick="switchJianghuTab('my')">📌 我的揭榜</button>
+        </div>
+        <div id="jh-npc-pane" style="display:none">
+          <div class="panel">
+            <h2>📜 江湖委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
+              <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
+            <div id="npcBox"></div>
+          </div>
         </div>
         <div id="jh-day-pane">
           <div class="panel jianghu-card"><div id="jianghuBox"></div></div>
@@ -395,8 +394,6 @@
             <div id="myJianghuBox"></div>
           </div>
         </div>
-          </div><!-- /jh-right -->
-        </div><!-- /jh-layout -->
       </div>
       <!-- ===== 本周卷册（WEEKLY CHRONICLE + 周报/月报） ===== -->
       <div id="st-week-pane" style="display:none">

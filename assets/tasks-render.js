@@ -2426,9 +2426,9 @@ function switchShortTaskTab(tab){
   if(tab==='jianghu'){ try{ switchJianghuTab(S.jhTab||'day'); }catch(e){} }
 }
 
-// 江湖榜内 tab 切换：日榜 / 周榜 / 月榜 / 我的揭榜
+// 江湖榜内 tab 切换：委托 / 日榜 / 周榜 / 月榜 / 我的揭榜
 function switchJianghuTab(tab){
-  const order=['day','week','month','my'];
+  const order=['npc','day','week','month','my'];
   if(!order.includes(tab)) tab='day';
   if(typeof S==='object' && S) S.jhTab=tab;
   order.forEach(t=>{
