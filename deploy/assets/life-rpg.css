@@ -522,6 +522,28 @@
   .pet-toast-line{font-size:13px;color:var(--txt);line-height:1.6;}
   @keyframes nuzzle{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
   html[data-theme="dark"] .pet-toast{box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  /* 多只灵宠之间留间距 */
+  .pet-panel:not(:first-child){margin-top:14px;}
+  /* ===== 生日来信 · 重要日子 ===== */
+  .bday-card{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px;background:var(--panel);}
+  .bday-card:last-child{margin-bottom:0;}
+  .bday-card.soon{border-color:rgba(212,168,75,.5);background:linear-gradient(180deg,rgba(212,168,75,.08),rgba(212,168,75,.02));}
+  .bday-card{display:flex;gap:12px;align-items:flex-start;}
+  .bday-ic{font-size:26px;line-height:1;flex:0 0 auto;width:34px;text-align:center;}
+  .bday-main{flex:1 1 auto;min-width:0;}
+  .bday-name{font-size:15px;font-weight:600;}
+  .bday-rel{font-size:12px;color:var(--dim);font-weight:400;margin-left:6px;}
+  .bday-date{font-size:13px;color:var(--dim);margin:2px 0 8px;}
+  .bday-date b{color:var(--accent);}
+  .bday-letter{font-size:13px;line-height:1.85;background:linear-gradient(180deg,rgba(212,168,75,.08),rgba(212,168,75,.03));border:1px solid rgba(212,168,75,.22);border-radius:12px;padding:10px 12px;}
+  .bday-letter.muted{background:var(--panel2);border-style:dashed;color:var(--dim);}
+  .bday-letter p{margin:0 0 8px;}
+  .bday-letter p:last-child{margin-bottom:0;}
+  .bday-quest-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;}
+  .bday-quest-row span{flex:1 1 auto;min-width:0;}
+  /* 生日江湖委托（在江湖委托 npc 页内） */
+  .npcq.bday-quest-head{background:linear-gradient(180deg,rgba(212,168,75,.10),rgba(212,168,75,.03));border-color:rgba(212,168,75,.4);}
+  .npcq.bday-quest{border-color:rgba(212,168,75,.3);}
   /* 八字 */
   .bazi .pf-row{margin:4px 0;}
   .bazi-months{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}

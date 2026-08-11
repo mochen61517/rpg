@@ -312,6 +312,7 @@ function renderNpc(){
       +'</div>'
       +'</div>';
   }).join('')
+  + birthdayQuestRowsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
@@ -647,15 +648,15 @@ function respondLetter(i){
   save(); checkAch(); hideModal('letterModal'); render();
 }
 
-// ===== 灵宠·土豆（可交互猫角色） =====
-// 数据在 S.pet；开屏问候 + 生日信 + 召唤 + 可编辑档案
+// ===== 灵宠（可交互猫角色，可多只） =====
+// 数据在 S.pets[]；开屏问候 + 生日信 + 召唤 + 可编辑档案
 function catToHumanAge(y){            // 兽医通用换算：第1年=15，第2年=25，之后每年+4
   y=Math.max(0,Math.floor(y||0));
   if(y<=0) return 0; if(y===1) return 15; if(y===2) return 25;
   return 25+(y-2)*4;
 }
-function petAgeInfo(){
-  const p=S.pet||{}; const bd=p.birthday||'2021-08-11'; const ad=p.adopted||bd;
+function petAgeInfo(p){
+  p=p||(S.pets&&S.pets[0])||{}; const bd=p.birthday||'2021-02-24'; const ad=p.adopted;
   const today=new Date(todayStr()+'T00:00:00'); const b=new Date(bd+'T00:00:00');
   let ms=today-b; if(ms<0) ms=0;
   const daysTotal=Math.floor(ms/86400000);
@@ -663,8 +664,8 @@ function petAgeInfo(){
   const m=today.getMonth()-b.getMonth();
   if(m<0 || (m===0 && today.getDate()<b.getDate())) y--;   // 按生日周年算整岁（当天满岁）
   const catYears=Math.max(0,y);
-  const a2=new Date(ad+'T00:00:00'); let ams=today-a2; if(ams<0) ams=0;
-  const daysTogether=Math.floor(ams/86400000);
+  let daysTogether=null;
+  if(ad && ad.length>=10){ const a2=new Date(ad+'T00:00:00'); let ams=today-a2; if(ams<0) ams=0; daysTogether=Math.floor(ams/86400000); }
   const isBirthday=bd.slice(5)===todayStr().slice(5);
   return {catYears,humanYears:catToHumanAge(catYears),daysTotal,daysTogether,isBirthday,
     breed:p.breed,color:p.color,name:p.name,emoji:p.emoji||'🐱',personality:p.personality||[]};
@@ -686,17 +687,21 @@ function pickPetLine(kind){
   const arr=(PET_LINES[kind]&&PET_LINES[kind].length)?PET_LINES[kind]:PET_LINES.greet;
   return arr[Math.floor(Math.random()*arr.length)];
 }
-function showPetToast(line){
+function showPetToast(line, p){
   const el=document.getElementById('petToast'); if(!el) return;
-  const p=S.pet||{};
+  p=p||(S.pets&&S.pets[0])||{};
   const f=el.querySelector('.pet-toast-face'), nm=el.querySelector('.pet-toast-name'), ln=el.querySelector('.pet-toast-line');
-  if(f) f.textContent=p.emoji||'🐱'; if(nm) nm.textContent=p.name||'土豆'; if(ln) ln.textContent=line;
+  if(f) f.textContent=p.emoji||'🐱'; if(nm) nm.textContent=p.name||'猫'; if(ln) ln.textContent=line;
   el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'), 6500);
 }
-function summonPotato(){
+function summonPet(i){
+  const pets=S.pets||[]; if(!pets.length) return;
+  if(typeof i!=='number' || isNaN(i)) i=Math.floor(Math.random()*pets.length);
+  const p=pets[i]||pets[0];
   const kind=Math.random()<0.5?'greet':(Math.random()<0.5?'playful':'comfort');
-  showPetToast(pickPetLine(kind));
+  showPetToast(pickPetLine(kind), p);
 }
+function summonPotato(){ summonPet(0); }   // 兼容旧调用（召唤土豆）
 function petStageTxt(catYears){
   if(catYears>=1&&catYears<3) return '青少年猫，正调皮';
   if(catYears>=3&&catYears<7) return '壮年猫，稳重又黏人';
@@ -704,64 +709,212 @@ function petStageTxt(catYears){
   if(catYears>=11) return '老猫，慢慢陪你';
   return '小猫咪';
 }
-function petBirthdayLetterText(){
-  const info=petAgeInfo(); const p=S.pet||{}; const bd=p.birthday||'2021-08-11';
-  const dt=(info.daysTogether||0).toLocaleString('zh-CN');
-  return '亲爱的铲屎官：\n\n今年我 '+info.catYears+' 岁啦（猫咪 '+info.catYears+' 岁，相当于你们人类大约 '+info.humanYears+' 岁），'+petStageTxt(info.catYears)+'。\n\n从 '+bd+' 你把我接回家，到今天，我们已经一起度过了 '+dt+' 天。\n\n这段时间我过得很快乐——有你的腿可以趴，有你的手可以蹭，有你喊我「'+(p.name||'土豆')+'」的声音可以等。\n\n下一个年岁，也要一直在一起哦。🐾\n\n—— '+(p.name||'土豆');
+function petBirthdayLetterText(p){
+  p=p||(S.pets&&S.pets[0])||{}; const info=petAgeInfo(p); const bd=p.birthday||'2021-02-24';
+  const dt=(info.daysTogether!=null)?info.daysTogether.toLocaleString('zh-CN'):'（还没记录接回家日）';
+  return '亲爱的铲屎官：\n\n今年我 '+info.catYears+' 岁啦（猫咪 '+info.catYears+' 岁，相当于你们人类大约 '+info.humanYears+' 岁），'+petStageTxt(info.catYears)+'。\n\n从 '+bd+' 你把我接回家，到今天，我们已经一起度过了 '+dt+' 天。\n\n这段时间我过得很快乐——有你的腿可以趴，有你的手可以蹭，有你喊我「'+(p.name||'猫')+'」的声音可以等。\n\n下一个年岁，也要一直在一起哦。🐾\n\n—— '+(p.name||'猫');
 }
-function petBdayHtml(){
-  const t=petBirthdayLetterText();
+function petBdayHtml(p){
+  const t=petBirthdayLetterText(p);
   return '<div class="pet-bday-letter">'+escapeHtml(t).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')+'</p></div>';
 }
 function petCheck(){
-  if(!S.pet||typeof S.pet!=='object') return;
+  const pets=S.pets||[]; if(!pets.length) return;
   const t=todayStr();
-  if(S.pet.lastGreet!==t && Math.random()<0.7){        // 开屏问候（每天最多一次）
-    S.pet.lastGreet=t;
-    try{ showPetToast(pickPetLine('greet')); }catch(e){}
+  const notGreeted=pets.filter(function(p){ return p.lastGreet!==t; });   // 开屏问候：每天随机一只猫冒泡
+  if(notGreeted.length && Math.random()<0.7){
+    const p=notGreeted[Math.floor(Math.random()*notGreeted.length)];
+    p.lastGreet=t;
+    try{ showPetToast(pickPetLine('greet'), p); }catch(e){}
   }
-  const info=petAgeInfo();                               // 生日信：今天=生日且今年未展示
-  const yr=String(new Date(t+'T00:00:00').getFullYear());
-  if(info.isBirthday && yr!==String(S.pet.birthdayShown||'')){
-    S.pet.birthdayShown=yr;
-    try{ showModal('petBirthdayModal', '<div class="letter-head">🎂 '+(S.pet.name||'土豆')+' 的生日信</div>'+petBdayHtml()); }catch(e){}
-    save();
-  }
+  const yr=String(new Date(t+'T00:00:00').getFullYear());                 // 生日信：今天=某只猫生日且今年未展示
+  pets.forEach(function(p){
+    const info=petAgeInfo(p);
+    if(info.isBirthday && yr!==String(p.birthdayShown||'')){
+      p.birthdayShown=yr;
+      try{ showModal('petBirthdayModal', '<div class="letter-head">🎂 '+(p.name||'猫')+' 的生日信</div>'+petBdayHtml(p)); }catch(e){}
+      save();
+    }
+  });
 }
 function renderPet(){
   const el=document.getElementById('petBox'); if(!el) return;
-  const info=petAgeInfo(); const p=S.pet||{};
-  const stageTxt=info.catYears>=3&&info.catYears<7?'壮年猫':(info.catYears>=7?'中年猫+':'小猫咪');
-  let h='<div class="pet-panel">'
-    +'<div class="pet-avatar">'+(p.emoji||'🐱')+'</div>'
-    +'<div class="pet-id"><div class="pet-name">'+escapeHtml(p.name||'土豆')+'</div>'
-    +'<div class="pet-meta">'+escapeHtml(p.breed||'')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
-    +'<button class="btn sm" onclick="summonPotato()">召唤'+(p.name||'土豆')+' 🐾</button></div>';
-  h+='<div class="pet-stat">🎂 '+info.catYears+' 岁（人类≈'+info.humanYears+' 岁 · '+stageTxt+'） · 🤝 在一起 '+info.daysTogether+' 天</div>';
-  if(info.isBirthday) h+='<div style="margin-top:8px">'+petBdayHtml()+'</div>';
-  else h+='<div class="hint" style="margin-top:8px">等 '+(p.name||'土豆')+' 的生日（'+petNextBirthday(p.birthday)+'）会收到她的一封信 💌</div>';
-  h+='<details class="fold" style="margin-top:10px"><summary>✏️ 编辑'+(p.name||'土豆')+'的资料</summary>'
-    +'<div class="pet-edit">'
-    +'<label>名字</label><input id="petName" value="'+escapeHtml(p.name||'')+'">'
-    +'<label>生日</label><input id="petBday" type="date" value="'+escapeHtml(p.birthday||'')+'">'
-    +'<label>接回家日</label><input id="petAdopt" type="date" value="'+escapeHtml(p.adopted||'')+'">'
-    +'<label>品种</label><input id="petBreed" value="'+escapeHtml(p.breed||'')+'">'
-    +'<label>毛色</label><input id="petColor" value="'+escapeHtml(p.color||'')+'">'
-    +'<label>性格（逗号分隔）</label><input id="petPers" value="'+escapeHtml((p.personality||[]).join('，'))+'">'
-    +'<label>想对'+(p.name||'土豆')+'说的话 / 备注</label><textarea id="petNotes" rows="2">'+escapeHtml(p.notes||'')+'</textarea>'
-    +'<button class="btn sm primary" onclick="savePetProfile()">保存资料</button>'
-    +'</div></details>';
+  const pets=S.pets||[];
+  if(!pets.length){ el.innerHTML='<div class="dash-empty">还没有灵宠。在「添加灵宠」里认识一只猫吧。</div>'; return; }
+  let h='';
+  pets.forEach(function(p,i){
+    const info=petAgeInfo(p);
+    const stageTxt=info.catYears>=3&&info.catYears<7?'壮年猫':(info.catYears>=7?'中年猫+':'小猫咪');
+    h+='<div class="pet-panel">'
+      +'<div class="pet-avatar">'+(p.emoji||'🐱')+'</div>'
+      +'<div class="pet-id"><div class="pet-name">'+escapeHtml(p.name||'猫')+'</div>'
+      +'<div class="pet-meta">'+escapeHtml(p.breed||'未知品种')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
+      +'<button class="btn sm" onclick="summonPet('+i+')">召唤'+(p.name||'猫')+' 🐾</button></div>';
+    h+='<div class="pet-stat">🎂 '+info.catYears+' 岁（人类≈'+info.humanYears+' 岁 · '+stageTxt+'） · 🤝 在一起 '+(info.daysTogether!=null?info.daysTogether:'—')+' 天</div>';
+    if(info.isBirthday) h+='<div style="margin-top:8px">'+petBdayHtml(p)+'</div>';
+    else h+='<div class="hint" style="margin-top:8px">'+(p.name||'猫')+' 的生日（'+petNextBirthday(p.birthday)+'）会收到她的一封信 💌</div>';
+    h+='<details class="fold" style="margin-top:10px"><summary>✏️ 编辑'+(p.name||'猫')+'的资料</summary>'
+      +'<div class="pet-edit">'
+      +'<label>名字</label><input id="petName_'+i+'" value="'+escapeHtml(p.name||'')+'">'
+      +'<label>生日</label><input id="petBday_'+i+'" type="date" value="'+escapeHtml(p.birthday||'')+'">'
+      +'<label>接回家日</label><input id="petAdopt_'+i+'" type="date" value="'+escapeHtml(p.adopted||'')+'">'
+      +'<label>品种</label><input id="petBreed_'+i+'" value="'+escapeHtml(p.breed||'')+'">'
+      +'<label>毛色</label><input id="petColor_'+i+'" value="'+escapeHtml(p.color||'')+'">'
+      +'<label>性格（逗号分隔）</label><input id="petPers_'+i+'" value="'+escapeHtml((p.personality||[]).join('，'))+'">'
+      +'<label>想对'+(p.name||'猫')+'说的话 / 备注</label><textarea id="petNotes_'+i+'" rows="2">'+escapeHtml(p.notes||'')+'</textarea>'
+      +'<button class="btn sm primary" onclick="savePetProfile('+i+')">保存资料</button>'
+      +'</div></details>';
+    h+='</div>';
+  });
   el.innerHTML=h;
 }
-function savePetProfile(){
-  const p=S.pet; if(!p) return;
+function savePetProfile(i){
+  const p=(S.pets||[])[i]; if(!p) return;
   const g=id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
-  p.name=g('petName')||'土豆'; p.birthday=g('petBday')||'2021-08-11'; p.adopted=g('petAdopt')||p.birthday;
-  p.breed=g('petBreed'); p.color=g('petColor');
-  const pers=g('petPers'); p.personality=pers?pers.split(/[，,]/).map(s=>s.trim()).filter(Boolean):p.personality;
-  p.notes=g('petNotes');
+  p.name=g('petName_'+i)||'猫'; p.birthday=g('petBday_'+i)||'2021-02-24'; p.adopted=g('petAdopt_'+i)||'';
+  p.breed=g('petBreed_'+i); p.color=g('petColor_'+i);
+  const pers=g('petPers_'+i); p.personality=pers?pers.split(/[，,]/).map(s=>s.trim()).filter(Boolean):p.personality;
+  p.notes=g('petNotes_'+i);
   save(); renderPet();
-  try{ showPetToast('资料更新好啦，我还是最爱你的'+(p.name||'土豆')); }catch(_){}
+  try{ showPetToast('资料更新好啦，我还是最爱你的'+(p.name||'猫'), p); }catch(_){}
+}
+
+// ===== 重要日子 · 生日提醒 + 自动江湖委托 =====
+const BIRTHDAY_LEAD_DAYS = 3;     // 生日提前 N 天来信通知 + 安排江湖委托
+// 阴历→阳历换算表（1900-2100，标准 lunarInfo，来源 solarlunar）
+const LUNAR_INFO=[0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x05ac0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x092e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a4d0,0x0d150,0x0f252,0x0d520];
+function lunarLeapMonth(y){ return LUNAR_INFO[y-1900]&0xf; }
+function lunarLeapDays(y){ const lm=lunarLeapMonth(y); if(!lm) return 0; return (LUNAR_INFO[y-1900]&0x10000)?30:29; }
+function lunarMonthDays(y,m){ return (LUNAR_INFO[y-1900]&(0x10000>>m))?30:29; }
+function lunarYearDays(y){ let s=348; for(let i=0x8000;i>0x8;i>>=1) s+=(LUNAR_INFO[y-1900]&i)?1:0; return s+lunarLeapDays(y); }
+function lunarToSolar(ly,lm,ld){
+  let offset=0; for(let i=1900;i<ly;i++) offset+=lunarYearDays(i);
+  for(let i=1;i<lm;i++) offset+=lunarMonthDays(ly,i);
+  const lm2=lunarLeapMonth(ly);
+  if(lm2>0 && lm2<lm) offset+=lunarLeapDays(ly);
+  offset+=ld-1;
+  const d=new Date(Date.UTC(1900,0,31)+offset*86400000);
+  return {y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()};
+}
+
+function birthdayEntities(){
+  const arr=[];
+  (S.pets||[]).forEach(function(p,idx){ arr.push({uid:'pet_'+idx,type:'pet',name:p.name||'猫',rel:'灵宠',date:(p.birthday||'').slice(5)||p.birthday,lunar:false,note:''}); });
+  (S.birthdays||[]).forEach(function(b,idx){ arr.push({uid:'bd_'+idx,type:'person',name:b.name,rel:b.rel,date:b.date||'',lunar:!!b.lunar,note:b.note||''}); });
+  return arr;
+}
+function nextOccurrence(e, nowStr){
+  nowStr=nowStr||todayStr();
+  const now=new Date(nowStr+'T00:00:00');
+  if(e.lunar){
+    const mm=parseInt(e.date.slice(0,2),10), dd=parseInt(e.date.slice(3,5),10);
+    if(isNaN(mm)||isNaN(dd)) return {solar:'',daysLeft:9999,year:now.getFullYear(),label:e.date+'（阴历）'};
+    let s=lunarToSolar(now.getFullYear(),mm,dd);
+    let sd=new Date(s.y+'-'+(s.m<10?'0':'')+s.m+'-'+(s.d<10?'0':'')+s.d+'T00:00:00');
+    if(sd<now){ const s2=lunarToSolar(now.getFullYear()+1,mm,dd); sd=new Date(s2.y+'-'+(s2.m<10?'0':'')+s2.m+'-'+(s2.d<10?'0':'')+s2.d+'T00:00:00'); s=s2; }
+    const solar=(s.m<10?'0':'')+s.m+'-'+(s.d<10?'0':'')+s.d;
+    return {solar:solar,year:s.y,daysLeft:Math.ceil((sd-now)/86400000),label:s.m+'月'+s.d+'日（阴历'+e.date+'）'};
+  }
+  const mmdd=e.date; if(!mmdd||mmdd.length<5) return {solar:'',daysLeft:9999,year:now.getFullYear(),label:e.date};
+  const y=now.getFullYear();
+  let d=new Date(y+'-'+mmdd+'T00:00:00');
+  if(d<now) d=new Date((y+1)+'-'+mmdd+'T00:00:00');
+  return {solar:mmdd,year:d.getFullYear(),daysLeft:Math.ceil((d-now)/86400000),label:mmdd.replace('-','月')+'日'};
+}
+function birthdayReminderText(e, occ){
+  const who=e.name;
+  const lead = occ.daysLeft===0 ? ('今天就是 '+who+' 的生日啦') : ('还有 '+occ.daysLeft+' 天就是 '+who+'（'+e.rel+'）的生日');
+  const prep = e.note ? ('记得：'+e.note+'。') : '';
+  if(e.type==='pet'){
+    return '亲爱的铲屎官：\n\n'+lead+'（'+occ.label+'）。\n\n'+prep+'陪 '+(who)+' 多玩一会儿，给她最爱的罐头或冻干，拍张生日照留念吧——被你记挂着的猫，最幸福了。\n\n已为你备好一份生日江湖委托，去完成它，给她一个稳稳的生日。🐾';
+  }
+  return '亲爱的 Mochen：\n\n'+lead+'（'+occ.label+'）。\n\n'+prep+'重要的人，值得被认真地惦记。已为你备好一份生日江湖委托，去完成它，让这份心意落进日常里。💌';
+}
+function birthdayQuestTitle(e){
+  if(e.type==='pet') return '🎂 给'+e.name+'过生日：备好罐头/冻干 + 拍张生日照';
+  if(e.name==='我自己') return '🎂 给自己的生日：放半天假 + 写一句今年的愿望';
+  if(e.rel==='父亲') return '🎂 给爸爸的生日：打个电话 / 发消息说声生日快乐';
+  if(e.rel==='母亲') return '🎂 给妈妈的生日：做顿饭 / 买束花 / 视频通话';
+  return '🎂 给'+e.name+'的生日：发一句祝福，约个见面';
+}
+function birthdayCheck(nowStr){
+  nowStr=nowStr||todayStr();
+  let created=0;
+  birthdayEntities().forEach(function(e){
+    const occ=nextOccurrence(e, nowStr);
+    if(occ.daysLeft<0 || occ.daysLeft>BIRTHDAY_LEAD_DAYS) return;   // 仅临近窗口内（提前 N 天 ~ 当天）
+    const key=e.uid+'#'+occ.year;
+    const si=+e.uid.split('_')[1];
+    const storeObj = e.type==='pet' ? (S.pets||[])[si] : (S.birthdays||[])[si];
+    if(storeObj && storeObj.remindKey===key) return;                // 今年已提醒过
+    if(storeObj) storeObj.remindKey=key;
+    const id='bdr_'+e.uid+'_'+occ.year;
+    (S.birthdayReminders=S.birthdayReminders||[]).push({id:id,forName:e.name,rel:e.rel,type:e.type,solarDate:occ.solar,daysLeft:occ.daysLeft,body:birthdayReminderText(e,occ),year:occ.year,read:false,questId:'bdq_'+e.uid+'_'+occ.year});
+    const qid='bdq_'+e.uid+'_'+occ.year;
+    const quests=S.birthdayQuests=S.birthdayQuests||[];
+    if(!quests.some(function(q){return q.id===qid;})){
+      quests.push({id:qid,icon:'🎂',forName:e.name,rel:e.rel,type:e.type,title:birthdayQuestTitle(e),a:'MIND',xp:(e.type==='pet'?25:(e.name==='我自己'?30:25)),due:occ.solar,done:false,year:occ.year,bdayLabel:occ.label});
+    }
+    created++;
+  });
+  if(created) save();
+  return created;
+}
+function birthdayQuestRowsHtml(){
+  const qs=(S.birthdayQuests||[]).filter(function(q){return !q.done;});
+  if(!qs.length) return '';
+  return '<div class="npcq bday-quest-head"><div class="npc-ic">🎂</div><div class="npc-body"><div class="npc-n">生日江湖委托</div><div class="npc-t">重要日子临近，为他们在江湖里留一份心意</div></div></div>'
+    + qs.map(function(q){
+      return '<div class="npcq bday-quest">'
+        +'<div class="npc-ic">'+q.icon+'</div>'
+        +'<div class="npc-body"><div class="npc-n">'+escapeHtml(q.forName)+' <span class="npc-d">'+(q.rel||'')+'</span></div>'
+        +'<div class="npc-t">「'+escapeHtml(q.title)+'」</div>'
+        +'<div class="npc-rel"><span class="jh-attr">🧠 心智</span><span class="jh-diff">'+jianghuStars(1)+'</span></div></div>'
+        +'<div class="npc-r"><span class="npc-xp">+'+q.xp+'</span>'
+        +'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="birthdayQuestToggle(\''+q.id+'\')">'+(q.done?'撤销':'完成')+'</button></div>'
+        +'</div>';
+    }).join('');
+}
+function birthdayQuestToggle(id){
+  const qs=S.birthdayQuests||[]; const q=qs.find(function(x){return x.id===id;}); if(!q) return;
+  const a='MIND';
+  if(!q.done){ q.done=true; grant(a,q.xp); addHist('✔【生日委托】'+q.title+' +'+q.xp+' XP',q.xp); save(); render(); try{ celebrateTask('🎂 '+q.title+' · +'+q.xp+' XP'); }catch(e){} }
+  else { q.done=false; grant(a,q.xp,true); addHist('✘【生日委托】'+q.title,-q.xp); save(); render(); }
+}
+function renderBirthday(){
+  const el=document.getElementById('birthdayBox'); if(!el) return;
+  const ents=birthdayEntities();
+  if(!ents.length){ el.innerHTML='<div class="dash-empty">还没有设置重要日子。</div>'; return; }
+  const now=todayStr();
+  let anyUnread=false;
+  let h='';
+  ents.forEach(function(e){
+    const occ=nextOccurrence(e, now);
+    const qid='bdq_'+e.uid+'_'+occ.year;
+    const q=(S.birthdayQuests||[]).find(function(x){return x.id===qid;});
+    const rem=(S.birthdayReminders||[]).find(function(x){return x.id==='bdr_'+e.uid+'_'+occ.year;});
+    if(rem && !rem.read){ rem.read=true; anyUnread=true; }
+    const cnt = occ.daysLeft===0?'🎉 今天！':('还有 '+occ.daysLeft+' 天');
+    const icon = e.type==='pet'?'🐱':(e.rel==='自己'?'🎂':(e.rel==='父亲'?'👨':(e.rel==='母亲'?'👩':'💛')));
+    const yrTag = occ.year>new Date(now+'T00:00:00').getFullYear() ? '（明年）' : '';
+    let card='<div class="bday-card'+(occ.daysLeft<=BIRTHDAY_LEAD_DAYS?' soon':'')+'">'
+      +'<div class="bday-ic">'+icon+'</div>'
+      +'<div class="bday-main"><div class="bday-name">'+escapeHtml(e.name)+' <span class="bday-rel">'+escapeHtml(e.rel)+'</span></div>'
+      +'<div class="bday-date">下一次生日：'+escapeHtml(occ.label)+yrTag+' · <b>'+cnt+'</b></div>';
+    if(rem){
+      card+='<div class="bday-letter">'+escapeHtml(rem.body).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')+'</p></div>';
+    } else {
+      card+='<div class="bday-letter muted">生日临近（提前 '+BIRTHDAY_LEAD_DAYS+' 天）时会自动寄来一封信，并为你安排一份生日江湖委托。</div>';
+    }
+    if(q){
+      card+='<div class="bday-quest-row"><span>🎂 '+escapeHtml(q.title)+'</span>'
+        +'<button class="btn xs '+(q.done?'ghost':'primary')+'" onclick="birthdayQuestToggle(\''+q.id+'\')">'+(q.done?'已完成 ✓':'完成 +'+q.xp)+'</button></div>';
+    }
+    card+='</div></div>';
+    h+=card;
+  });
+  el.innerHTML=h;
+  if(anyUnread){ try{ save(); }catch(e){} }
 }
 
 // —— ④ 江湖偶遇 ——
@@ -1033,6 +1186,13 @@ function notifList(){
     _mj.forEach(function(e){
       const _od=e.deadline<Date.now();
       arr.push({page:'action', tab:'my', ic:'🗡️', t:'揭榜待完成：'+e.t, d:(_od?'已逾期 · ':'截止 ')+fmtDeadline(e.deadline)+(_od?'（仍可完成）':''), key:'myjianghu', scroll:'myJianghuBox'});
+    });
+  }catch(e){}
+  // 生日来信：临近窗口内未读的提醒进通知中心
+  try{
+    (S.birthdayReminders||[]).forEach(function(r){
+      if(r.read) return;
+      arr.push({page:'journey', ic:'💌', t:(r.forName||'')+' 的生日来信', d:(r.daysLeft===0?'今天！':('还有 '+r.daysLeft+' 天')+' · 已备好江湖委托'), key:'bday_'+r.id, scroll:'birthdayBox'});
     });
   }catch(e){}
   return arr;
@@ -2046,6 +2206,7 @@ try{
   lastLevel = lvlOf(overallXP());
   try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
   try{ petCheck(); }catch(e){ console.warn('pet init',e); }
+  try{ birthdayCheck(); }catch(e){ console.warn('birthday init',e); }
   checkAch();
   try{ render(); }catch(e){ _initErr('render', e); }
   try{ applyDashOrder(); }catch(e){}

@@ -684,12 +684,24 @@ function defaultState(){
     todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
     jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
-    pet: {                          // 灵宠·土豆（可交互猫角色）
-      name:'土豆', birthday:'2021-08-11', adopted:'2021-08-11',
-      breed:'中华田园（狸花橘）', color:'橘黄虎斑', emoji:'🐱',
-      personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],
-      notes:'', lastGreet:'', birthdayShown:''   // lastGreet=最近问候日期; birthdayShown=已展示生日信年份
-    },
+    pets: [                        // 灵宠（可交互猫角色，可多只）
+      { name:'土豆', birthday:'2021-02-24', adopted:'',
+        breed:'中华田园（狸花橘）', color:'橘黄虎斑', emoji:'🐱',
+        personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],
+        notes:'', lastGreet:'', birthdayShown:'', remindKey:'' },
+      { name:'pepper', birthday:'2022-06-25', adopted:'',
+        breed:'', color:'', emoji:'🐱',
+        personality:['黏人','爱撒娇','护食','半夜跑酷'],
+        notes:'', lastGreet:'', birthdayShown:'', remindKey:'' }
+    ],
+    birthdays: [                   // 重要日子·生日提醒（灵宠见 pets；此处为人）
+      {name:'我自己', rel:'自己', date:'06-15', lunar:false, note:'给自己放个假，写一句今年的生日愿望', remindKey:''},
+      {name:'我爸',  rel:'父亲', date:'12-05', lunar:false, note:'打个电话 / 发消息说声生日快乐', remindKey:''},
+      {name:'我妈',  rel:'母亲', date:'03-16', lunar:true,  note:'做顿饭 / 买束花 / 视频通话', remindKey:''},
+      {name:'鹿茸',  rel:'好友', date:'10-28', lunar:true,  note:'发一句生日祝福，约个见面', remindKey:''}
+    ],
+    birthdayReminders: [],        // 生日来信：临近时生成的提醒信 {id,forName,rel,type,solarDate,daysLeft,body,year,read,questId}
+    birthdayQuests: [],           // 生日江湖委托：{id,icon,forName,rel,type,title,a,xp,due,done,year,bdayLabel}
   };
 }
 
@@ -1008,14 +1020,32 @@ function migrate(){
   if(!S.bonds || typeof S.bonds!=='object') S.bonds={awarded:[],viewed:[]};
   if(!Array.isArray(S.bonds.awarded)) S.bonds.awarded=[];
   if(!Array.isArray(S.bonds.viewed)) S.bonds.viewed=[];
-  // 灵宠·土豆：缺省补全（老存档无 pet 字段时）
-  if(!S.pet || typeof S.pet!=='object') S.pet={name:'土豆',birthday:'2021-08-11',adopted:'2021-08-11',breed:'中华田园（狸花橘）',color:'橘黄虎斑',emoji:'🐱',personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],notes:'',lastGreet:'',birthdayShown:''};
-  if(typeof S.pet.name!=='string'||!S.pet.name) S.pet.name='土豆';
-  if(typeof S.pet.birthday!=='string') S.pet.birthday='2021-08-11';
-  if(typeof S.pet.adopted!=='string') S.pet.adopted=S.pet.birthday;
-  if(!Array.isArray(S.pet.personality)) S.pet.personality=['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'];
-  if(typeof S.pet.lastGreet!=='string') S.pet.lastGreet='';
-  if(typeof S.pet.birthdayShown!=='string') S.pet.birthdayShown='';
+  // 灵宠 pets（v6.0.9 由单只 S.pet 升级为多只数组）
+  if(!Array.isArray(S.pets)){
+    const _old=S.pet;
+    S.pets = (_old && typeof _old==='object') ? [_old] : [];
+  }
+  if(!S.pets.length) S.pets=[{name:'土豆',birthday:'2021-02-24',adopted:'',breed:'中华田园（狸花橘）',color:'橘黄虎斑',emoji:'🐱',personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],notes:'',lastGreet:'',birthdayShown:'',remindKey:''}];
+  S.pets.forEach(function(p){
+    if(typeof p.name!=='string'||!p.name) p.name='猫';
+    if(typeof p.birthday!=='string') p.birthday='2021-02-24';
+    if(typeof p.adopted!=='string') p.adopted='';
+    if(!Array.isArray(p.personality)) p.personality=['黏人','爱蹭人','爱撒娇','认主'];
+    if(typeof p.emoji!=='string'||!p.emoji) p.emoji='🐱';
+    if(typeof p.lastGreet!=='string') p.lastGreet='';
+    if(typeof p.birthdayShown!=='string') p.birthdayShown='';
+    if(typeof p.remindKey!=='string') p.remindKey='';
+  });
+  if(!Array.isArray(S.birthdays)) S.birthdays=[
+    {name:'我自己',rel:'自己',date:'06-15',lunar:false,note:'给自己放个假，写一句今年的生日愿望',remindKey:''},
+    {name:'我爸',rel:'父亲',date:'12-05',lunar:false,note:'打个电话 / 发消息说声生日快乐',remindKey:''},
+    {name:'我妈',rel:'母亲',date:'03-16',lunar:true,note:'做顿饭 / 买束花 / 视频通话',remindKey:''},
+    {name:'鹿茸',rel:'好友',date:'10-28',lunar:true,note:'发一句生日祝福，约个见面',remindKey:''}
+  ];
+  S.birthdays.forEach(function(b){ if(typeof b.remindKey!=='string') b.remindKey=''; if(typeof b.note!=='string') b.note=''; if(typeof b.lunar!=='boolean') b.lunar=false; });
+  if(!Array.isArray(S.birthdayReminders)) S.birthdayReminders=[];
+  if(!Array.isArray(S.birthdayQuests)) S.birthdayQuests=[];
+  delete S.pet;   // 旧单只字段已并入 S.pets
   // v5.21 新字段兜底（身体/心理年龄）
   if(!S.bioAge || typeof S.bioAge!=='object') S.bioAge={sleepHours:null,steps:null,restingHR:null,lastCompute:'',bodyAge:0,mentalAge:0,factors:{}};
   // v5.21.1 低频疗愈组冷却
