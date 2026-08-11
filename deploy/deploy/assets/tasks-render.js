@@ -1853,7 +1853,7 @@ function ensureJianghuPeriod(kind, force){
   const st = kind==='week' ? (S.jianghuWeek=S.jianghuWeek||{key:'',seed:0,list:[]}) : (S.jianghuMonth=S.jianghuMonth||{key:'',seed:0,list:[]});
   if(typeof st.seed!=='number') st.seed=0;
   if(force) st.seed++;
-  const stale = st.key!==key || !Array.isArray(st.list) || !st.list.length;
+  const stale = st.key!==key || !Array.isArray(st.list) || !st.list.length || st.list.length>6;
   if(stale || force){
     const old=(st.key===key && Array.isArray(st.list))?st.list:[];
     const list=[];
