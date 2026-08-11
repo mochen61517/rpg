@@ -271,7 +271,7 @@
   .layout{display:flex;min-height:100vh;max-width:1180px;margin:0 auto}
   .sidebar{width:212px;flex:0 0 212px;background:var(--panel);border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
   .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-  .brand-ic{width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#c94a4a,#8a2e2e);color:#f3e9d8;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;border:1px solid #d4a84b;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .brand-ic{width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#c94a4a,#8a2e2e);background-size:cover;background-position:center;background-repeat:no-repeat;color:#f3e9d8;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;border:1px solid #d4a84b;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   .brand-t{font-size:15px;font-weight:700;line-height:1.2}
   .brand-t span{display:block;font-size:11px;color:var(--gold);font-weight:400;margin-top:1px}
   .nav{display:flex;flex-direction:column;gap:5px}
@@ -696,6 +696,11 @@
   .loot-tabs{display:flex;gap:8px;margin-bottom:12px}
   .loot-tab{padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);cursor:pointer;font:inherit}
   .loot-tab.active{background:var(--bm);color:#0a1828;border-color:var(--bm);font-weight:700}
+  /* v5.51.20 修行成长页三合一 tab：长期复利轨道 / 人生愿望 / 嘉奖箱 */
+  .gp-tabs{display:flex;gap:8px;margin:16px 0 10px;flex-wrap:wrap}
+  .gp-tab{padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);cursor:pointer;font:inherit;font-size:13px}
+  .gp-tab.on{background:var(--grw);color:#06121f;border-color:var(--grw);font-weight:700}
+  .gp-pane{margin-bottom:10px}
   .equip-summary{padding:10px 12px;border-radius:10px;background:rgba(124,156,255,.12);color:var(--ink);font-size:13px;margin-bottom:12px}
   .equip-list{display:flex;flex-direction:column;gap:10px}
   .equip{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
@@ -852,6 +857,11 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .rep-actions-g{font-size:13px;color:var(--txt);font-weight:600}
 .rep-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:680px){ .rep-wrap{grid-template-columns:1fr} }
+/* 江湖委托置于江湖日榜左侧 v5.51.16 */
+.jh-layout{display:flex;gap:14px;align-items:flex-start}
+.jh-left{flex:0 0 320px;max-width:340px;min-width:0}
+.jh-right{flex:1 1 auto;min-width:0}
+@media(max-width:880px){ .jh-layout{flex-wrap:wrap} .jh-left{flex:1 1 100%;max-width:none} }
 .rep-pane{display:flex;flex-direction:column;min-width:0}
 .rep-pane-h{font-size:13px;color:var(--dim);font-weight:600;margin-bottom:6px;letter-spacing:.5px}
 .rep-pane .report-box{min-height:60px}
@@ -1265,7 +1275,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .tf-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .tf-row.two{align-items:center}
 .tf-row.two label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
-.tf-row.two label input[type=date]{padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--txt);font-family:inherit;font-size:12px}
+.tf-row.two label input[type=date],.tf-row.two label input[type=text]{padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--txt);font-family:inherit;font-size:12px}
 .tf-hint{font-size:12px;color:var(--dim);font-style:italic}
 .tf-inp{flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--txt);font-family:inherit;font-size:13.5px}
 .tf-inp.sub{flex:1;min-width:120px;color:var(--dim)}
@@ -1457,7 +1467,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
     padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel2)}
   .jh-score small{display:block;font-size:10px;color:var(--dim);font-weight:400}
   .jh-list{display:flex;flex-direction:column;gap:7px}
-  .jh-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);
+  .jh-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border:1px solid var(--line);
     border-radius:10px;background:var(--panel2);position:relative;overflow:hidden}
   .jh-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line)}
   .jh-row.d5::before{background:#c94a4a}
@@ -1469,7 +1479,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .jh-row.done .jh-t{text-decoration:line-through}
   .jh-rank{width:20px;flex:none;text-align:center;font-size:13px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
   .jh-body{flex:1;min-width:0}
-  .jh-t{font-size:14px;color:var(--txt);line-height:1.35}
+  .jh-t{font-size:14px;color:var(--txt);line-height:1.35;word-break:break-word;overflow-wrap:anywhere}
   .jh-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:3px;font-size:11px;color:var(--dim)}
   .jh-diff b{color:var(--gold);font-weight:400}
   .jh-diff i{color:var(--line);font-style:normal}

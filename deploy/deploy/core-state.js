@@ -1015,6 +1015,7 @@ function setupPwdGate(){
   const tryPwd=()=>{
     if(inp.value===effectivePwd()){
       gate.style.display='none'; inp.value=''; err.style.display='none';
+      if(typeof showPage==='function') showPage('dashboard'); // 登录成功默认进入仪表盘
     } else {
       err.textContent='口令错误，请重试';
       err.style.display='block';

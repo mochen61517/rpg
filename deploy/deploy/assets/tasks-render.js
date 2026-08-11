@@ -87,6 +87,40 @@ function addChecklistMin(kind,i,ii){
   if(!c.paused) floatXP('+'+inc+' XP','qi_'+x.id);
   save();checkAch();render();
 }
+let DEFAULT_AVATAR='';
+function initAvatar(){
+  const ha=document.getElementById('heroAvatar');
+  if(ha && ha.src) DEFAULT_AVATAR=ha.src;
+}
+function applyAvatar(){
+  const src=(S.avatar && S.avatar.startsWith('data:')) ? S.avatar : DEFAULT_AVATAR;
+  const ha=document.getElementById('heroAvatar'); if(ha) ha.src=src;
+  const ba=document.getElementById('brandAvatar');
+  if(ba){ ba.style.backgroundImage=src?'url('+src+')':''; ba.textContent=src?'':'🕯️'; }
+}
+function uploadAvatar(input){
+  const f=input && input.files && input.files[0]; if(!f) return;
+  if(!f.type.startsWith('image/')){ alert('请上传图片文件'); if(input) input.value=''; return; }
+  const url=URL.createObjectURL(f);
+  const img=new Image();
+  img.onload=function(){
+    const canvas=document.createElement('canvas');
+    const MAX=400;
+    let w=img.width,h=img.height;
+    if(w>MAX || h>MAX){ if(w>h){ h=Math.round(h*MAX/w); w=MAX; }else{ w=Math.round(w*MAX/h); h=MAX; } }
+    canvas.width=w; canvas.height=h;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img,0,0,w,h);
+    const data=canvas.toDataURL('image/jpeg',0.85);
+    S.avatar=data; save(); render();
+    URL.revokeObjectURL(url);
+  };
+  img.onerror=function(){ alert('图片加载失败'); URL.revokeObjectURL(url); };
+  img.src=url;
+  if(input) input.value='';
+}
+function resetAvatar(){ S.avatar=''; save(); render(); }
 function addQuest(kind){
   const txt=document.getElementById(kind[0]+'Text').value.trim();
   const a=document.getElementById(kind[0]+'Attr').value;
@@ -200,6 +234,14 @@ function addYear(){
   const t=document.getElementById('yText').value.trim(); if(!t)return;
   S.year.push({id:id(),t,paused:false,done:false,items:[]});
   document.getElementById('yText').value=''; save();render();
+}
+// v5.51.17 基于 E:\唱歌 历史截图 OCR 得到的声乐数据（2026-07-04 / 07-25 / 08-09 三次 K歌）
+const SINGING_SCORE_DATA={updated:'2026-08-11',sessions:3,songs:46,best:86.20,latestAvg:78.67,overallAvg:74.44,trend:[65.82,73.84,78.67]};
+function delYearQuest(i){
+  const c=S.year[i]; if(!c) return;
+  if(!confirm('确定删除年度主线「'+c.t+'」？')) return;
+  S.year=S.year.filter(function(_,idx){return idx!==i;});
+  save();render();
 }
 function renameQuest(kind,idx){
   const o = kind==='year'?S.year[idx]:(kind==='month'?S.month:S.week);
@@ -1379,8 +1421,12 @@ function yearGoalAnalysis(c,i){
   const itemPct= total? Math.round(doneEv/total*100):0;
   const trackKey=yearTrackFor(c.t), track=LIFE_TRACKS[trackKey];
   let progressPct=itemPct, progressNote='';
-  if(track){
-    const H=(trackKey==='badminton'? (BM_PLAY_BASE+BM_BASIC_BASE) : (track.base||0))/60;
+  if(trackKey==='singing' && SINGING_SCORE_DATA){
+    const sd=SINGING_SCORE_DATA;
+    progressPct=Math.min(100,Math.round((Math.min(sd.best,90)-80)/10*100));
+    progressNote='（按 K歌成绩：单次最高 '+sd.best+'，近一次场均 '+sd.latestAvg+'）';
+  } else if(track){
+    const H=(track.base||0)/60;
     const tgt = track.realms.length>=5? track.realms[4][0] : (track.realms[track.realms.length-1][0]||10000);
     const tpct=Math.min(100,Math.round(H/tgt*100));
     if(!total){ progressPct=tpct; progressNote='（按'+track.ic+track.n+'累计 '+Math.round(H)+'h 估算）'; }
@@ -1393,11 +1439,15 @@ function yearGoalAnalysis(c,i){
   else { predLabel='大概率完不成，建议调整'; predClass='bad'; }
   const advice=[];
   if(trackKey==='badminton'){
-    const playAvg=badmintonAvgHours('badminton',8), basicAvg=badmintonAvgHours('bmbasic',8);
-    const tot=playAvg+basicAvg;
-    advice.push('近 8 周：打球约 '+playAvg.toFixed(1)+' h/周，基本功约 '+basicAvg.toFixed(1)+' h/周（合计 '+tot.toFixed(1)+'）。想稳上 3.5，建议每周 ≥1 次对抗 + 基本功练习。');
-    advice.push('羽毛球终身已累计 '+Math.round((BM_PLAY_BASE+BM_BASIC_BASE)/60)+' 小时（打球+基本功）——节奏不断，水平自然到。');
-    if(tot<2) advice.push('当前周均低于 2 小时，想冲 3.5 得把频率提上来：先从「每周固定一场对抗」开始最稳。');
+    const avg=badmintonAvgHours('badminton',8);
+    advice.push('近 8 周：羽毛球约 '+avg.toFixed(1)+' h/周（打球+基本功合并统计）。想稳上 3.5，建议每周 ≥1 次对抗 + 基本功练习。');
+    advice.push('羽毛球终身已累计 '+Math.round((BM_PLAY_BASE+BM_BASIC_BASE)/60)+' 小时（打球+基本功合并）——节奏不断，水平自然到。');
+    if(avg<2) advice.push('当前周均低于 2 小时，想冲 3.5 得把频率提上来：先从「每周固定一场对抗」开始最稳。');
+  } else if(trackKey==='singing' && SINGING_SCORE_DATA){
+    const sd=SINGING_SCORE_DATA;
+    advice.push('最近 '+sd.sessions+' 次 K歌共 '+sd.songs+' 首，场均走势 '+sd.trend.join(' → ')+'，整体在往上走。');
+    advice.push('目标「单首破 90」：当前最高 '+sd.best+'，还差 '+(90-sd.best).toFixed(1)+' 分；近一次场均 '+sd.latestAvg+'，先稳到 85+ 再冲 90。');
+    if(sd.best>=85) advice.push('已有 85+ 表现，说明舒适区基本稳定；下一步挑 1–2 首最稳的歌反复打磨，把最高分推到 90。');
   } else if(track){
     advice.push('主线关联 '+track.ic+track.n+'（累计 '+Math.round((track.base||0)/60)+'h）。把它拆成每周可勾选的小动作，进度才看得清。');
   }
@@ -1423,7 +1473,7 @@ function yearAnalysisCard(c,i){
   }
   const stepsBody = yearStepsBody(c,i,a);
   return '<div class="ya-card'+(paused?' paused':'')+'">'
-    +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+'</span></div>'
+    +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+'<span class="qdel" onclick="delYearQuest('+i+')" title="删除">×</span></span></div>'
     +'<div class="ya-elapsed">📅 今年已过 <b>'+a.elapsedDays+'</b> 天 · 占 <b>'+a.elapsedPct+'%</b></div>'
     +'<div class="ya-prog"><div class="ya-bar"><i class="ya-fill ya-'+a.predClass+'" style="width:'+a.progressPct+'%"></i></div>'
     +'<div class="ya-prog-label">数据进度 <b>'+a.progressPct+'%</b>'+(a.progressNote||'')+' · 预计年末达成度 <b class="ya-'+a.predClass+'">'+a.predLabel+'</b>（'+a.projected+'%）</div></div>'
@@ -1594,6 +1644,25 @@ function toggleTodayMain(k){
   save(); renderTodayCockpit(); try{ renderLifeCompound(); }catch(e){}
 }
 function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(); }
+const TRACK_LIGHT_HINTS={
+  singing:['今天就花一些时间，唱一唱自己喜欢的歌吧。','让声音在房间里走一圈，不必唱给别人听。','选一首会让自己轻轻晃起来的歌。','哪怕只唱五分钟，也算今天被歌声吻过。'],
+  piano:['今天弹一小段，让手指先醒过来。','打开琴盖，只练一个乐句也很好。','听一听琴声怎么把房间填满。','把最卡的两小节放慢一半。'],
+  reading:['读几页书，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。','今天允许自己只读喜欢的那一本。'],
+  stretch:['今天给身体十分钟，问问它哪里紧。','铺一张垫子，把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。','先问身体：今天哪里最需要被照顾？'],
+  body:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。','今天对身体的照顾，会在明天还给你。'],
+  badminton:['今天去球场，哪怕只打半小时。','把注意力放在脚步，而不是输赢。','找一个人，认真地打一局。','启动步练三组，身体会记得。','今天练十组基础动作，身体会记得。','录一段自己的练习，回看脚步。','基本功不求快，只求对。','先练稳，再练狠。'],
+  career:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。','整理一份材料，也算往前走了一步。'],
+  ai:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。','让 AI 先跑一个草稿，你来定方向。']
+};
+function lightTodayTrack(k){
+  const t=LIFE_TRACKS[k]; if(!t) return;
+  const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+  if(m>=(t.rec||20)){ try{ celebrateTask(t.ic+' '+t.n+' 今日已点亮'); }catch(e){} return; }
+  try{ addLifePractice(k, t.rec||20); }catch(e){}
+  const hints=TRACK_LIGHT_HINTS[k]||['点亮了 '+t.n+'，今天继续加油。'];
+  const msg=hints[Math.floor(Math.random()*hints.length)];
+  try{ celebrateTask(msg); }catch(e){}
+}
 function focusTrackInput(k){
   try{ if(typeof lcToggle==='function'){ lcToggle(k); } }catch(e){}
   setTimeout(function(){
@@ -1620,7 +1689,7 @@ function renderTodayCockpit(){
   const rowOf=function(k){
     const t=LIFE_TRACKS[k], mins=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
     const tgt=t.rec||20, ok=mins>=tgt;
-    return '<div class="tm-row'+(ok?' ok':'')+'">'
+    return '<div class="tm-row'+(ok?' ok':'')+'" onclick="lightTodayTrack(\''+k+'\')" style="cursor:pointer" title="点一下直接点亮">'
       +'<div class="tm-row-ic">'+t.ic+'</div>'
       +'<div class="tm-row-body"><div class="tm-row-n">'+escHtml(t.n)
       +'<span class="tm-row-tag">'+(ok?'✨ 已点亮':'💡 待点亮 · 目标 '+tgt+' 分钟')+'</span></div></div></div>';
@@ -1943,6 +2012,7 @@ function render(){
   if(!Array.isArray(S.hobbies) || !S.hobbies.length) S.hobbies = defaultHobbies();
   if(!Array.isArray(S.wishes) || !S.wishes.length) S.wishes = defaultWishes();
   if(!Array.isArray(S.trend)) S.trend=[];
+  applyAvatar();
   // header
   const gxp=overallXP();
   const gL=lvlOf(gxp);
@@ -1955,7 +2025,6 @@ function render(){
   lastLevel=gL;
   document.getElementById('lvlNum').textContent='Lv.'+gL;
   document.getElementById('realmLvl').textContent='Lv.'+gL;
-  document.getElementById('chapterText').textContent=chapterText();
   const gi=xpInLvl(gxp);
   document.getElementById('xpFill').style.width=gi.pct+'%';
   document.getElementById('xpText').textContent=`${gi.xp} / ${gi.need} 加权经验`;
@@ -2119,8 +2188,6 @@ function render(){
   renderEnergyPage();
   renderWishes();
   renderTrendCard();
-  // v5.17
-  try{ checkVolume(); }catch(e){}
   try{ renderEnergy(); renderLiunian(); renderDayun(); renderNpc(); }catch(e){ console.warn('v5.17 render',e); }
   try{ renderJianghu(); }catch(e){ console.warn('jianghu',e); }
   try{ renderJianghuPeriod('week'); }catch(e){ console.warn('jianghu week',e); }
@@ -2188,92 +2255,26 @@ function xpLedgerFor(d){
   Object.keys(cats).forEach(k=>cats[k]=Math.max(0,Math.round(cats[k])));return {rows,pos:Math.round(pos),neg:Math.round(neg),net:Math.round(pos-neg),cats};
 }
 function renderXpLedger(){
-  const el=document.getElementById('xpLedgerBox');if(!el)return;const d=todayStr(),x=xpLedgerFor(d),target=180,pct=Math.min(100,Math.max(0,x.pos/360*100));
+  const el=document.getElementById('xpLedgerBox');if(!el)return;const d=todayStr(),x=xpLedgerFor(d),pct=Math.min(100,Math.max(0,x.pos/360*100));
   let note=x.pos===0?'今天还没有经验入账。无需为了填满刻度专门找任务。':x.pos<80?'今天已经开始积累，按自己的节奏继续即可。':x.pos<=220?'今天的修为已经很充足，完成主线后便可以安心收工。':'今天的奖励十分丰盛。后续经验仍会正常入账，但不必为了升级继续加码。';
-  const labs={action:['⚔️','行动'],momentum:['🔥','连携'],story:['📖','剧情'],bonus:['🎁','额外']},days=[];for(let i=6;i>=0;i--){const dd=shiftDate(d,-i),v=xpLedgerFor(dd).pos;days.push({d:dd,v});}const mx=Math.max(1,...days.map(q=>q.v));
+  const labs={action:['⚔️','行动'],momentum:['🔥','连携'],story:['📖','剧情'],bonus:['🎁','额外']};
   el.innerHTML='<div class="xpl-head"><div><div class="xpl-title">⚖️ 修为账本</div><div class="hint">看清奖励来自哪里 · 节奏线不是上限</div></div><div class="xpl-total"><b>+'+x.pos+'</b><br><span>今日入账 XP'+(x.neg?' · 撤销 '+x.neg:'')+'</span></div></div>'
     +'<div class="xpl-meter"><i style="width:'+pct+'%"></i></div><div class="xpl-scale"><span>0 · 起步</span><span>180 · 充足</span><span>360 · 丰盛</span></div>'
-    +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>'+
-    +'<div class="xpl-week"><svg class="xpl-chart" viewBox="0 0 280 40" preserveAspectRatio="none" style="width:100%;height:40px;display:block;margin-bottom:6px;"><polyline points="'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return x+','+y;}).join(' ')+'" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--gold)"/>';}).join('')+'</svg><div class="xpl-day">'+days.map(q=>'<span>'+q.d.slice(5)+'</span>').join('')+'</div></div>';
+    +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>';
 }
 function renderLoot(){
-  const el=document.getElementById('equipList'); if(!el) return;  // 页面未渲染则跳过
-  const active = S.lootTab || 'equips';
-  document.querySelectorAll('.loot-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===active));
-  const eq=document.getElementById('lootEquips'); if(eq) eq.style.display = active==='equips'?'block':'none';
-  const rw=document.getElementById('lootRewards'); if(rw) rw.style.display = active==='rewards'?'block':'none';
-  renderEquips();
+  // v5.51.20 装备库已移除；嘉奖箱渲染在修行成长页【嘉奖箱】tab 的 #rewardList
   renderRewards();
   renderNpcRelics();
   renderXpLedger();
 }
-function setLootTab(t){ S.lootTab=t; save(); renderLoot(); }
-function rarityCls(r){ return 'r-'+(r||'普通'); }
-function renderEquips(){
-  const el=document.getElementById('equipList'); if(!el) return;
-  const all=[...EQUIPS, ...(S.customEquips||[])];
-  // 当前加成汇总（按领域）
-  const sum={};
-  (S.equips.equipped||[]).forEach(eid=>{ const e=findEquip(eid); if(e){ sum[e.attr]=(sum[e.attr]||0)+(e.bonus||0); } });
-  el.innerHTML = all.map(e=>{
-    const owned=(S.equips.owned||[]).includes(e.id);
-    const on=(S.equips.equipped||[]).includes(e.id);
-    const conflict=(S.equips.equipped||[]).find(o=>{ const oe=findEquip(o); return oe && oe.attr===e.attr && oe.id!==e.id; });
-    const attrName = e.attr==='ALL'?'全领域':(ATTRS[e.attr]?ATTRS[e.attr].name:e.attr);
-    return `<div class="equip ${on?'on':''} ${rarityCls(e.rarity)}">
-      <div class="eq-ic">${e.icon}</div>
-      <div class="eq-main">
-        <div class="eq-name">${e.name}<span class="eq-rar">${e.rarity}</span></div>
-        <div class="eq-desc">${e.desc}</div>
-        <div class="eq-meta">领域：${attrName} · 加成 +${Math.round(e.bonus*100)}%</div>
-      </div>
-      <div class="eq-act">
-        ${on
-          ? '<button class="btn sm" onclick="unequipItem(\''+e.id+'\')">卸下</button>'
-          : '<button class="btn sm primary" onclick="equipItem(\''+e.id+'\')" '+(owned?'':'disabled title="先获取"')+'>'+(owned?'装备':'未拥有')+'</button>'}
-        ${e.custom?'<button class="btn sm ghost" onclick="delEquip(\''+e.id+'\')">删除</button>':''}
-      </div>
-    </div>`;
-  }).join('');
-  const se=document.getElementById('equipSummary');
-  if(se){
-    const parts=Object.keys(sum).map(a=>{
-      const n=a==='ALL'?'全领域':(ATTRS[a]?ATTRS[a].name:a);
-      return `${n} +${Math.round(sum[a]*100)}%`;
-    });
-    se.innerHTML = parts.length ? ('当前生效加成：'+parts.join(' · ')) : '尚未装备任何装备（穿上后对应领域练功更快）';
-  }
-}
-function equipItem(eid){
-  const e=findEquip(eid); if(!e) return;
-  S.equips.owned=S.equips.owned||[];
-  if(!S.equips.owned.includes(eid)) S.equips.owned.push(eid);
-  const conflict=(S.equips.equipped||[]).find(o=>{ const oe=findEquip(o); return oe && oe.attr===e.attr; });
-  if(conflict && conflict!==eid){ alert('该领域已装备「'+(findEquip(conflict).name)+'」，请先卸下再装备'); return; }
-  if(!(S.equips.equipped||[]).includes(eid)) S.equips.equipped.push(eid);
-  save(); renderLoot();
-}
-function unequipItem(eid){
-  S.equips.equipped=(S.equips.equipped||[]).filter(x=>x!==eid);
-  save(); renderLoot();
-}
-function addEquip(){
-  const name=document.getElementById('eqName').value.trim();
-  const attr=document.getElementById('eqAttr').value;
-  const bonus=parseFloat(document.getElementById('eqBonus').value)||0;
-  const desc=document.getElementById('eqDesc').value.trim()||('修行经验 +'+Math.round(bonus*100)+'%');
-  if(!name||bonus<=0) return;
-  const e={id:'ceq_'+id(), name, attr, bonus:bonus/100, rarity:'自制', desc, custom:true};
-  S.customEquips=S.customEquips||[]; S.customEquips.push(e);
-  S.equips.owned=S.equips.owned||[]; S.equips.owned.push(e.id);
-  document.getElementById('eqName').value=''; document.getElementById('eqBonus').value=''; document.getElementById('eqDesc').value='';
-  save(); renderLoot();
-}
-function delEquip(eid){
-  S.customEquips=(S.customEquips||[]).filter(e=>e.id!==eid);
-  S.equips.owned=(S.equips.owned||[]).filter(x=>x!==eid);
-  S.equips.equipped=(S.equips.equipped||[]).filter(x=>x!==eid);
-  save(); renderLoot();
+// v5.51.20 修行成长页三合一 tab：长期复利轨道 / 人生愿望 / 嘉奖箱
+function switchGrowthTab(tab){
+  S.gpTab=tab;
+  document.querySelectorAll('#gpTabs .gp-tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+  const map={compound:'gpCompound',wishes:'gpWishes',rewards:'gpRewards'};
+  ['gpCompound','gpWishes','gpRewards'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=(id===map[tab])?'block':'none'; });
+  save();
 }
 function renderRewards(){
   const el=document.getElementById('rewardList'); if(!el) return;
@@ -2399,7 +2400,7 @@ function showPage(p){
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
   if(p==='action'){
     try{
-      const st=(typeof S==='object' && S && S.stTab==='jianghu')?'jianghu':'action';
+      const st=(typeof S==='object' && S && (S.stTab==='jianghu'||S.stTab==='week'))?S.stTab:'action';
       switchShortTaskTab(st);
     }catch(e){}
     markSideSeen();
@@ -2415,10 +2416,12 @@ function showPage(p){
 function switchShortTaskTab(tab){
   const actionPane=document.getElementById('st-action-pane');
   const jianghuPane=document.getElementById('st-jianghu-pane');
-  if(!actionPane || !jianghuPane) return;
+  const weekPane=document.getElementById('st-week-pane');
+  if(!actionPane || !jianghuPane || !weekPane) return;
   if(typeof S==='object' && S) S.stTab=tab;
   actionPane.style.display=tab==='action'?'block':'none';
   jianghuPane.style.display=tab==='jianghu'?'block':'none';
+  weekPane.style.display=tab==='week'?'block':'none';
   document.querySelectorAll('#stTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.st===tab));
   if(tab==='jianghu'){ try{ switchJianghuTab(S.jhTab||'day'); }catch(e){} }
 }
@@ -2658,21 +2661,13 @@ function energyCard(title, sub, cur, valFn, opt, ranges){
     +'<div class="enk-range-btns">'+btns+'</div>'+panes+'</div>';
 }
 function energyCardBio(){
-  const ba=S.bioAge||{};
-  const cur=((ba.bodyAge||ba.mentalAge))?('体 '+ba.bodyAge+' · 脑 '+ba.mentalAge):'未计算';
-  const log=ba.ageLog||{}; const ds=Object.keys(log).sort();
-  const prev= ds.length>1? log[ds[ds.length-2]] : null;
-  const deltaTxt= prev? ('上次（'+ds[ds.length-2]+'）：体 '+prev.body+' · 脑 '+prev.mental) : '暂无历史记录（计算体龄后自动记录）';
-  const fs=ba.factors||{};
-  const fhtml=Object.keys(fs).filter(k=>fs[k]&&fs[k].d).map(k=>{
-    const f=fs[k]; const up=f.val>0; return '<span class="ba-chip '+(up?'up':'down')+'">'+f.ic+' '+f.n+' '+(up?'+':'')+f.val+'</span>';
-  }).join('');
+  const b=computeBioAge();
   return '<div class="panel energy-card">'
-    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div>'
-    +'<div class="enk-cur">'+cur+'</div></div>'
-    +'<div class="enk-bio-prev">'+deltaTxt+'</div>'
-    +(fhtml?'<div class="enk-bio-factors">'+fhtml+'</div>':'')
-    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(ba.lastCompute||'—')+'</div>'
+    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div></div>'
+    +bioAgeSummaryHtml(b)
+    +bioAgeFactorsHtml(b)
+    +'<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>'
+    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(S.bioAge.lastCompute||'—')+'</div>'
     +'</div>';
 }
 function energyAdvice(){
@@ -2712,53 +2707,6 @@ function renderEnergyPage(){
   h+=energyCardBio();
   h+='</div>';
   root.innerHTML=h;
-}
-
-/* ---------- ② 章·卷制 ---------- */
-const VOLUMES=[
-  {n:1,t:'寻锚',sub:'北城漂泊，未得托付之基',
-   open:'灯火虽亮，尚无归处。此卷之事，是替自己找一块能落脚的地。',
-   close:'锚已落定。你不再是随时被风吹走的人。',
-   cond:()=>!!(S.year[0]&&yearDone(0)),
-   prog:()=>{ const c=S.year[0]; if(!c||!c.items||!c.items.length) return {a:0,b:1}; return {a:c.items.filter(x=>isDoneEver(x)).length,b:c.items.length}; }},
-  {n:2,t:'立基',sub:'锚点已立，灯火有归处',
-   open:'有了托付之基，接下来是把身体和手艺练扎实——羽道 3.5，体魄成型。',
-   close:'根基已稳。身法与体魄都跟得上你的野心了。',
-   cond:()=>!!(S.year[1]&&yearDone(1)),
-   prog:()=>{ const c=S.year[1]; if(!c||!c.items||!c.items.length) return {a:0,b:1}; return {a:c.items.filter(x=>isDoneEver(x)).length,b:c.items.length}; }},
-  {n:3,t:'云水',sub:'走向云水之乡',
-   open:'丁火喜金水。北城的燥热该换一换了——去云南住满一个月，试试那里的气场合不合你。',
-   close:'云水之乡已试过。你知道自己想住在哪里了。',
-   cond:()=>!!(S.year[2]&&yearDone(2)),
-   prog:()=>{ const c=S.year[2]; if(!c||!c.items||!c.items.length) return {a:0,b:1}; return {a:c.items.filter(x=>isDoneEver(x)).length,b:c.items.length}; }},
-  {n:4,t:'自在',sub:'高薪 · 体面 · 自由 · 生活',
-   open:'最后一段，是把「靠平台活着」换成「靠自己也能活着」。副业跑通，收入不再只有一条腿。',
-   close:'你已不必为谁的时间表活着。',
-   cond:()=>!!(S.year[3]&&!S.year[3].paused&&yearDone(3)),
-   prog:()=>{ const c=S.year[3]; if(!c||!c.items||!c.items.length) return {a:0,b:1}; return {a:c.items.filter(x=>isDoneEver(x)).length,b:c.items.length}; }},
-];
-function curVolume(){
-  for(const v of VOLUMES){ if(!v.cond()) return v; }
-  return VOLUMES[VOLUMES.length-1];
-}
-function checkVolume(){
-  // 达成新卷时记一笔历史 + 掉落
-  VOLUMES.forEach(v=>{
-    if(v.cond() && !S.saga.done.includes(v.n)){
-      S.saga.done.push(v.n);
-      addHist('📖 卷'+v.n+'·'+v.t+' 已终章：'+v.close, 0);
-      try{ dropReward('big','完成 卷'+v.n+'·'+v.t); }catch(e){}
-    }
-  });
-  S.saga.vol=curVolume().n;
-}
-function chapterText(){
-  const v=curVolume();
-  const p=v.prog();
-  const yunnan=(S.goals||[]).find(g=>g.n&&g.n.indexOf('云南')>=0);
-  let s='第'+['一','二','三','四','五'][v.n-1]+'卷 · '+v.t+'：'+v.sub+'（'+p.a+'/'+p.b+'）';
-  if(yunnan&&yunnan.cur>0) s+=' ｜ 云南实地 '+yunnan.cur+' 天';
-  return s;
 }
 
 /* ---------- ③ 丁火流年：节气 + 五行当令 ---------- */

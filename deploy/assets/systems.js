@@ -821,8 +821,8 @@ function tripFormHtml(id){
     +'<div class="tf-row two">'
       +(wish
         ? '<span class="tf-hint">这一栏是你还「想去」的地方 🌱</span>'
-        : '<label>到访日期 <input id="tfDate" type="date" value="'+tripEscape(t?t.date||'':'')+'"></label>'
-          +'<label>评分 <span id="tfStars" class="tf-stars">'+tripStars(t?(t.rating||0):0).split('').map((s,i)=>'<i data-n="'+(i+1)+'">'+s+'</i>').join('')+'</span></label>')
+        : '<label>到访日期 <input id="tfDate" type="text" placeholder="YYYY / YYYY-MM / YYYY-MM-DD" value="'+tripEscape(t?t.date||'':'')+'"></label>'
+          +'<label>评分 <span id="tfStars" class="tf-stars">'+tripStars(t?(t.rating||0):0).split('').map((s,i)=>'<i data-n="'+(i+1)+'"'+(i<(t?(t.rating||0):0)?' class="on"':'')+'>'+s+'</i>').join('')+'</span></label>')
     +'</div>'
     +'<textarea id="tfRefl" class="tf-refl" rows="3" maxlength="400" placeholder="'+(wish?'想去的理由（风景 / 故事 / 心愿）…':'那次的感受 / 一句记忆 / 还想再去的理由…')+'">'+(t?tripEscape(t.refl||''):'')+'</textarea>'
     +'<div class="tf-foot">'
@@ -852,9 +852,11 @@ function tripSubmit(id){
   const wish=!document.getElementById('tfWish')?!!_tripWish:document.getElementById('tfWish').checked;
   let rating=0,date='';
   if(!wish){
-    rating=parseInt((document.querySelector('#tfStars i.on')||{}).dataset?.n||'0',10)||0;
-    date=((document.getElementById('tfDate')||{}).value||'');
-    if(!date) date=todayStr();
+    const starsEl=document.getElementById('tfStars');
+    const onStars=starsEl?starsEl.querySelectorAll('i.on'):[];
+    rating=onStars.length;
+    date=((document.getElementById('tfDate')||{}).value||'').trim();
+    if(!/^\d{4}(-\d{2}){0,2}$/.test(date)) date=todayStr();
   }
   if(id){
     const t=S.trips.find(x=>x.id===id);
@@ -883,7 +885,11 @@ document.addEventListener('click',function(e){
   const i=e.target.closest && e.target.closest('#tfStars i'); if(!i) return;
   const starsEl=document.getElementById('tfStars'); if(!starsEl) return;
   const n=parseInt(i.dataset.n||'0',10);
-  [...starsEl.children].forEach((s,idx)=>s.classList.toggle('on',idx<n));
+  [...starsEl.children].forEach((s,idx)=>{
+    const on=idx<n;
+    s.classList.toggle('on',on);
+    s.textContent=on?'★':'☆';
+  });
 });
 
 // —— 通知中心：仪表盘小喇叭 + 左侧导航红点 ——
@@ -924,9 +930,10 @@ function notifGo(el){
   }
   // 先切到目标页（滚动锚点可能在别的页面里）
   if(p && p!==getActivePage()){ showPage(p); }
-  // 嘉奖箱在「修行」页的「收藏与嘉奖」折叠区：需先切到嘉奖 tab 并展开折叠区
+  // v5.51.20 嘉奖箱已并入修行成长页【嘉奖箱】tab：掉落奖励后切到该页并展开嘉奖 tab
   if(s==='rewardList'){
-    try{ S.lootTab='rewards'; if(typeof setLootTab==='function') setLootTab('rewards'); }catch(e){}
+    try{ if(typeof showPage==='function') showPage('growth'); }catch(e){}
+    try{ if(typeof switchGrowthTab==='function') switchGrowthTab('rewards'); }catch(e){}
   }
   if(s){
     const t=document.getElementById(s);
@@ -1104,10 +1111,8 @@ function ageTag(age, chrono){
   if(d<=2) return '蓄势待发';
   return '需要关注';
 }
-// 渲染仪表盘年龄卡片
-function renderBioAge(){
-  const el=document.getElementById('bioAgeBox'); if(!el) return;
-  const b=computeBioAge();
+// dashboard 生物年龄：仅汇总色块
+function bioAgeSummaryHtml(b){
   const bt=b.bodyAge, mt=b.mentalAge, ct=b.chrono;
   const bTag=ageTag(bt,ct), mTag=ageTag(mt,ct);
   const bd=bt-ct, md=mt-ct;
@@ -1119,7 +1124,11 @@ function renderBioAge(){
   h+=`</div>`;
   h+=`<div class="ba-compare ${bdCls}">实岁 <b>${ct}</b> · 身体${bd>=0?"年长":"年轻"} <b>${Math.abs(bd).toFixed(1)}</b> 岁</div>`;
   h+=`<div class="ba-compare ${mdCls}">心理${md>=0?"年长":"年轻"} <b>${Math.abs(md).toFixed(1)}</b> 岁 · 更新于 ${todayStr()}</div>`;
-  h+=`<div class="ba-section"><div class="ba-stitle">\u{1FA9A} 身体影响因素 <span class="ba-note">近 7 日</span></div>`;
+  return h;
+}
+// 生物年龄详细因素（用于详情页）
+function bioAgeFactorsHtml(b){
+  let h=`<div class="ba-section"><div class="ba-stitle">\u{1FA9A} 身体影响因素 <span class="ba-note">近 7 日</span></div>`;
   BODY_FACTORS.forEach(f=>{ const v=b.factors[f.id]; if(!v)return;
     const cls=v.val<0?"ba-good":(v.val>0?"ba-bad":"");
     h+=`<div class="ba-row ${cls}"><span class="ba-ric">${v.ic}</span><span class="ba-rn">${v.n}</span><span class="ba-rv">${v.val>=0?"+":""}${v.val.toFixed(1)}岁</span><span class="ba-rd">${v.detail}</span></div>`;
@@ -1133,8 +1142,14 @@ function renderBioAge(){
     h+=`<div class="ba-row ${cls}"><span class="ba-ric">${v.ic}</span><span class="ba-rn">${v.n}</span><span class="ba-rv">${v.val>=0?"+":""}${v.val.toFixed(1)}岁</span><span class="ba-rd">${v.detail}</span></div>`;
   });
   h+=`</div>`;
-  h+=`<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>`;
-  el.innerHTML=h;
+  return h;
+}
+// 渲染仪表盘年龄卡片
+function renderBioAge(){
+  const el=document.getElementById('bioAgeBox'); if(!el) return;
+  const b=computeBioAge();
+  el.innerHTML=bioAgeSummaryHtml(b)
+    +'<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>';
 }
 // 健康数据录入弹窗
 function showBioAgeInput(){
@@ -1429,11 +1444,7 @@ function reorganizeDetailPages(){
     growthFirst?.insertAdjacentElement('afterend',xp);
   }
   // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
-  detailGroup('growth','🛡️ 收藏与嘉奖','装备、奖励需要时再展开',[
-    document.querySelector('#page-loot > .loot-tabs'),
-    document.getElementById('lootEquips'),
-    document.getElementById('lootRewards')
-  ]);
+  // v5.51.20 嘉奖箱已并入修行成长页【嘉奖箱】tab；装备库功能移除（角色设定的故人信物已承载故事收藏诉求）
   move('loot','故人信物','journey');
   detailGroup('journey','🗺️ 人生足迹','旅行地图、目标与远方来信',[
     document.querySelector('#page-map > .lifemap')
@@ -1452,6 +1463,7 @@ function reorganizeDetailPages(){
 
   setupUsageTracking();
   setupLifeCompoundUI();
+  try{ switchGrowthTab(S.gpTab||'compound'); }catch(e){ console.warn('init growth tab',e); }
 
   setHead('energy','精力 · 恢复','今日状态优先 · 身体指标 · 趋势放后');
   setHead('ledger','钱庄 · 金币人生','目标与资产优先 · 记录与分析随后');
@@ -1465,12 +1477,9 @@ function reorganizeDetailPages(){
 // reading 用真实历史基数 182h（不虚构拆分自「精神享受」）；身体/职业/生涯教练沿用 S.goals 真实基数。
 // realms：按「总累计小时」自动升级的武侠境界阶梯（每轨道自带风味名）。
 const LIFE_TRACKS={
-  badminton:{ic:'🏸',n:'羽毛球·打球',a:'BADMINTON',base:BM_PLAY_BASE,unit:'终身',rec:30,paused:false,
-    realms:[[0,'初出茅庐'],[2000,'向名扬俱乐部'],[4000,'区里成名'],[6000,'省队水准'],[8000,'全国新锐'],[10000,'一代宗师']],
-    variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。']},
-  bmbasic:{ic:'🎯',n:'羽毛球·基本功',a:'BADMINTON',base:BM_BASIC_BASE,unit:'终身',rec:20,paused:false,
-    realms:[[0,'初出茅庐'],[2000,'向名扬俱乐部'],[4000,'区里成名'],[6000,'省队水准'],[8000,'全国新锐'],[10000,'一代宗师']],
-    variants:['步法慢就是快，今天多球先求稳。','把反手高远练三十球，让身体记住节奏。','录一段自己的杀球，回看时只看脚步。']},
+  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BM_PLAY_BASE+BM_BASIC_BASE,unit:'终身',rec:30,paused:false,
+    realms:[[0,'初出茅庐'],[33,'向名扬俱乐部'],[67,'区里成名'],[100,'省队水准'],[133,'全国新锐'],[167,'一代宗师']],
+    variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。','步法慢就是快，今天多球先求稳。','把反手高远练三十球，让身体记住节奏。','录一段自己的杀球，回看时只看脚步。']},
   singing:{ic:'🎤',n:'唱歌',a:'MIND',base:122*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'敢开嗓'],[150,'麦上常客'],[400,'小有所成'],[800,'一曲倾城'],[1500,'绕梁宗师']],
     variants:['唱一首旧歌，找回当时的自己。','只认真唱最喜欢的一段。','留意哪一句让呼吸真正舒展开。']},
@@ -1538,8 +1547,7 @@ function editLifeBase(key){
 // 导致「力量训练」「职业行动」做完不进任何轨道 —— 既重复又漏账）。
 function lifeTrackOfTask(item){
   const t=(item&&item.t)||'';
-  if(/基本功|步法|专项|多球训练|技术练习|挥拍练习/.test(t)) return 'bmbasic';
-  if(/羽毛球|打球|对抗|比赛|挥拍|多球|实战/.test(t)) return 'badminton';
+  if(/羽毛球|打球|对抗|比赛|挥拍|多球|实战|基本功|步法|专项|技术练习|挥拍练习/.test(t)) return 'badminton';
   if(/拉伸|放松|恢复|筋膜/.test(t)) return 'stretch';
   if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'body';
   if(/AI提效|AI 提效|用 ?AI|AI 工具|AI 学习|提示词|prompt|自动化工作流|coze|扣子/.test(t)) return 'ai';
@@ -1574,6 +1582,22 @@ function migrateBmSplit(){
     ensureLifeCompound();
     S.lifeCompound.bases.badminton = BM_PLAY_BASE;   // 打球（含旧日志）
     S.lifeCompound.bases.bmbasic = BM_BASIC_BASE;     // 基本功（按比例预填，可双击改）
+    save();
+  }catch(e){}
+}
+// v5.51.18 合并「羽毛球·打球 / 羽毛球·基本功」为单一「羽毛球」轨道（同一分类不拆分显示）。
+function migrateBmMerge(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.bmMerge) return;
+  try{
+    ensureLifeCompound();
+    const b=S.lifeCompound.bases.bmbasic;
+    if(typeof b==='number'){
+      S.lifeCompound.bases.badminton=(S.lifeCompound.bases.badminton||0)+b;
+      delete S.lifeCompound.bases.bmbasic;
+    }
+    S.lifeCompound.logs.forEach(function(x){ if(x.key==='bmbasic') x.key='badminton'; });
+    S.migr.bmMerge=todayStr();
     save();
   }catch(e){}
 }
@@ -1691,6 +1715,7 @@ function setupLifeCompoundUI(){
   ensureLifeCompound();
   try{ migrateDailyIntoTracks(); }catch(e){ console.warn('daily->tracks migrate',e); }
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
+  try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
   if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';document.getElementById('todayDetailCockpit')?.insertAdjacentElement('afterend',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
@@ -1755,7 +1780,7 @@ function fortuneToday(){
     const bmRecent=[0,1,2].some(i=>{ const dd=shiftDate(td,-i); return logs.some(x=>x.key==='badminton'&&x.d===dd); });
     if(!bmRecent && raw>=1.5) yi.push('已经 3 天没碰球拍了 · 去活动筋骨');
     if(practiceWeekMinutes('career')===0) yi.push('本周职业主线还是 0 · 先做 30 分钟');
-    if(practiceTodayMinutes('stretch')===0 && (practiceTodayMinutes('badminton')>0||practiceTodayMinutes('bmbasic')>0)) yi.push('今天练过球了 · 补 10 分钟拉伸');
+    if(practiceTodayMinutes('stretch')===0 && practiceTodayMinutes('badminton')>0) yi.push('今天练过球了 · 补 10 分钟拉伸');
     const activeToday=Object.keys(LIFE_TRACKS).filter(k=>practiceTodayMinutes(k)>0).length;
     if(activeToday>=4) ji.push('今天已点亮 '+activeToday+' 条轨道 · 别再加码了');
   }catch(e){}
@@ -1876,13 +1901,14 @@ function setupUsageTracking(){
 (async ()=>{
 try{
   await load();
+  try{ initAvatar(); }catch(e){ console.warn('init avatar',e); }
   reorganizeDetailPages();
   applyTheme();                   // 应用上次选择的命理主题皮肤
   newDay();                       // 日期变化时自动结算连击、重置日常/周/月
   REC_DATE='';                   // 默认记今天
   const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
   lastLevel = lvlOf(overallXP());
-  try{ npcRoll(); checkVolume(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
+  try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
   checkAch();
   render();
   applyDashOrder();

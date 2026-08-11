@@ -342,6 +342,8 @@ function claimReward(idx){
   if(!drop || drop.claimed) return;
   drop.claimed=true;
   drop.claimedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+  save();
+  render();   // 立即重绘：置灰 + 已享用按钮 + 移到列表底部
 }
 
 // 旅行地图：可解锁的地点目录（经纬度用于投影定位；wish=true 为人生愿望目的地）
@@ -559,6 +561,7 @@ function defaultState(){
     _meta:{schema:SAVE_SCHEMA_VERSION,app:'life-rpg',updated:''},
     bonusXP:0, streak:0, lastActiveDay:'', activeDays:[], history:[], pushToken:'',
     profile:{birthYear:1995, lifeExpect:85},  // 人生时间轴：出生年份、预期寿命（岁），用于余生横幅与命理时间轴
+    avatar:'',                                // 用户上传头像（base64 dataURL）；空则使用 HTML 默认头像
     lfLog:{},        // 低频疗愈组冷却日志：{heal:[日期...], eye:[...]}，跨任务对象持久
     migLf211:false,  // 必须为 false：load() 用 Object.assign(defaultState(), 老存档)，若默认 true 会覆盖掉老存档的缺失值，迁移将永不执行
     weights:{BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0},
@@ -643,7 +646,6 @@ function defaultState(){
     weight: null,                 // 最新体重（kg），仅用于趋势
     theme: 'light',               // 命理主题皮肤：light / bing(丁火清凉) / dark(命理·夜)
     brief: { last:'' },           // 今日战报：最近展示日期
-    saga: { vol:1, done:[] },     // 章·卷制：当前卷号 + 已结算卷号列表
     npc: { active:[], week:'', seenWeek:'' },  // NPC 委托：本周在办委托 + 所属周 + 已读周
     npcRel: {},                                 // v5.23 NPC 关系：{npcId:{xp,done}}
     npcEvents: {},                              // v5.24 NPC 专属事件：{npcId:{choice,ts}}
@@ -874,6 +876,18 @@ function migrate(){
     }
     S.yearSingGoal_v1=true;
   }
+  // v5.51.17 清理重复的歌唱年主线：保留 makeSingYear() 生成的「声乐精进：K歌从 80+ 冲击 90+」，删掉用户误新增的类似目标（如「纯K有6首歌可以达到90分+」）。
+  if(!S.yearSingDupClean_v1){
+    const singIdx=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';});
+    if(singIdx>=0){
+      const before=S.year.length;
+      const dupRe=/唱歌|声乐|K歌|90分|90\+|歌艺|纯K|6首歌/;
+      S.year=S.year.filter(function(c,i){ return !(i!==singIdx && dupRe.test(c.t||'')); });
+      const removed=before-S.year.length;
+      if(removed>0 && Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'清理重复的歌唱年主线 ×'+removed+' 条',xp:0});
+    }
+    S.yearSingDupClean_v1=true;
+  }
   // 兼容旧存档：清理月主线中不应存在的结果型项目（offer/体检/背调/入职等），并去重
   if(!S.monthOutcomeClean_v1){
     if(S.month && Array.isArray(S.month.items)){
@@ -942,8 +956,7 @@ function migrate(){
   if(!S.lootTab) S.lootTab='equips';
   // v5.17 新字段兜底
   if(!S.brief || typeof S.brief!=='object') S.brief={last:''};
-  if(!S.saga || typeof S.saga!=='object') S.saga={vol:1,done:[]};
-  if(!Array.isArray(S.saga.done)) S.saga.done=[];
+  if(typeof S.avatar!=='string') S.avatar='';
   if(!S.npc || typeof S.npc!=='object') S.npc={active:[],week:'',seenWeek:''};
   if(!Array.isArray(S.npc.active)) S.npc.active=[];
   if(typeof S.npc.seenWeek!=='string') S.npc.seenWeek='';
@@ -1045,6 +1058,7 @@ function setupPwdGate(){
   const tryPwd=()=>{
     if(inp.value===effectivePwd()){
       gate.style.display='none'; inp.value=''; err.style.display='none';
+      if(typeof showPage==='function') showPage('dashboard'); // 登录成功默认进入仪表盘
     } else {
       err.textContent='口令错误，请重试';
       err.style.display='block';

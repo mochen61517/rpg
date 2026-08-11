@@ -3435,21 +3435,13 @@ function energyCard(title, sub, cur, valFn, opt, ranges){
     +'<div class="enk-range-btns">'+btns+'</div>'+panes+'</div>';
 }
 function energyCardBio(){
-  const ba=S.bioAge||{};
-  const cur=((ba.bodyAge||ba.mentalAge))?('体 '+ba.bodyAge+' · 脑 '+ba.mentalAge):'未计算';
-  const log=ba.ageLog||{}; const ds=Object.keys(log).sort();
-  const prev= ds.length>1? log[ds[ds.length-2]] : null;
-  const deltaTxt= prev? ('上次（'+ds[ds.length-2]+'）：体 '+prev.body+' · 脑 '+prev.mental) : '暂无历史记录（计算体龄后自动记录）';
-  const fs=ba.factors||{};
-  const fhtml=Object.keys(fs).filter(k=>fs[k]&&fs[k].d).map(k=>{
-    const f=fs[k]; const up=f.val>0; return '<span class="ba-chip '+(up?'up':'down')+'">'+f.ic+' '+f.n+' '+(up?'+':'')+f.val+'</span>';
-  }).join('');
+  const b=computeBioAge();
   return '<div class="panel energy-card">'
-    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div>'
-    +'<div class="enk-cur">'+cur+'</div></div>'
-    +'<div class="enk-bio-prev">'+deltaTxt+'</div>'
-    +(fhtml?'<div class="enk-bio-factors">'+fhtml+'</div>':'')
-    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(ba.lastCompute||'—')+'</div>'
+    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div></div>'
+    +bioAgeSummaryHtml(b)
+    +bioAgeFactorsHtml(b)
+    +'<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>'
+    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(S.bioAge.lastCompute||'—')+'</div>'
     +'</div>';
 }
 function energyAdvice(){
@@ -4656,10 +4648,8 @@ function ageTag(age, chrono){
   if(d<=2) return '蓄势待发';
   return '需要关注';
 }
-// 渲染仪表盘年龄卡片
-function renderBioAge(){
-  const el=document.getElementById('bioAgeBox'); if(!el) return;
-  const b=computeBioAge();
+// dashboard 生物年龄：仅汇总色块
+function bioAgeSummaryHtml(b){
   const bt=b.bodyAge, mt=b.mentalAge, ct=b.chrono;
   const bTag=ageTag(bt,ct), mTag=ageTag(mt,ct);
   const bd=bt-ct, md=mt-ct;
@@ -4671,7 +4661,11 @@ function renderBioAge(){
   h+=`</div>`;
   h+=`<div class="ba-compare ${bdCls}">实岁 <b>${ct}</b> · 身体${bd>=0?"年长":"年轻"} <b>${Math.abs(bd).toFixed(1)}</b> 岁</div>`;
   h+=`<div class="ba-compare ${mdCls}">心理${md>=0?"年长":"年轻"} <b>${Math.abs(md).toFixed(1)}</b> 岁 · 更新于 ${todayStr()}</div>`;
-  h+=`<div class="ba-section"><div class="ba-stitle">\u{1FA9A} 身体影响因素 <span class="ba-note">近 7 日</span></div>`;
+  return h;
+}
+// 生物年龄详细因素（用于详情页）
+function bioAgeFactorsHtml(b){
+  let h=`<div class="ba-section"><div class="ba-stitle">\u{1FA9A} 身体影响因素 <span class="ba-note">近 7 日</span></div>`;
   BODY_FACTORS.forEach(f=>{ const v=b.factors[f.id]; if(!v)return;
     const cls=v.val<0?"ba-good":(v.val>0?"ba-bad":"");
     h+=`<div class="ba-row ${cls}"><span class="ba-ric">${v.ic}</span><span class="ba-rn">${v.n}</span><span class="ba-rv">${v.val>=0?"+":""}${v.val.toFixed(1)}岁</span><span class="ba-rd">${v.detail}</span></div>`;
@@ -4685,8 +4679,14 @@ function renderBioAge(){
     h+=`<div class="ba-row ${cls}"><span class="ba-ric">${v.ic}</span><span class="ba-rn">${v.n}</span><span class="ba-rv">${v.val>=0?"+":""}${v.val.toFixed(1)}岁</span><span class="ba-rd">${v.detail}</span></div>`;
   });
   h+=`</div>`;
-  h+=`<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>`;
-  el.innerHTML=h;
+  return h;
+}
+// 渲染仪表盘年龄卡片
+function renderBioAge(){
+  const el=document.getElementById('bioAgeBox'); if(!el) return;
+  const b=computeBioAge();
+  el.innerHTML=bioAgeSummaryHtml(b)
+    +'<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>';
 }
 // 健康数据录入弹窗
 function showBioAgeInput(){

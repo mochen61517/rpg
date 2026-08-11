@@ -1560,6 +1560,26 @@ function toggleTodayMain(k){
   save(); renderTodayCockpit(); try{ renderLifeCompound(); }catch(e){}
 }
 function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(); }
+const TRACK_LIGHT_HINTS={
+  singing:['今天就花一些时间，唱一唱自己喜欢的歌吧。','让声音在房间里走一圈，不必唱给别人听。','选一首会让自己轻轻晃起来的歌。','哪怕只唱五分钟，也算今天被歌声吻过。'],
+  piano:['今天弹一小段，让手指先醒过来。','打开琴盖，只练一个乐句也很好。','听一听琴声怎么把房间填满。','把最卡的两小节放慢一半。'],
+  reading:['读几页书，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。','今天允许自己只读喜欢的那一本。'],
+  stretch:['今天给身体十分钟，问问它哪里紧。','铺一张垫子，把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。','先问身体：今天哪里最需要被照顾？'],
+  body:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。','今天对身体的照顾，会在明天还给你。'],
+  badminton:['今天去球场，哪怕只打半小时。','把注意力放在脚步，而不是输赢。','找一个人，认真地打一局。','启动步练三组，身体会记得。'],
+  bmbasic:['今天练十组基础动作，身体会记得。','录一段自己的练习，回看脚步。','基本功不求快，只求对。','先练稳，再练狠。'],
+  career:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。','整理一份材料，也算往前走了一步。'],
+  ai:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。','让 AI 先跑一个草稿，你来定方向。']
+};
+function lightTodayTrack(k){
+  const t=LIFE_TRACKS[k]; if(!t) return;
+  const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+  if(m>=(t.rec||20)){ try{ celebrateTask(t.ic+' '+t.n+' 今日已点亮'); }catch(e){} return; }
+  try{ addLifePractice(k, t.rec||20); }catch(e){}
+  const hints=TRACK_LIGHT_HINTS[k]||['点亮了 '+t.n+'，今天继续加油。'];
+  const msg=hints[Math.floor(Math.random()*hints.length)];
+  try{ celebrateTask(msg); }catch(e){}
+}
 function focusTrackInput(k){
   try{ if(typeof lcToggle==='function'){ lcToggle(k); } }catch(e){}
   setTimeout(function(){
@@ -1586,13 +1606,10 @@ function renderTodayCockpit(){
   const rowOf=function(k){
     const t=LIFE_TRACKS[k], mins=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
     const tgt=t.rec||20, pct=Math.max(0,Math.min(100,Math.round(mins/tgt*100))), ok=mins>=tgt;
-    return '<div class="tm-row'+(ok?' ok':'')+'">'
+    return '<div class="tm-row'+(ok?' ok':'')+'" onclick="lightTodayTrack(\''+k+'\')" style="cursor:pointer" title="点一下直接点亮">'
       +'<div class="tm-row-ic">'+t.ic+'</div>'
       +'<div class="tm-row-body"><div class="tm-row-n">'+escHtml(t.n)
-      +'<span class="tm-row-tag">'+(ok?'今日已达成':'今日目标 '+tgt+' 分钟')+'</span></div>'
-      +'<div class="tm-bar"><i style="width:'+pct+'%"></i></div></div>'
-      +'<div class="tm-row-min">'+(mins?mins+'′':'—')+'</div>'
-      +'<button class="btn xs '+(ok?'ghost':'primary')+'" onclick="focusTrackInput(\''+k+'\')">记一笔</button></div>';
+      +'<span class="tm-row-tag">'+(ok?'✨ 已点亮':'💡 待点亮 · 目标 '+tgt+' 分钟')+'</span></div></div></div>';
   };
   const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return m>=(t.rec||20); }).length;
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
@@ -1997,13 +2014,12 @@ function xpLedgerFor(d){
   Object.keys(cats).forEach(k=>cats[k]=Math.max(0,Math.round(cats[k])));return {rows,pos:Math.round(pos),neg:Math.round(neg),net:Math.round(pos-neg),cats};
 }
 function renderXpLedger(){
-  const el=document.getElementById('xpLedgerBox');if(!el)return;const d=todayStr(),x=xpLedgerFor(d),target=180,pct=Math.min(100,Math.max(0,x.pos/360*100));
+  const el=document.getElementById('xpLedgerBox');if(!el)return;const d=todayStr(),x=xpLedgerFor(d),pct=Math.min(100,Math.max(0,x.pos/360*100));
   let note=x.pos===0?'今天还没有经验入账。无需为了填满刻度专门找任务。':x.pos<80?'今天已经开始积累，按自己的节奏继续即可。':x.pos<=220?'今天的修为已经很充足，完成主线后便可以安心收工。':'今天的奖励十分丰盛。后续经验仍会正常入账，但不必为了升级继续加码。';
-  const labs={action:['⚔️','行动'],momentum:['🔥','连携'],story:['📖','剧情'],bonus:['🎁','额外']},days=[];for(let i=6;i>=0;i--){const dd=shiftDate(d,-i),v=xpLedgerFor(dd).pos;days.push({d:dd,v});}const mx=Math.max(1,...days.map(q=>q.v));
+  const labs={action:['⚔️','行动'],momentum:['🔥','连携'],story:['📖','剧情'],bonus:['🎁','额外']};
   el.innerHTML='<div class="xpl-head"><div><div class="xpl-title">⚖️ 修为账本</div><div class="hint">看清奖励来自哪里 · 节奏线不是上限</div></div><div class="xpl-total"><b>+'+x.pos+'</b><br><span>今日入账 XP'+(x.neg?' · 撤销 '+x.neg:'')+'</span></div></div>'
     +'<div class="xpl-meter"><i style="width:'+pct+'%"></i></div><div class="xpl-scale"><span>0 · 起步</span><span>180 · 充足</span><span>360 · 丰盛</span></div>'
-    +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>'+
-    +'<div class="xpl-week"><svg class="xpl-chart" viewBox="0 0 280 40" preserveAspectRatio="none" style="width:100%;height:40px;display:block;margin-bottom:6px;"><polyline points="'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return x+','+y;}).join(' ')+'" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--gold)"/>';}).join('')+'</svg><div class="xpl-day">'+days.map(q=>'<span>'+q.d.slice(5)+'</span>').join('')+'</div></div>';
+    +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>';
 }
 function renderLoot(){
   const el=document.getElementById('equipList'); if(!el) return;  // 页面未渲染则跳过
@@ -2431,21 +2447,13 @@ function energyCard(title, sub, cur, valFn, opt, ranges){
     +'<div class="enk-range-btns">'+btns+'</div>'+panes+'</div>';
 }
 function energyCardBio(){
-  const ba=S.bioAge||{};
-  const cur=((ba.bodyAge||ba.mentalAge))?('体 '+ba.bodyAge+' · 脑 '+ba.mentalAge):'未计算';
-  const log=ba.ageLog||{}; const ds=Object.keys(log).sort();
-  const prev= ds.length>1? log[ds[ds.length-2]] : null;
-  const deltaTxt= prev? ('上次（'+ds[ds.length-2]+'）：体 '+prev.body+' · 脑 '+prev.mental) : '暂无历史记录（计算体龄后自动记录）';
-  const fs=ba.factors||{};
-  const fhtml=Object.keys(fs).filter(k=>fs[k]&&fs[k].d).map(k=>{
-    const f=fs[k]; const up=f.val>0; return '<span class="ba-chip '+(up?'up':'down')+'">'+f.ic+' '+f.n+' '+(up?'+':'')+f.val+'</span>';
-  }).join('');
+  const b=computeBioAge();
   return '<div class="panel energy-card">'
-    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div>'
-    +'<div class="enk-cur">'+cur+'</div></div>'
-    +'<div class="enk-bio-prev">'+deltaTxt+'</div>'
-    +(fhtml?'<div class="enk-bio-factors">'+fhtml+'</div>':'')
-    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(ba.lastCompute||'—')+'</div>'
+    +'<div class="enk-head"><div><div class="enk-title">🧬 生物年龄</div><div class="enk-sub">体龄 · 脑龄（手动计算，非日频）</div></div></div>'
+    +bioAgeSummaryHtml(b)
+    +bioAgeFactorsHtml(b)
+    +'<div class="ba-manual"><button class="btn sm ghost" onclick="showBioAgeInput()">\u270F\uFE0F 录入健康数据（睡眠/步数/心率）</button></div>'
+    +'<div class="enk-bio-hint">体龄/脑龄不画每日柱图。更新健康数据后点「计算体龄」即记一条；最近更新：'+(S.bioAge.lastCompute||'—')+'</div>'
     +'</div>';
 }
 function energyAdvice(){
