@@ -1443,8 +1443,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .tm-chip-tick{font-size:11px;font-weight:700}
   .tm-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
   .tm-row{display:flex;align-items:center;gap:11px;padding:9px 12px;border:1px solid var(--line);
-    border-radius:10px;background:var(--panel2)}
-  .tm-row.ok{border-color:#5fd0a0;background:linear-gradient(90deg,rgba(95,208,160,.13),transparent 65%)}
+    border-radius:10px;background:transparent}
+  .tm-row.ok{border-color:#5fd0a0}
   .tm-row-ic{font-size:20px;width:26px;text-align:center;flex:none}
   .tm-row-body{flex:1;min-width:0}
   .tm-row-n{font-size:14px;font-weight:600;color:var(--txt);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
