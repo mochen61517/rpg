@@ -559,11 +559,25 @@ function renderDraw(){
 
 // —— ③ 远方来信 ——
 const LETTERS_ORDER=['yunnan','xizang','chuanxi','guizhou','guangxi','hainan','xinjiang','japan','sweden','beijing'];
+// 交错解锁序列：按地点轮流，避免某个地方（如云南）连发 9 封。
+// 每项是 [place, idx]，idx 为该地点在 LETTERS[place] 中的下标。
+const LETTER_SEQ=[
+  ['yunnan',0],['xizang',0],['yunnan',1],['chuanxi',0],['yunnan',2],['guizhou',0],
+  ['yunnan',3],['guangxi',0],['yunnan',4],['hainan',0],['yunnan',5],['xinjiang',0],
+  ['yunnan',6],['japan',0],['yunnan',7],['sweden',0],['yunnan',8],['beijing',0],
+  ['xizang',1],['chuanxi',1]
+];
 const LETTERS={
   yunnan:[
     {t:'昆明 · 第一封信', b:'这里的云是低的，低到像要落进翠湖里。你先前说想找个凉爽近水的地方，昆明八月不过二十多度，风一过就凉。我在滇池边坐了一下午，什么也没做，难得地，不觉得浪费。', task:{t:'给云南写一句你想对它说的话', xp:15}},
     {t:'大理 · 风的形状', b:'洱海的水是安静的蓝，苍山在背后沉默地绿着。古城里随便一家小院都种着花。你说不想一直在北京——这里的人不急，连卖花的老太太都慢。也许你可以先来住满一个月，看看是不是真的合。', task:{t:'列三个你最想在大理做的事', xp:15}},
     {t:'丽江 · 雪山与慢', b:'玉龙雪山远远白着，古城的溪水从脚边流过。夜里四方街有歌，有人弹吉他唱老歌。你喜水，这里处处是水。我替你把窗打开了，风进来，丁火也就凉了半分。', task:null},
+    {t:'普洱 · 茶山的凉', b:'茶山一层层绿上去，雾常年在。这里海拔高，夏天不用空调，夜里要盖薄被。你喜凉，普洱的凉是浸在茶香里的，慢得理直气壮。我在一棵古茶树下坐了很久，什么也没想。', task:{t:'给自己泡一杯茶，认真喝完', xp:15}},
+    {t:'腾冲 · 和顺与热海', b:'和顺的巷子静得能听见自己走路。热海的水烫，但高原的风是凉的，泡完不闷。火山、湿地、古籍，小城把历史和松弛都收着。你若想找个安静处住一阵，这里不错。', task:{t:'查一查腾冲的住处与气候', xp:15}},
+    {t:'建水 · 慢城的底气', b:'古城没被游客挤变形。文庙、双龙桥、米轨小火车，慢得有底气。傍晚的烧烤摊烟火气足，老人们下棋不急。你说不想一直在北京——这里的人也不急。', task:{t:'写一句你对「慢城」的想象', xp:15}},
+    {t:'抚仙湖 · 冷而透的水', b:'水清到能看见十几米下的石头，比洱海更静、更冷。你喜水，这里的水是透的、凉的，风一过就起细浪。我在湖边坐了一下午，难得地，不觉得浪费。', task:null},
+    {t:'弥勒 · 红砖与林子', b:'东风韵的红砖房子像从地里长出来的外星建筑，太平湖的林子凉。小城把艺术和松弛揉在一起，红酒、温泉、湖，都不赶。你若想换个环境待几天，这里不吵。', task:{t:'列三个你理想小城该有的气质', xp:15}},
+    {t:'西双版纳 · 湿热的另一面', b:'告庄的夜是热的，热带植物园的绿稠得化不开。你说过喜清凉不喜湿热，所以版纳不是长住的地方——但偶尔来看看这个「另一个云南」，也值得。热带的浓，是云南的另一张脸。', task:{t:'记一句你对版纳的感受（哪怕只是「太热」）', xp:15}},
   ],
   xizang:[
     {t:'拉萨 · 海拔之上', b:'这里的天蓝得不像话，经幡被风念了一整年。氧气薄，反而让人慢下来、只想好好呼吸。若你来，记得先缓几天，别跟身体较劲。', task:{t:'做一组深呼吸，想象自己在高原', xp:10}},
@@ -595,19 +609,63 @@ const LETTERS={
     {t:'北京 · 给现在的你', b:'你正身处其中，也许倦了。但那些球馆、琴房、老同事，都是你一点点攒下的据点。离开或留下都行，先别否定它们。', task:{t:'给北京写一句感谢或告别', xp:10}},
   ],
 };
-function letterTotal(){ let n=0; LETTERS_ORDER.forEach(p=>{ n+=(LETTERS[p]||[]).length; }); return n; }
+// 「远方回信」池：信库 20 封寄达后，从这里每天循环一封，让远方来信一直不断。
+// 内容不绑定具体城市，是与你自身的回响，避免和 LETTERS 重复。
+const LETTER_WELL=[
+  {t:'回信 · 关于慢', b:'你总怕虚度，可虚度的反面不是忙，是愿意停。今天试着什么都不赶，让时间自己流。', task:{t:'允许自己无所事事半小时', xp:10}},
+  {t:'回信 · 关于凉', b:'你喜凉。北京的八月闷，但你心里有云南的风。需要时把窗开着，想像自己在抚仙湖边。', task:null},
+  {t:'回信 · 关于身体', b:'球馆、器械、汗出透——你用身体确认自己活着。今天也动一动，不为身材，为掌控感。', task:{t:'今天动一动身子（打球/健身/散步）', xp:10}},
+  {t:'回信 · 关于琴', b:'琴房是你的避难所。哪怕只弹十分钟，指尖的旋律会替你清掉一天的杂。', task:{t:'今天碰一下琴，哪怕只一首', xp:10}},
+  {t:'回信 · 关于远', b:'地图在你心里长。想去的地方不用一次走完，先让它们在心里抵达，脚步自然会跟上。', task:null},
+  {t:'回信 · 关于自由', b:'你想要的从来不是逃离，是能自主的一天。把今天的一件小事，握回自己手里。', task:{t:'今天做一件完全由你决定的小事', xp:10}},
+  {t:'回信 · 关于规律', b:'你靠规律活得不焦虑。今晚照常睡、照常起，节奏是你给自己的温柔。', task:{t:'今晚按时睡，给明天留节奏', xp:10}},
+  {t:'回信 · 关于唱', b:'卡拉OK的均分是你和自己玩的方式。下次去，挑一首难一点的，不为分，为开心。', task:null},
+  {t:'回信 · 关于怕普通', b:'你怕普通，可普通是把事做好的底色。今天做完一件小事，就算普通，也踏实。', task:{t:'今天认真做完一件小事', xp:10}},
+  {t:'回信 · 关于云南', b:'你心里已经住了云南。不用立刻搬去，先让那股凉意在日常里留个缝。', task:null},
+  {t:'回信 · 关于此刻', b:'你正处在一个过渡期。过渡不是停，是换轨道前的蓄力。信会一直陪你，直到你点亮那个愿望。', task:null},
+  {t:'回信 · 关于人', b:'你需要的不是很多人，是一两个能托住你的人。今天给那样的人一句真的问候。', task:{t:'给一个在乎的人发句真的问候', xp:10}},
+];
+// 人生愿望是否「本次主动点亮」（历史已达成的不算，避免一开就停信）
+function anyWishReached(){ return (S.wishes||[]).some(w=>w.un===true && !w.pre); }
+// 首次运行把历史已点亮愿望标记为 pre（预设达成项），仅执行一次
+function migrateWishesPre(){
+  if(S._wishPreTagged) return;
+  (S.wishes||[]).forEach(w=>{ if(w.un===true) w.pre=true; });
+  S._wishPreTagged=true; save();
+}
+function letterPlaceName(l){
+  if(l.place==='well') return '远方回信';
+  return (TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+}
+function letterTotal(){ return LETTER_SEQ.length; }
 function letterCheck(force){
-  if(!S.letters) S.letters={unlocked:[],pointer:0};
-  const hasUnread=(S.letters.unlocked||[]).some(l=>!l.read);
+  if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0};
+  if(typeof S.letters.wellIdx!=='number') S.letters.wellIdx=0;
+  migrateWishesPre();
+  const list=S.letters.unlocked||[];
+  // 人生愿望已点亮（非历史预设）→ 远方来信收束，不再寄新信
+  if(anyWishReached()){ return; }
+  const hasUnread=list.some(l=>!l.read);
   if(hasUnread && !force) return;
-  if(S.letters.pointer>=letterTotal()) return;
-  let rem=S.letters.pointer, target=null;
-  for(const p of LETTERS_ORDER){ const arr=LETTERS[p]||[]; if(rem<arr.length){ target={place:p,idx:rem}; break; } rem-=arr.length; }
-  if(!target) return;
-  const meta=LETTERS[target.place][target.idx];
-  S.letters.unlocked.push({place:target.place, idx:target.idx, read:false, date:todayStr(), title:meta.t, body:meta.b, task:meta.task?{...meta.task,done:false}:null});
-  S.letters.pointer++;
-  addHist('✉️ 远方来信：'+meta.t); save();
+  // 先寄信库里的（交错去重，忽略回信池）
+  const have=new Set(list.filter(l=>l.place!=='well').map(l=>l.place+'#'+l.idx));
+  let idx=-1;
+  for(let k=0;k<LETTER_SEQ.length;k++){ if(!have.has(LETTER_SEQ[k][0]+'#'+LETTER_SEQ[k][1])){ idx=k; break; } }
+  if(idx>=0){
+    const tgt=LETTER_SEQ[idx];
+    const meta=LETTERS[tgt[0]][tgt[1]];
+    if(meta){
+      list.push({place:tgt[0], idx:tgt[1], read:false, date:todayStr(), title:meta.t, body:meta.b, task:meta.task?{...meta.task,done:false}:null});
+      S.letters.pointer=idx+1;
+      addHist('✉️ 远方来信：'+meta.t); save();
+      return;
+    }
+  }
+  // 信库寄完 → 从「远方回信」池继续，每天一封，直到人生愿望点亮
+  const wm=LETTER_WELL[S.letters.wellIdx % LETTER_WELL.length];
+  list.push({place:'well', idx:S.letters.wellIdx, read:false, date:todayStr(), title:wm.t, body:wm.b, task:wm.task?{...wm.task,done:false}:null});
+  S.letters.wellIdx++;
+  addHist('✉️ 远方来信：'+wm.t); save();
 }
 function letterUnread(){ return (S.letters.unlocked||[]).filter(l=>!l.read).length; }
 function renderLetters(){
@@ -616,20 +674,26 @@ function renderLetters(){
   let h='<h2>✉️ 远方来信 <span class="note">按你心里的地图，慢慢寄到</span>';
   const un=letterUnread(); if(un) h+=' <span class="badge-new">'+un+' 封未读</span>';
   h+='</h2>';
-  if(!list.length){ h+='<div class="hint">还没有来信。先在旅行地图上点亮你心里的目的地，信会一封封寄来——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
+  if(!list.length){ h+='<div class="hint">还没有来信。信会按节奏慢慢寄到——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
   h+='<div class="letter-list">';
   list.forEach((l,i)=>{
-    const placeName=(TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+    const placeName=letterPlaceName(l);
     h+='<div class="letter-item'+(l.read?' read':'')+'" onclick="openLetter('+i+')">'
       +'<span class="lt">'+l.title+'</span><span class="lp">'+placeName+'</span>'
       +'<span class="ls">'+(l.read?'已读':'未读')+'</span></div>';
   });
-  h+='</div>'; el.innerHTML=h;
+  h+='</div>';
+  if(anyWishReached()){
+    h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，远方的信就此收束。地图与脚印会一直在，信箱留着你来时的路。</div>';
+  }else{
+    h+='<div class="hint" style="margin-top:10px">✉️ 远方来信会一直寄来，直到你点亮一个人生愿望。已寄达 '+list.length+' 封。</div>';
+  }
+  el.innerHTML=h;
 }
 function openLetter(i){
   const l=(S.letters.unlocked||[])[i]; if(!l) return;
   l.read=true; save(); renderLetters();
-  const placeName=(TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+  const placeName=letterPlaceName(l);
   let body='<div class="letter-head">'+l.title+'</div><div class="letter-from">—— 寄自 '+placeName+'</div><div class="letter-body">'+l.body+'</div>';
   if(l.task){
     body+='<div class="letter-task">附：'+l.task.t+' <b>+'+l.task.xp+' XP</b></div>';

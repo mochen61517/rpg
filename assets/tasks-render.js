@@ -92,11 +92,29 @@ function initAvatar(){
   const ha=document.getElementById('heroAvatar');
   if(ha && ha.src) DEFAULT_AVATAR=ha.src;
 }
+function isValidDataUrl(s){ return typeof s==='string' && s.startsWith('data:') && s.length>50; }
 function applyAvatar(){
-  const src=(S.avatar && S.avatar.startsWith('data:')) ? S.avatar : DEFAULT_AVATAR;
+  const src=(S.avatar && isValidDataUrl(S.avatar)) ? S.avatar : DEFAULT_AVATAR;
   const ha=document.getElementById('heroAvatar'); if(ha) ha.src=src;
   const ba=document.getElementById('brandAvatar');
-  if(ba){ ba.style.backgroundImage=src?'url('+src+')':''; ba.textContent=src?'':'🕯️'; }
+  if(!ba) return;
+  if(!src || src===DEFAULT_AVATAR){
+    ba.style.backgroundImage='';
+    ba.textContent='🕯️';
+    return;
+  }
+  // 先尝试加载，失败则回退默认并清理脏数据
+  const test=new Image();
+  test.onload=function(){
+    ba.style.backgroundImage='url('+src+')';
+    ba.textContent='';
+  };
+  test.onerror=function(){
+    ba.style.backgroundImage='';
+    ba.textContent='🕯️';
+    if(S.avatar){ S.avatar=''; save(); }
+  };
+  test.src=src;
 }
 function uploadAvatar(input){
   const f=input && input.files && input.files[0]; if(!f) return;
