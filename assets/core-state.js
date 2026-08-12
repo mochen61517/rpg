@@ -1185,6 +1185,22 @@ function importSave(file){
   r.readAsText(file);
 }
 
+// 手机访问：复制 GitHub Pages 链接（数据设置页「📱 手机访问」面板用）
+function copyPhoneUrl(){
+  const u = 'https://mochen61517.github.io/rpg/';
+  const el = document.getElementById('phoneUrl'); if(el) el.value = u;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(u).then(()=>alert('📋 已复制手机访问链接')).catch(()=>_fallbackCopy(u));
+  } else { _fallbackCopy(u); }
+}
+function _fallbackCopy(t){
+  const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); alert('📋 已复制手机访问链接'); }
+  catch(e){ alert('复制失败，请手动复制：\n'+t); }
+  document.body.removeChild(ta);
+}
+
 // ---------- GitHub 云备份（防丢 / 跨设备，可选） ----------
 function utf8ToBase64(str){
   const bytes = new TextEncoder().encode(str);

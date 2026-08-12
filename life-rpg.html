@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.0.9</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=6.0.20">
+<title>人生修行录 · v6.0.21</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=6.0.21">
 </head>
 <body>
 <div class="layout">
@@ -590,6 +590,15 @@
         </div>
         <div class="hint">静态网页无法自动定时推送；点此按钮把你今日的主线+清单发到微信。每天 9:00 的通用打卡提醒已通过 WorkBuddy 定时任务启用。</div>
       </div>
+      <div class="panel">
+        <h2>📱 手机访问（随身使用）</h2>
+        <div class="hint">部署到 GitHub Pages 后，用手机浏览器打开下方地址即可随身使用。点「复制链接」再发到微信/备忘录，或扫二维码直达（无需手打）。</div>
+        <div class="addrow" style="align-items:center;gap:8px;margin:10px 0">
+          <input type="text" id="phoneUrl" readonly value="https://mochen61517.github.io/rpg/" style="flex:1 1 180px;font-size:13px">
+          <button class="btn sm" onclick="copyPhoneUrl()">📋 复制链接</button>
+        </div>
+        <div style="margin-top:4px"><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fmochen61517.github.io%2Frpg%2F" width="160" height="160" alt="手机访问二维码" style="border-radius:10px;background:#fff;padding:6px;display:block"></div>
+      </div>
       <div class="row" style="gap:10px;margin-bottom:8px">
         <button class="btn ghost sm" onclick="newDay()">🌅 新的一天（结算连击）</button>
         <button class="btn ghost sm" onclick="resetAll()">♻ 清空重来</button>
@@ -721,9 +730,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=6.0.20"></script>
-<script src="assets/tasks-render.js?v=6.0.20"></script>
-<script src="assets/npc-stories.js?v=6.0.20"></script>
-<script src="assets/systems.js?v=6.0.20"></script>
+<script src="assets/core-state.js?v=6.0.21"></script>
+<script src="assets/tasks-render.js?v=6.0.21"></script>
+<script src="assets/npc-stories.js?v=6.0.21"></script>
+<script src="assets/systems.js?v=6.0.21"></script>
 </body>
 </html>
