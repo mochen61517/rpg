@@ -1215,7 +1215,6 @@ function closeCustomModal(){ _cmId=null; _cmPreset=null; const m=document.getEle
 
 /* ---------- 通用 checklist 渲染（年/月/周主线共用） ---------- */
 let yearOpen = new Set();
-const yearStepsOpen = new Set();
 const mpOpen = new Set();
 function toggleMpOpen(k){ if(mpOpen.has(k))mpOpen.delete(k); else mpOpen.add(k); renderMonthPlanEdit(); }
 function yearDone(i){ const c=S.year[i]; if(!c) return false; if(Array.isArray(c.items) && c.items.length>0) return c.items.every(x=>isDoneEver(x)); return !!c.done; }
@@ -1371,7 +1370,6 @@ function todayAttrStatus(a){
   return {total,done};
 }
 /* ---------- 年度主线 · 数据分析引擎（非任务清单） ---------- */
-function toggleYearSteps(i){ if(yearStepsOpen.has(i))yearStepsOpen.delete(i); else yearStepsOpen.add(i); render(); }
 function yearTrackFor(t){
   if(/羽毛球|羽球|球类/.test(t)) return 'badminton';
   if(/职业|平台|央企|体制内|文职|offer|上岸|工作|增长|海外/.test(t)) return 'career';
@@ -1471,7 +1469,6 @@ function yearAnalysisCard(c,i){
     return '<div class="qblock paused"><div class="qbtop">'+head+'<span class="qbp">'+trackTag+'</span></div>'
       +'<div class="qbstep"><span class="note" onclick="toggleYearOpen('+i+')">▶ 展开（休眠中 · 不计入进度，随时可复活）</span></div></div>';
   }
-  const stepsBody = yearStepsBody(c,i,a);
   return '<div class="ya-card'+(paused?' paused':'')+'">'
     +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+'<span class="qdel" onclick="delYearQuest('+i+')" title="删除">×</span></span></div>'
     +'<div class="ya-elapsed">📅 今年已过 <b>'+a.elapsedDays+'</b> 天 · 占 <b>'+a.elapsedPct+'%</b></div>'
@@ -1479,14 +1476,7 @@ function yearAnalysisCard(c,i){
     +'<div class="ya-prog-label">数据进度 <b>'+a.progressPct+'%</b>'+(a.progressNote||'')+' · 预计年末达成度 <b class="ya-'+a.predClass+'">'+a.predLabel+'</b>（'+a.projected+'%）</div></div>'
     +'<div class="ya-advice"><div class="ya-advice-h">📌 分析建议</div><ul>'+adviceHtml+'</ul></div>'
     +yearRecordBlock(c,i)
-    +stepsBody
     +'</div>';
-}
-function yearStepsBody(c,i,a){
-  const open=yearStepsOpen.has(i);
-  const head='<div class="ya-steps-h" onclick="toggleYearSteps('+i+')">'+(open?'▾':'▸')+' 步骤（'+a.doneEv+'/'+a.total+(a.total?' 已推进':'')+(a.total?'':' · 暂无')+'）</div>';
-  const body= open? ('<div class="ya-steps-body">'+checklistBlock(c,i,'year',true)+'</div>') : '';
-  return '<div class="ya-steps">'+head+body+'</div>';
 }
 function renderLongterm(){
   const dpEl=document.getElementById('decadePlan');
@@ -1547,7 +1537,9 @@ function renderMonthPlanEdit(){
       + '<span class="mp-foot-save"><button class="btn sm" onclick="'+saveFn+'">💾 保存</button></span></div>'
       + futureNote;
   };
-  const viewForm=(r)=>'<div class="mp-cards mp-view">'+dispCard('预期主线',r.plan)+dispCard('实际推进',r.actual)+dispCard('复盘',r.reason)+'</div>';
+  const viewForm=(r,k)=>'<div class="mp-cards mp-view">'+dispCard('预期主线',r.plan)+dispCard('实际推进',r.actual)+dispCard('复盘',r.reason)+'</div>'
+    +'<div class="mp-rowfoot"><span class="mp-foot-status"><label class="lt-lab" style="margin:0">'+statusChip(r.status)+'</label></span>'
+    +'<span class="mp-foot-save"><button class="btn sm ghost" onclick="toggleMpOpen(\''+k+'\')">✎ 编辑</button></span></div>';
   let html='<div class="lt-hint">每月三个维度横排对照：左边写「预期」，月底中间填「实际」，右边写「复盘」。当前月（'+monthLabel[nowMM-1]+'月）高亮可填；未来月先写预期；过去月置灰，点一下可补录。</div>';
   html+='<div class="mp-year">'+yk+' 年 · 每月主线</div>';
   html+='<div class="mp-rows">';
@@ -1559,9 +1551,20 @@ function renderMonthPlanEdit(){
     const k=yk+'-'+(m<10?'0'+m:m);
     const r=yrPlans[k]||{plan:'',actual:'',status:'',reason:''};
     const isCur=m===nowMM, future=m>nowMM, past=m<nowMM;
-    const cls='mp-row'+(isCur?' mp-cur':'')+(future?' mp-future':'')+(past?' mp-past':'')+((r.plan||r.actual||r.reason)?' mp-has':'');
-    const head='<div class="mp-rowhead'+(past?' mp-head-click':'')+'"'+(past?' onclick="toggleMpOpen(\''+k+'\')"':'')+'><span class="mp-label">'+monthLabel[m-1]+'月</span>'+statusChip(r.status)+'</div>';
-    const body = past ? (mpOpen.has(k)?editForm(k,r,false,false):viewForm(r)) : editForm(k,r,isCur,future);
+    const hasContent = !!(r.plan||r.actual||r.reason||r.status);
+    const cls='mp-row'+(isCur?' mp-cur':'')+(future?' mp-future':'')+(past?' mp-past':'')+(hasContent?' mp-has':'');
+    // 过去月 / 当前月已填：默认「展示态」，点头部或「✎ 编辑」展开；当前月空白：直接编辑态引导填写；未来月：始终编辑态（仅预期可填）
+    const canToggle = past || isCur;
+    const showView = (past || isCur) && !mpOpen.has(k) && (past || hasContent);
+    const head='<div class="mp-rowhead'+(canToggle?' mp-head-click':'')+'"'+(canToggle?' onclick="toggleMpOpen(\''+k+'\')"':'')+'><span class="mp-label">'+monthLabel[m-1]+'月</span>'+statusChip(r.status)+(showView?' <span class="mp-edit-hint">✎ 编辑</span>':'')+'</div>';
+    let body;
+    if(future){
+      body = editForm(k,r,isCur,future);
+    } else if(mpOpen.has(k) || (isCur && !hasContent)){
+      body = editForm(k,r,isCur,false);
+    } else {
+      body = viewForm(r,k);
+    }
     html+='<div class="'+cls+'">'+head+body+'</div>';
   });
   html+='</div>';
@@ -1587,6 +1590,7 @@ function saveMonthPlanKey(key){
   if(sEl) cur.status = sEl.value;
   const rEl = getEl('mReason_'+key) || (isCur?getEl('mReason'):null);
   if(rEl) cur.reason = rEl.value;
+  mpOpen.delete(key);   // 保存后折叠回「展示态」，不再停在编辑态
   save(); render();
 }
 function renderDayunNote(){
@@ -1632,7 +1636,7 @@ const TRACK_LIGHT_HINTS={
 };
 function lightTodayTrack(k){
   const t=LIFE_TRACKS[k]; if(!t) return;
-  const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+  const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
   if(m>=(t.rec||20)){ try{ celebrateTask(t.ic+' '+t.n+' 今日已点亮'); }catch(e){} return; }
   try{ addLifePractice(k, t.rec||20); }catch(e){}
   const hints=TRACK_LIGHT_HINTS[k]||['点亮了 '+t.n+'，今天继续加油。'];
@@ -1657,20 +1661,20 @@ function renderTodayCockpit(){
   const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
   const e=energyState(), live=liveTrackKeys(), sel=todayMainKeys();
   const chip=function(k){
-    const t=LIFE_TRACKS[k], on=sel.indexOf(k)>=0, m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+    const t=LIFE_TRACKS[k], on=sel.indexOf(k)>=0, m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
     return '<button class="tm-chip'+(on?' on':'')+(m>0?' lit':'')+'" onclick="toggleTodayMain(\''+k+'\')">'
       +'<span class="tm-chip-ic">'+t.ic+'</span><span class="tm-chip-n">'+escHtml(t.n)+'</span>'
       +(on?'<span class="tm-chip-tick">✓</span>':'')+'</button>';
   };
   const rowOf=function(k){
-    const t=LIFE_TRACKS[k], mins=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0;
+    const t=LIFE_TRACKS[k], mins=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
     const tgt=t.rec||20, ok=mins>=tgt;
     return '<div class="tm-row'+(ok?' ok':'')+'" onclick="lightTodayTrack(\''+k+'\')" style="cursor:pointer" title="点一下直接点亮">'
       +'<div class="tm-row-ic">'+t.ic+'</div>'
       +'<div class="tm-row-body"><div class="tm-row-n">'+escHtml(t.n)
       +'<span class="tm-row-tag">'+(ok?'✨ 已点亮':'💡 待点亮 · 目标 '+tgt+' 分钟')+'</span></div></div></div>';
   };
-  const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return m>=(t.rec||20); }).length;
+  const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return m>=(t.rec||20); }).length;
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
     +'<div class="tm-title">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
@@ -1686,7 +1690,7 @@ function renderTodayCockpit(){
 function renderDashboardSummary(){
   const el=document.getElementById('dashKeySummary'); if(!el) return;
   const sel=todayMainKeys();
-  const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return m>=(t.rec||20); }).length;
+  const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return m>=(t.rec||20); }).length;
   const e=energyState(), gxp=overallXP(), lv=lvlOf(gxp), lr=xpInLvl(gxp);
   const wk=Object.keys(ATTRS).reduce(function(s,a){return s+weeklyAttrMinutes(a);},0);
   const cards=[
@@ -1703,7 +1707,7 @@ const JIANGHU_PIN={id:'jh_sleep',t:'今日早睡 · 23:30 前上床，手机放�
 const JIANGHU_BANK=[
   // ★★★★★ 硬骨头（历史完成率最低：作息 / 抗拒型 / 早晨类）
   {id:'jh_nophone_am',t:'起床后 30 分钟不碰手机',a:'MIND',diff:5,xp:40},
-  {id:'jh_noshort',t:'今天一条短视频都不刷',a:'MIND',diff:5,xp:40},
+  {id:'jh_noshort',t:'今天不打开小红书',tWeek:'本周不打开小红书',tMonth:'本月碎片时间不刷短视频',a:'MIND',diff:5,xp:40},
   {id:'jh_overdue',t:'干掉一件拖了 7 天以上的事',a:'CAREER',diff:5,xp:40},
   {id:'jh_am_move',t:'上午就完成一次运动（不留到晚上）',a:'BODY',diff:5,xp:40},
   {id:'jh_hardtalk',t:'开一次你一直在回避的对话/邮件',a:'CAREER',diff:5,xp:40},
@@ -1740,6 +1744,17 @@ const JIANGHU_BANK=[
   {id:'jh_next1',t:'睡前写下明天的第一件事',a:'CAREER',diff:1,xp:6},
   {id:'jh_kind',t:'对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
 ];
+/* 任务按周期改写文案：日榜用 base t，周/月榜若有 tWeek/tMonth 则改用，避免日任务原样出现在月榜 */
+const JIANGHU_MAP={};
+JIANGHU_BANK.forEach(function(t){ JIANGHU_MAP[t.id]=t; });
+JIANGHU_MAP[JIANGHU_PIN.id]=JIANGHU_PIN;
+function jianghuDisplayText(id, kind){
+  const t=JIANGHU_MAP[id];
+  if(!t) return null;
+  if(kind==='week' && t.tWeek) return t.tWeek;
+  if(kind==='month' && t.tMonth) return t.tMonth;
+  return t.t;
+}
 function migrateSleepDaily(){
   if(!S.migr||typeof S.migr!=='object') S.migr={};
   if(S.migr.sleepJianghu) return;
@@ -1781,15 +1796,15 @@ function renderJianghu(){
     +'<div class="jh-score">'+doneList.length+' / '+list.length+' · +'+got+' XP<small>满榜 '+maxXp+'</small></div>'
     +'<button class="btn xs ghost jh-reroll" onclick="jianghuReroll()" title="换一榜（今天已完成的会保留）">🔄 换榜</button></div>'
     +'<div class="jh-list">'+list.map(function(x,i){
-      const a=ATTRS[safeAttr(x.a)];
-      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+'">'
+      const a=ATTRS[safeAttr(x.a)]; const accepted=_acc.has(x.id);
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+'">'
         +'<div class="jh-rank">'+(i+1)+'</div>'
         +'<div class="jh-body"><div class="jh-t">'+escHtml(x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
         +'<span class="jh-attr">'+a.icon+' '+a.name+'</span>'
         +(x.pin?'<span class="jh-pin">榜首常驻</span>':'')+'</div></div>'
         +'<div class="jh-xp">+'+x.xp+'</div>'
-        +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuToggle(\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'+(x.done?'': '<button class="btn xs ghost" data-src="day" data-id="'+x.id+'" onclick="jianghuAccept(this.dataset.src,this.dataset.id)">'+(_acc.has(x.id)?'已揭榜':'🗡️ 揭榜')+'</button>')
+        +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuToggle(\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'+(x.done?'':(accepted?'<span class="jh-accepted">🔒 已揭榜</span>':'<button class="btn xs ghost" data-src="day" data-id="'+x.id+'" onclick="jianghuAccept(this.dataset.src,this.dataset.id)">🗡️ 揭榜</button>'))
         +'</div>';
     }).join('')+'</div>'
     +'<div class="hint">难度按你过往的完成情况排定：作息/抗拒型的事排最上、给最高积分；越往下越顺手。做不到就跳过，榜是给你挑的，不是逼你的。</div>';
@@ -1866,14 +1881,14 @@ function renderJianghuPeriod(kind){
     +'<div class="jh-score">'+doneList.length+' / '+list.length+' · +'+got+' XP<small>满榜 '+maxXp+'</small></div>'
     +'<button class="btn xs ghost jh-reroll" onclick="jianghuPeriodReroll(\''+kind+'\')" title="换一榜（本'+(isWeek?'周':'月')+'已完成的会保留）">🔄 换榜</button></div>'
     +'<div class="jh-list">'+list.map(function(x,i){
-      const a=ATTRS[safeAttr(x.a)];
-      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+'">'
+      const a=ATTRS[safeAttr(x.a)]; const accepted=_acc.has(x.id);
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+'">'
         +'<div class="jh-rank">'+(i+1)+'</div>'
-        +'<div class="jh-body"><div class="jh-t">'+escHtml(x.t)+'</div>'
+        +'<div class="jh-body"><div class="jh-t">'+escHtml(jianghuDisplayText(x.id,kind)||x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
         +'<span class="jh-attr">'+a.icon+' '+a.name+'</span></div></div>'
         +'<div class="jh-xp">+'+x.xp+'</div>'
-        +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuPeriodToggle(\''+kind+'\',\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'+(x.done?'': '<button class="btn xs ghost" data-src="'+kind+'" data-id="'+x.id+'" onclick="jianghuAccept(this.dataset.src,this.dataset.id)">'+(_acc.has(x.id)?'已揭榜':'🗡️ 揭榜')+'</button>')
+        +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuPeriodToggle(\''+kind+'\',\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'+(x.done?'':(accepted?'<span class="jh-accepted">🔒 已揭榜</span>':'<button class="btn xs ghost" data-src="'+kind+'" data-id="'+x.id+'" onclick="jianghuAccept(this.dataset.src,this.dataset.id)">🗡️ 揭榜</button>'))
         +'</div>';
     }).join('')+'</div>'
     +'<div class="hint">难度按你过往的完成情况排定：作息/抗拒型的事排最上、给最高积分；越往下越顺手。做不到就跳过，榜是给你挑的，不是逼你的。</div>';
@@ -1882,11 +1897,12 @@ function jianghuPeriodToggle(kind, idv){
   const st=ensureJianghuPeriod(kind), arr=(st.list||[]).filter(function(q){return q.id===idv;});
   if(!arr.length) return;
   const x=arr[0], a=safeAttr(x.a);
+  const txt=jianghuDisplayText(x.id,kind)||x.t;
   if(!x.done){
-    x.done=true; grant(a,x.xp); addHist('✔【江湖'+(kind==='week'?'周榜':'月榜')+'】'+x.t+' +'+x.xp+' XP',x.xp); save(); render(); syncMyJianghu(kind, idv, true);
-    try{ celebrateTask('🗡️ '+x.t+' · +'+x.xp+' XP'); }catch(e){}
+    x.done=true; grant(a,x.xp); addHist('✔【江湖'+(kind==='week'?'周榜':'月榜')+'】'+txt+' +'+x.xp+' XP',x.xp); save(); render(); syncMyJianghu(kind, idv, true);
+    try{ celebrateTask('🗡️ '+txt+' · +'+x.xp+' XP'); }catch(e){}
   }else{
-    x.done=false; grant(a,x.xp,true); addHist('✘【江湖'+(kind==='week'?'周榜':'月榜')+'】'+x.t,-x.xp); save(); render(); syncMyJianghu(kind, idv, false);
+    x.done=false; grant(a,x.xp,true); addHist('✘【江湖'+(kind==='week'?'周榜':'月榜')+'】'+txt,-x.xp); save(); render(); syncMyJianghu(kind, idv, false);
   }
 }
 function jianghuPeriodReroll(kind){ ensureJianghuPeriod(kind,true); save(); render(); try{ celebrateTask('🎲 江湖'+(kind==='week'?'周榜':'月榜')+'已换一批'); }catch(e){} }
@@ -1912,9 +1928,9 @@ function jianghuAccept(src,idv){
   if(myJianghuAccepted(src,idv)){ render(); return; }
   const st=jianghuPeriodOfSrc(src), arr=(st.list||[]).filter(function(q){return q.id===idv;});
   if(!arr.length) return; const x=arr[0];
-  S.myJianghu.push({uid:id()+'',src:src,id:idv,period:myJianghuPeriod(src),t:x.t,a:x.a,xp:x.xp,diff:x.diff,deadline:jianghuDeadline(src),done:false});
+  S.myJianghu.push({uid:id()+'',src:src,id:idv,period:myJianghuPeriod(src),t:jianghuDisplayText(idv,src)||x.t,a:x.a,xp:x.xp,diff:x.diff,deadline:jianghuDeadline(src),done:false});
   save(); render();
-  try{ celebrateTask('🗡️ 已揭榜：'+x.t); }catch(e){}
+  try{ celebrateTask('🗡️ 已揭榜：'+(jianghuDisplayText(idv,src)||x.t)); }catch(e){}
 }
 function syncMyJianghu(src,idv,done){ if(!Array.isArray(S.myJianghu)) return; const p=myJianghuPeriod(src); S.myJianghu.forEach(function(e){ if(e.src===src&&e.id===idv&&e.period===p) e.done=done; }); }
 function myJianghuUnfinished(){ return (S.myJianghu||[]).filter(function(e){return !e.done;}).length; }
@@ -2033,7 +2049,7 @@ function render(){
   const _mainKeys = todayMainKeys();
   const _jhList = (function(){ try{ return ensureJianghu().list||[]; }catch(e){ return []; } })();
   const dashDaily = [
-    ..._mainKeys.map(k=>{ const t=LIFE_TRACKS[k], m=(typeof practiceTodayMinutes==='function')?practiceTodayMinutes(k):0; return {tag:'主线',t:t.ic+' '+t.n,done:m>=(t.rec||20),xp:0,mins:m}; }),
+    ..._mainKeys.map(k=>{ const t=LIFE_TRACKS[k], m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return {tag:'主线',t:t.ic+' '+t.n,done:m>=(t.rec||20),xp:0,mins:m}; }),
     ...S.daily.map(x=>({tag:'习惯',t:x.t,done:isDone(x,d),xp:itemXpAt(x,d)})),
     ..._jhList.map(x=>({tag:'江湖',t:x.t,done:!!x.done,xp:x.xp})),
   ].sort((a,b)=>(a.tag==='主线'?-1:0)-(b.tag==='主线'?-1:0)||(a.done?1:0)-(b.done?1:0)).slice(0,6);
@@ -2053,9 +2069,12 @@ function render(){
 
   // （江湖轶事已改为纯任务生成器，dashSide 面板已移除）
 
-  // 月 / 年主线摘要
-  document.getElementById('dashMonth').innerHTML = `<div class="dash-row"><span>${S.month.t}</span><span class="dr-xp">${moDone}/${mo.length}</span></div>
-    <div class="dash-mini">${S.month.items.slice(0,4).map(x=>`<span class="${isDoneEver(x)?'on':''}">${isDoneEver(x)?'✔ ':''}${x.t}</span>`).join('')}</div>`;
+  // 月 / 年主线摘要：标题优先取每月主线计划（S.monthPlansByYear）里的预期主线
+  const _mk=thisMonth(), _yk=String(new Date().getFullYear());
+  const _mp=(S.monthPlansByYear&&S.monthPlansByYear[_yk]&&S.monthPlansByYear[_yk][_mk])||{};
+  const monthTitle=_mp.plan||S.month.t;
+  document.getElementById('dashMonth').innerHTML = `<div class="dash-row"><span>${escHtml(monthTitle)}</span><span class="dr-xp">${moDone}/${mo.length}</span></div>
+    <div class="dash-mini">${S.month.items.slice(0,4).map(x=>`<span class="${isDoneEver(x)?'on':''}">${isDoneEver(x)?'✔ ':''}${escHtml(x.t)}</span>`).join('')}</div>`;
   document.getElementById('dashYear').innerHTML = S.year.length
     ? `<div class="dash-row"><span>今年大道 · ${yearDoneCount}/${yearTotal} 完成</span></div>
        <div class="dash-mini">${S.year.filter(c=>!c.paused).slice(0,4).map((c,i)=>`<span class="${yearDone(i)?'on':''}">${yearDone(i)?'✔ ':''}${c.t}</span>`).join('')}</div>`
@@ -2382,9 +2401,17 @@ function showPage(p){
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
   if(p==='action'){
     try{
-      // 打开短期任务页：默认展示第一个 tab（今日行动）；深层链接(notifGo)才沿用 S.stTab
-      const st = _isDeepLink ? ((typeof S==='object' && S && (S.stTab==='jianghu'||S.stTab==='week'))?S.stTab:'action') : 'action';
-      switchShortTaskTab(st);
+      // 打开短期任务页：默认展示第一个 tab；深层链接(notifGo)才沿用 S.stTab
+      // 若有未读江湖委托或未完成揭榜，自动定位到江湖榜对应子 tab
+      let st='action', jhAuto='';
+      if(!_isDeepLink){
+        const hasNpc = !!(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length);
+        const hasMy = (S.myJianghu||[]).some(function(e){return !e.done;});
+        if(hasNpc || hasMy){ st='jianghu'; jhAuto=hasNpc?'npc':'my'; }
+      }else{
+        st = ((typeof S==='object' && S && (S.stTab==='jianghu'||S.stTab==='week'))?S.stTab:'action');
+      }
+      switchShortTaskTab(st, false, jhAuto);
     }catch(e){}
     markSideSeen();
   }
@@ -2398,7 +2425,8 @@ function showPage(p){
 
 // 短期任务页内 tab 切换：今日行动 / 江湖榜 / 本周卷册
 // resetSub=true 表示用户主动点击「江湖榜」父 tab，需把嵌套子 tab 重置到第一个（日榜）
-function switchShortTaskTab(tab, resetSub){
+// autoSub 为自动定位的子 tab（如 'npc'/'my'），优先级低于 resetSub
+function switchShortTaskTab(tab, resetSub, autoSub){
   const actionPane=document.getElementById('st-action-pane');
   const jianghuPane=document.getElementById('st-jianghu-pane');
   const weekPane=document.getElementById('st-week-pane');
@@ -2408,7 +2436,14 @@ function switchShortTaskTab(tab, resetSub){
   jianghuPane.style.display=tab==='jianghu'?'block':'none';
   weekPane.style.display=tab==='week'?'block':'none';
   document.querySelectorAll('#stTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.st===tab));
-  if(tab==='jianghu'){ try{ switchJianghuTab(resetSub ? 'day' : (S.jhTab||'day')); }catch(e){} }
+  if(tab==='jianghu'){
+    let sub;
+    if(resetSub) sub='day';
+    else if(autoSub) sub=autoSub;
+    else sub=S.jhTab||'day';
+    try{ switchJianghuTab(sub); }catch(e){}
+  }
+  try{ renderShortTaskBadges(); }catch(e){}
 }
 
 // 江湖榜内 tab 切换：委托 / 日榜 / 周榜 / 月榜 / 我的揭榜
@@ -2421,6 +2456,7 @@ function switchJianghuTab(tab){
     if(pane) pane.style.display=(t===tab?'block':'none');
   });
   document.querySelectorAll('#jhTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.jh===tab));
+  try{ renderShortTaskBadges(); }catch(e){}
 }
 
 // ===== 仪表盘拖拽排序 =====

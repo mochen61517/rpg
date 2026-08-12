@@ -165,6 +165,9 @@ function inheritedXP(){
 
 function id(){return Math.random().toString(36).slice(2,9)}
 function todayStr(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); } // 本地日期 YYYY-MM-DD
+// 当前「记录于」日期：补录入口（REC_DATE）生效时返回那天，否则返回今天。
+// 今日行动页的复利轨道 / 今日主线都用它判定「该显示/记录哪一天」，从而切到过去日期能看到那天已点亮的图标。
+function recordDateStr(){ return REC_DATE || todayStr(); }
 function fmtMD(s){ if(!s||s.length<10) return ''; const m=parseInt(s.slice(5,7),10), d=parseInt(s.slice(8,10),10); return m+'月'+d+'日'; } // 2026-07-30 → 7月30日
 function fmtFull(d){ if(!(d instanceof Date)) d=new Date(); const wd=['周日','周一','周二','周三','周四','周五','周六'][d.getDay()]; return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 · '+wd; }
 function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}

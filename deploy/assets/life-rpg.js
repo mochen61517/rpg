@@ -2797,6 +2797,8 @@ function render(){
 
   // dashboard 摘要卡片
   try{ renderTodayCockpit(); }catch(e){ console.warn('today cockpit',e); }
+  // 复利轨道面板：切换「记录于」日期时也要按当天重新点亮（REC_DATE 生效时显示那天已亮起的图标）
+  try{ if(typeof renderLifeCompound==='function') renderLifeCompound(); }catch(e){ console.warn('life compound',e); }
   const mq=[...S.daily,...S.weekly].find(x=>x.id===S.mainQ);
   const d=todayStr();
   const wk=S.week.items||[], wkDone=wk.filter(x=>isDoneEver(x)).length;
@@ -3025,7 +3027,7 @@ function renderXpLedger(){
   el.innerHTML='<div class="xpl-head"><div><div class="xpl-title">⚖️ 修为账本</div><div class="hint">看清奖励来自哪里 · 节奏线不是上限</div></div><div class="xpl-total"><b>+'+x.pos+'</b><br><span>今日入账 XP'+(x.neg?' · 撤销 '+x.neg:'')+'</span></div></div>'
     +'<div class="xpl-meter"><i style="width:'+pct+'%"></i></div><div class="xpl-scale"><span>0 · 起步</span><span>180 · 充足</span><span>360 · 丰盛</span></div>'
     +'<div class="xpl-cats">'+Object.keys(labs).map(k=>'<div class="xpl-cat"><b>'+labs[k][0]+' '+x.cats[k]+'</b><span>'+labs[k][1]+'</span></div>').join('')+'</div><div class="xpl-note">'+note+'</div>'
-    +'<div class="xpl-week">'+days.map(q=>'<div class="xpl-day"><i style="height:'+Math.max(2,Math.round(q.v/mx*28))+'px"></i><span>'+q.d.slice(5)+'</span></div>').join('')+'</div>';
+    +'<div class="xpl-week"><svg class="xpl-chart" viewBox="0 0 280 40" preserveAspectRatio="none" style="width:100%;height:40px;display:block;margin-bottom:6px;"><polyline points="'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return x+','+y;}).join(' ')+'" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+days.map((q,i)=>{const x=6+i*(280-12)/6; const y=40-6-Math.max(2,Math.round(q.v/mx*(40-12))); return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--gold)"/>';}).join('')+'</svg><div class="xpl-day">'+days.map(q=>'<span>'+q.d.slice(5)+'</span>').join('')+'</div></div>';
 }
 function renderLoot(){
   const el=document.getElementById('equipList'); if(!el) return;  // 页面未渲染则跳过
@@ -4450,8 +4452,6 @@ function notifList(){
   const lu=letterUnread();
   if(lu>0)
     arr.push({page:'map', ic:'✉️', t:lu+' 封远方来信未读', d:'点开看看', key:'letter'});
-  if(S.draw && S.draw.date===todayStr() && !S.draw.claimed)
-    arr.push({page:'dashboard', ic:'🎴', t:'今日宜忌可承接', d:'承气运 +20 XP', key:'draw', scroll:'drawBox'});
   return arr;
 }
 function notifGo(el){

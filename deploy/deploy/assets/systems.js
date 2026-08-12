@@ -886,10 +886,15 @@ function renderBirthday(){
   const ents=birthdayEntities();
   if(!ents.length){ el.innerHTML='<div class="dash-empty">还没有设置重要日子。</div>'; return; }
   const now=todayStr();
+  // 按距离现在的时间升序（daysLeft 越小 = 越近）排列，时间越近的生日来信越靠前
+  const items=ents.map(function(e){
+    return { e:e, occ:nextOccurrence(e, now) };
+  }).sort(function(a,b){ return a.occ.daysLeft - b.occ.daysLeft; });
   let anyUnread=false;
   let h='';
-  ents.forEach(function(e){
-    const occ=nextOccurrence(e, now);
+  items.forEach(function(it){
+    const e=it.e;
+    const occ=it.occ;
     const qid='bdq_'+e.uid+'_'+occ.year;
     const q=(S.birthdayQuests||[]).find(function(x){return x.id===qid;});
     const rem=(S.birthdayReminders||[]).find(function(x){return x.id==='bdr_'+e.uid+'_'+occ.year;});
@@ -1172,8 +1177,6 @@ function notifList(){
   const lu=letterUnread();
   if(lu>0)
     arr.push({page:'map', ic:'✉️', t:lu+' 封远方来信未读', d:'点开看看', key:'letter'});
-  if(S.draw && S.draw.date===todayStr() && !S.draw.claimed)
-    arr.push({page:'dashboard', ic:'🎴', t:'今日宜忌可承接', d:'承气运 +20 XP', key:'draw', scroll:'drawBox'});
   // v5.45 嘉奖箱未兑换提醒
   const _unclaim=(S.rewards&&S.rewards.drops||[]).filter(d=>!d.claimed).length;
   if(_unclaim>0){
@@ -1238,7 +1241,7 @@ function renderNotifications(){
   const list=notifList();
   if(!list.length){
     el.style.display='';
-    el.innerHTML='<div class="notif-h">🔔 待你回应</div><div class="notif-empty">暂无待你回应的互动 ✨<br><small>完成江湖偶遇、查收远方来信、承接今日宜忌后，这里会亮起提醒</small></div>';
+    el.innerHTML='<div class="notif-h">🔔 待你回应</div><div class="notif-empty">暂无待你回应的互动 ✨<br><small>完成江湖偶遇、查收远方来信后，这里会亮起提醒</small></div>';
     return;
   }
   el.style.display='';
@@ -1271,6 +1274,29 @@ function renderNavBadges(){
     sp.textContent = c>0 ? (c>99?'99+':String(c)) : '';
     sp.style.display = c>0 ? 'inline-block' : 'none';
   });
+  try{ renderShortTaskBadges(); }catch(e){}
+}
+function shortTaskBadgeData(){
+  const hasNpc = !!(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length);
+  const myUndone = (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
+  return {hasNpc:hasNpc?1:0, myUndone:myUndone, total:(hasNpc?1:0)+myUndone};
+}
+function renderShortTaskBadges(){
+  const d=shortTaskBadgeData();
+  const setBadge=function(id,n){
+    const el=document.getElementById(id); if(!el) return;
+    const show=n>0;
+    el.textContent = show ? (n>99?'99+':String(n)) : '';
+    el.style.display = show ? 'inline-block' : 'none';
+  };
+  setBadge('stBadge-action',0);
+  setBadge('stBadge-jianghu',d.total);
+  setBadge('stBadge-week',0);
+  setBadge('jhBadge-npc',d.hasNpc);
+  setBadge('jhBadge-day',0);
+  setBadge('jhBadge-week',0);
+  setBadge('jhBadge-month',0);
+  setBadge('jhBadge-my',d.myUndone);
 }
 function markSideSeen(){
   let ch=false;
@@ -1886,6 +1912,9 @@ function migrateBmMerge(){
 function practiceLogs(key){return ensureLifeCompound().logs.filter(x=>x.key===key);}
 function practiceNewMinutes(key){return practiceLogs(key).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceTodayMinutes(key){return practiceLogs(key).filter(x=>x.d===todayStr()).reduce((n,x)=>n+(+x.min||0),0);}
+// v6.0.10 显示用：当前查看的日期（REC_DATE 或今天）当天该轨道分钟数。
+// 今日行动页切到补录日期时，复利图标/今日主线都按这一天渲染，已点亮的照常亮起。
+function practiceViewMinutes(key){return practiceLogs(key).filter(x=>x.d===recordDateStr()).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceWeekMinutes(key){const start=monday();return practiceLogs(key).filter(x=>x.d>=start&&x.d<=shiftDate(start,6)).reduce((n,x)=>n+(+x.min||0),0);}
 function trackStage(totalMin, realms){
   const H=totalMin/60; let cur=realms[0], next=null;
@@ -1895,9 +1924,9 @@ function trackStage(totalMin, realms){
   return {n:cur[1], at, next: next?{h:nh,n:next[1]}:null, pct, H};
 }
 function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
-function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(todayStr()+key,t.variants.length)];}
+function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(recordDateStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
-  const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=todayStr(),lc=ensureLifeCompound();
+  const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=recordDateStr(),lc=ensureLifeCompound();
   // v5.44.1 同步存属性，便于 weeklyReviewStats 直接归类（不必再反查 LIFE_TRACKS）
   lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick',a:t.a});grant(t.a,min,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(min*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+min+' 分钟 · +'+xpGain+' XP');
 }
@@ -1908,7 +1937,7 @@ function syncLifePracticeFromTask(item,d,min,remove){
 }
 function saveLifeMemory(){
   const input=document.getElementById('lifeMemoryInput'),sel=document.getElementById('lifeMemoryTrack');const textv=(input&&input.value||'').trim();if(!textv)return;
-  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:todayStr(),text:textv,key:sel&&sel.value||'life'});if(input)input.value='';save();renderLifeCompound();celebrateTask('✨ 一枚生活碎片已被留下');
+  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,key:sel&&sel.value||'life'});if(input)input.value='';save();renderLifeCompound();celebrateTask('✨ 一枚生活碎片已被留下');
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 // v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。
@@ -1921,13 +1950,13 @@ function recordLifePractice(key){
 }
 function clearLifeToday(key){
   const t=LIFE_TRACKS[key]; if(!t) return;
-  const d=todayStr(), lc=ensureLifeCompound();
+  const d=recordDateStr(), lc=ensureLifeCompound();
   const gone=lc.logs.filter(function(x){return x.key===key&&x.d===d;});
   if(!gone.length) return;
   const mins=gone.reduce(function(n,x){return n+(+x.min||0);},0);
   lc.logs=lc.logs.filter(function(x){return !(x.key===key&&x.d===d);});
   try{ grant(t.a, -mins, false); }catch(e){}
-  addHist(t.ic+' '+t.n+'撤销今日记录 −'+mins+' 分钟', -mins, d);
+  addHist(t.ic+' '+t.n+'撤销'+fmtMD(d)+'记录 −'+mins+' 分钟', -mins, d);
   save(); renderLifeCompound(); render();
 }
 // v5.42 复利轨道改为图标优先：默认只显示图标，点击图标展开时间录入器；
@@ -1939,18 +1968,19 @@ function renderLifeCompound(){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
   const live=keys.filter(function(k){return !LIFE_TRACKS[k].paused;});
-  const todayActive=keys.filter(function(k){return practiceTodayMinutes(k)>0;}).length;
+  const viewDate=recordDateStr();
+  const isViewToday=viewDate===todayStr();
+  const viewActive=keys.filter(function(k){return practiceViewMinutes(k)>0;}).length;
   const mems=S.lifeCompound.memories||[];
-  const todayMems=mems.filter(function(x){return x.d===todayStr();}).length;
-  const todayMin=keys.reduce(function(n,k){return n+practiceTodayMinutes(k);},0);
-  const prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
+  const viewMin=keys.reduce(function(n,k){return n+practiceViewMinutes(k);},0);
+  const prompt=LIFE_PROMPTS[seededIndex(viewDate,LIFE_PROMPTS.length)];
 
   const quick=document.getElementById('lifeBlendBox');
   if(quick) quick.innerHTML=
-    '<div class="lc-head"><div><b>🌱 今日行动 · 复利轨道</b><span>点图标记一笔，今天完成的会亮起来</span></div>'
-      +'<div class="lc-score">'+todayActive+'/'+live.length+' 条已点亮 · 共 '+todayMin+' 分钟</div></div>'
+    '<div class="lc-head"><div><b>🌱 '+(isViewToday?'今日行动':'补录')+' · 复利轨道</b><span>'+(isViewToday?'点图标记一笔，今天完成的会亮起来':('这里显示 '+fmtMD(viewDate)+' 已点亮的情况；点图可在那天补记一笔'))+'</span></div>'
+      +'<div class="lc-score">'+viewActive+'/'+live.length+' 条已点亮 · 共 '+viewMin+' 分钟'+(isViewToday?'':' · '+fmtMD(viewDate))+'</div></div>'
     +'<div class="lc-ic-row">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
-      const t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), lit=m>0;
+      const t=LIFE_TRACKS[k], m=practiceViewMinutes(k), lit=m>0;
       return '<button class="lc-ic-btn '+(lit?'lit':'dim')+(_lcOpenTrack===k?' open':'')+'" onclick="lcToggle(\''+k+'\')" title="'+escHtml(lifeVariant(k))+'">'
         +'<span class="lc-ic">'+t.ic+'</span>'
         +'<span class="lc-ic-name">'+t.n+'</span>'
@@ -1958,9 +1988,9 @@ function renderLifeCompound(){
         +'</button>';
     }).join('')+'</div>'
     +(_lcOpenTrack?(function(){
-        const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), rec=t.rec||15;
+        const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceViewMinutes(k), rec=t.rec||15;
         return '<div class="lc-expand">'
-          +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>今天已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
+          +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>'+(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
           +'<button class="btn xs ghost lc-close" onclick="lcClose()" title="收起">✕</button></div>'
           +'<div class="lc-expand-body">'
             +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
@@ -1968,10 +1998,10 @@ function renderLifeCompound(){
             +'<span class="lc-unit">分钟</span>'
             +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
             +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
-            +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销今天这条轨道的全部记录">↺</button>':'')
+            +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销当天这条轨道的全部记录">↺</button>':'')
           +'</div></div>';
       })():'')
-    +'<div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div>'
+    +'<div class="lc-memory"><div><b>✨ '+(isViewToday?'今日生活碎片':fmtMD(viewDate)+'生活碎片')+'</b><span>'+prompt+'</span></div>'
       +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
       +keys.map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
       +'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…">'
@@ -1998,7 +2028,7 @@ function setupLifeCompoundUI(){
   try{ migrateDailyIntoTracks(); }catch(e){ console.warn('daily->tracks migrate',e); }
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
   try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
-  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';document.getElementById('todayDetailCockpit')?.insertAdjacentElement('afterend',p);}
+  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('recBar')||document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('afterend',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
 }
