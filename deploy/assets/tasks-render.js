@@ -2059,7 +2059,6 @@ function render(){
   const mq=[...S.daily,...S.weekly].find(x=>x.id===S.mainQ);
   const d=todayStr();
   const wk=S.week.items||[], wkDone=wk.filter(x=>isDoneEver(x)).length;
-  const mo=S.month.items||[], moDone=mo.filter(x=>isDoneEver(x)).length;
   let yearTotal=0, yearDoneCount=0;
   S.year.forEach((c,i)=>{ if(!c.paused){ yearTotal++; if(yearDone(i)) yearDoneCount++; } });
 
@@ -2087,12 +2086,7 @@ function render(){
 
   // （江湖轶事已改为纯任务生成器，dashSide 面板已移除）
 
-  // 月 / 年主线摘要：标题优先取每月主线计划（S.monthPlansByYear）里的预期主线
-  const _mk=thisMonth(), _yk=String(new Date().getFullYear());
-  const _mp=(S.monthPlansByYear&&S.monthPlansByYear[_yk]&&S.monthPlansByYear[_yk][_mk])||{};
-  const monthTitle=_mp.plan||S.month.t;
-  document.getElementById('dashMonth').innerHTML = `<div class="dash-row"><span>${escHtml(monthTitle)}</span><span class="dr-xp">${moDone}/${mo.length}</span></div>
-    <div class="dash-mini">${S.month.items.slice(0,4).map(x=>`<span class="${isDoneEver(x)?'on':''}">${isDoneEver(x)?'✔ ':''}${escHtml(x.t)}</span>`).join('')}</div>`;
+  // 年主线摘要（本月主线卡片已移除，保留入口在长期主线页）
   document.getElementById('dashYear').innerHTML = S.year.length
     ? `<div class="dash-row"><span>今年大道 · ${yearDoneCount}/${yearTotal} 完成</span></div>
        <div class="dash-mini">${S.year.filter(c=>!c.paused).slice(0,4).map((c,i)=>`<span class="${yearDone(i)?'on':''}">${yearDone(i)?'✔ ':''}${c.t}</span>`).join('')}</div>`

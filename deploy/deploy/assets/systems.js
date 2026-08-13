@@ -217,7 +217,18 @@ function renderLifeBanner(){
     {icon:'✨', name:'星光', past:livedDays, total:totalDays,
      line:(p,r)=>'你与 <b>'+p.toLocaleString()+'</b> 个夜晚擦肩而过，总有一颗星，是为你而亮的。'},
   ];
-  const feat=themes[Math.floor(rng()*themes.length)];
+  // 保证不与昨日重复：当日 seed 随机后，若与昨日结果相同则后移一位
+  function themeIdxForDate(d){
+    const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    let hh=2166136261>>>0;
+    for(let i=0;i<key.length;i++){ hh=((hh^key.charCodeAt(i))*16777619)>>>0; }
+    function rng2(){ hh=((hh+0x6D2B79F5)*0x9E3779B1)>>>0; return (hh>>>0)/4294967296; }
+    return Math.floor(rng2()*themes.length);
+  }
+  const yest=new Date(now); yest.setDate(yest.getDate()-1);
+  let idx=Math.floor(rng()*themes.length);
+  if(idx===themeIdxForDate(yest)) idx=(idx+1)%themes.length;
+  const feat=themes[idx];
   const remF=Math.max(0, feat.total-feat.past);
   const openers=[
     '今天，是你余生里最年轻的一天。',
