@@ -663,6 +663,7 @@ function defaultState(){
     trend: [],                    // 趋势曲线时序快照：{d,xp,net,w}
     weight: null,                 // 最新体重（kg），仅用于趋势
     theme: 'light',               // 命理主题皮肤：light / bing(丁火清凉) / dark(命理·夜)
+    hiddenPages: ['ledger'],      // 默认隐藏的板块（导航与页面入口）；目前仅钱庄，可设置页恢复
     brief: { last:'' },           // 今日战报：最近展示日期
     npc: { active:[], week:'', seenWeek:'' },  // NPC 委托：本周在办委托 + 所属周 + 已读周
     npcRel: {},                                 // v5.23 NPC 关系：{npcId:{xp,done}}
@@ -1069,6 +1070,8 @@ function migrate(){
   if(!Array.isArray(S.birthdayReminders)) S.birthdayReminders=[];
   if(!Array.isArray(S.birthdayQuests)) S.birthdayQuests=[];
   delete S.pet;   // 旧单只字段已并入 S.pets
+  // v6.0.36 板块显隐默认：钱庄默认隐藏（仅旧档首次运行生效，用户清空后不覆盖）
+  if(!Array.isArray(S.hiddenPages)) S.hiddenPages=['ledger'];
   // v6.0.31 灵圃兜底
   if(!S.garden || typeof S.garden!=='object') S.garden={planted:false,species:null,birthXP:0,revealed:false,history:[]};
   if(!Array.isArray(S.garden.history)) S.garden.history=[];

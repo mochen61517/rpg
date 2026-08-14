@@ -2410,6 +2410,8 @@ function render(){
   try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); renderDemons(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
+  // v6.0.37 板块显隐（默认隐藏钱庄等）
+  try{ applyPageVisibility(); }catch(e){ console.warn('v6.0.37 page visibility',e); }
   // v5.20 通知中心
   try{ renderNotifications(); renderNavBadges(); renderBioAge(); }catch(e){ console.warn('v5.20+ render',e); }
   newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
@@ -2616,6 +2618,8 @@ function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=doc
 var _isDeepLink=false;   // notifGo 深层链接期间为 true，期间不强制重置为第一个 tab
 function showPage(p){
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
+  // v6.0.37 默认隐藏的板块不可经导航/深链直接进入
+  if(Array.isArray(S.hiddenPages) && S.hiddenPages.includes(p)) p='dashboard';
   // 江湖榜已合并进短期任务页：统一当作 action，并记住要展示江湖榜 tab
   if(p==='jianghu'){
     p='action';
@@ -2646,9 +2650,36 @@ function showPage(p){
   if(p==='growth'){ try{ if(!_isDeepLink) switchGrowthTab('compound'); }catch(e){} markBondsSeen(); }   // 打开修行页默认第一个 tab
   if(p==='longterm'){ try{ if(!_isDeepLink) switchLtTab('month'); }catch(e){} }   // 打开长期主线页默认每月主线
   if(p==='dashboard'){ markSideSeen(); }
-  if(p==='data'){ try{ fillProfileInputs(); }catch(e){} }
+  if(p==='data'){ try{ fillProfileInputs(); }catch(e){} try{ syncPageVisibilityUI(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
   try{ renderNotifications(); renderNavBadges(); }catch(e){}
+}
+
+// v6.0.37 板块显隐：默认隐藏的页面（如钱庄）从导航与页面入口移除，设置页可恢复
+function applyPageVisibility(){
+  if(!Array.isArray(S.hiddenPages)) S.hiddenPages=[];
+  document.querySelectorAll('.navitem').forEach(n=>{
+    const p=n.dataset.page;
+    if(p) n.style.display = S.hiddenPages.includes(p) ? 'none' : '';
+  });
+}
+function togglePageVisibility(key){
+  if(!Array.isArray(S.hiddenPages)) S.hiddenPages=[];
+  const i=S.hiddenPages.indexOf(key);
+  if(i>=0) S.hiddenPages.splice(i,1); else S.hiddenPages.push(key);
+  save();
+  applyPageVisibility();
+  // 若当前正停在被隐藏的页面，跳回仪表盘
+  if(S.hiddenPages.includes(currentPage())) showPage('dashboard');
+  syncPageVisibilityUI();
+}
+function syncPageVisibilityUI(){
+  const cb=document.getElementById('togglePage-ledger');
+  if(cb) cb.checked = !(S.hiddenPages||[]).includes('ledger');
+}
+function currentPage(){
+  const cur=document.querySelector('.page.active');
+  return cur ? cur.id.replace(/^page-/, '') : 'dashboard';
 }
 
 // 短期任务页内 tab 切换：今日行动 / 江湖榜 / 本周卷册
