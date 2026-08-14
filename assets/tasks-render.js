@@ -2407,7 +2407,7 @@ function render(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v5.20 通知中心
@@ -3137,6 +3137,26 @@ function renderCapsule(){
   if(opened.length) html+='<div class="cap-sec"><div class="cap-h">📖 已开启（'+opened.length+'）</div>'+opened.map(c=>'<span class="cap-chip done">'+c.sealedOn+'</span>').join('')+'</div>';
   if(!ready.length && !sealed.length && !opened.length) html+='<div class="hint">还没有时间胶囊。写一句给未来的自己吧。</div>';
   el.innerHTML=html;
+}
+
+// ===== v6.0.33 人生收集册（从现有数据派生，零新增录入）=====
+function renderCodex(){
+  const el=document.getElementById('codexBox'); if(!el) return;
+  const visited=(S.trips||[]).filter(t=>!t.wish).map(t=>t.name).filter(Boolean);
+  const wishes=(S.wishes||[]).filter(w=>w.un).map(w=>w.t||w.n).filter(Boolean);
+  const badges=(S.ach||[]).filter(a=>a.un).map(a=>(a.ic||'🏅')+' '+(a.n||''));
+  const yr=new Date().getFullYear();
+  const histDates=new Set((S.hist||[]).map(h=>h.d).filter(Boolean));
+  const jqHit=[];
+  if(typeof JIEQI!=='undefined'){ JIEQI.forEach(function(q){ const ds=yr+'-'+String(q[0]).padStart(2,'0')+'-'+String(q[1]).padStart(2,'0'); if(histDates.has(ds)) jqHit.push(q[2]); }); }
+  function sec(title,icon,items,empty){
+    if(!items.length) return '<div class="codex-sec"><div class="codex-h">'+icon+' '+title+'</div><div class="hint">'+empty+'</div></div>';
+    return '<div class="codex-sec"><div class="codex-h">'+icon+' '+title+'（'+items.length+'）</div><div class="codex-chips">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div></div>';
+  }
+  el.innerHTML=sec('走过的地方','🗺️',visited,'还没有记过「去过」的旅行脚印。')
+    +sec('点亮的人生愿望','🌟',wishes,'还没有点亮的人生愿望。')
+    +sec('解锁的徽章','🏅',badges,'还没有解锁徽章。')
+    +sec('走过的节气','🍂',jqHit,'今年还没在节气当天留下记录。');
 }
 
 function renderEnergyPage(){
