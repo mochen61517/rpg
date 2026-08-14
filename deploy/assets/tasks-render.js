@@ -2515,7 +2515,29 @@ function floatXP(text, anchorId){
   el.style.left=(r.right+8)+'px'; el.style.top=(r.top+4)+'px';
   fx.appendChild(el); setTimeout(()=>el.remove(),1250);
 }
+let _audioCtx=null;
+(function unlockAudio(){ try{ const AC=window.AudioContext||window.webkitAudioContext; if(AC){ document.addEventListener('pointerdown',function(){ if(!_audioCtx)_audioCtx=new AC(); if(_audioCtx.state==='suspended')_audioCtx.resume(); },{once:true}); } }catch(e){} })();
+function playLevelUpSound(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    if(!_audioCtx) _audioCtx=new AC();
+    if(_audioCtx.state==='suspended') _audioCtx.resume();
+    const ctx=_audioCtx, now=ctx.currentTime;
+    const notes=[523.25,659.25,783.99,1046.50]; // C5-E5-G5-C6 上行琶音，象征突破一层
+    notes.forEach(function(f,i){
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      const t=now+i*0.12;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.18,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.34);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t+0.36);
+    });
+  }catch(e){ /* 音效失败不影响主线流程 */ }
+}
 function celebrate(level){
+  playLevelUpSound();
   const fx=document.getElementById('fxLayer'); if(!fx)return;
   const ov=document.createElement('div'); ov.className='levelup-overlay';
   ov.innerHTML='<div class="lu-card"><div class="big">境界突破！</div><div class="big">Lv.'+level+'</div><div class="sub">修为更进一层</div></div>';
