@@ -1575,6 +1575,15 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .myjh-done{opacity:.55}
 .jh-dead{font-size:12px;color:#9aa;margin-top:4px;width:100%;text-align:right}
 .jh-src{background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;font-size:12px;color:#bbb}
+/* ===== v6.0.36 心魔挑战 ===== */
+#demonBox .demon{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+#demonBox .demon.retreated{opacity:.6;border-style:dashed}
+#demonBox .demon-h{font-size:14px;font-weight:700;margin-bottom:6px}
+#demonBox .demon-state{font-size:11px;font-weight:400;color:var(--dim);margin-left:6px}
+#demonBox .demon-bar{height:7px;background:var(--panel);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+#demonBox .demon-bar i{display:block;height:100%;background:linear-gradient(90deg,#e98b8b,#d4a84b);transition:width .5s}
+#demonBox .demon.retreated .demon-bar i{background:var(--grw)}
+#demonBox .demon-act{margin-top:8px;display:flex;gap:8px}
 /* ===== v6.0.34 节气系统 ===== */
 body[data-season]::after{content:'';position:fixed;top:0;left:0;right:0;height:3px;z-index:50;pointer-events:none;opacity:.85}
 body[data-season="木"]::after{background:linear-gradient(90deg,#7ed3a8,#9ccc65)}

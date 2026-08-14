@@ -689,6 +689,11 @@ function defaultState(){
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
     garden: {planted:false, species:null, birthXP:0, revealed:false, history:[]}, // v6.0.31 灵圃（种树养花盲盒）
     capsules: [],                  // v6.0.32 时间胶囊：{id,text,sealedOn,unlockOn,opened}
+    demons: {                     // v6.0.36 心魔挑战（温和：削弱而非击败）
+      procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},
+      anxiety:{name:'焦虑',icon:'🌫',intensity:60,acts:['闭眼呼吸 3 分钟','写下最担心的 1 件事','到户外走 10 分钟']},
+      overthink:{name:'内耗',icon:'🌀',intensity:60,acts:['写一句话给未来的自己','复盘本周得失','只做不想']}
+    },
     pets: [                        // 灵宠（可交互猫角色，可多只）
       { name:'土豆', birthday:'2021-02-24', adopted:'',
         breed:'中华田园（狸花橘）', color:'橘黄虎斑', emoji:'🐱',
@@ -1068,6 +1073,11 @@ function migrate(){
   if(!S.garden || typeof S.garden!=='object') S.garden={planted:false,species:null,birthXP:0,revealed:false,history:[]};
   if(!Array.isArray(S.garden.history)) S.garden.history=[];
   if(!Array.isArray(S.capsules)) S.capsules=[]; // v6.0.32 时间胶囊兜底
+  if(!S.demons || typeof S.demons!=='object'){ // v6.0.36 心魔兜底
+    S.demons={procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},
+      anxiety:{name:'焦虑',icon:'🌫',intensity:60,acts:['闭眼呼吸 3 分钟','写下最担心的 1 件事','到户外走 10 分钟']},
+      overthink:{name:'内耗',icon:'🌀',intensity:60,acts:['写一句话给未来的自己','复盘本周得失','只做不想']}};
+  }
   // v5.21 新字段兜底（身体/心理年龄）
   if(!S.bioAge || typeof S.bioAge!=='object') S.bioAge={sleepHours:null,steps:null,restingHR:null,lastCompute:'',bodyAge:0,mentalAge:0,factors:{}};
   // v5.21.1 低频疗愈组冷却

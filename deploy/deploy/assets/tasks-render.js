@@ -2407,7 +2407,7 @@ function render(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); renderDemons(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v5.20 通知中心
@@ -3157,6 +3157,36 @@ function renderCodex(){
     +sec('点亮的人生愿望','🌟',wishes,'还没有点亮的人生愿望。')
     +sec('解锁的徽章','🏅',badges,'还没有解锁徽章。')
     +sec('走过的节气','🍂',jqHit,'今年还没在节气当天留下记录。');
+}
+
+// ===== v6.0.36 心魔挑战（温和：削弱而非击败）=====
+function demonWeaken(key){
+  const d=S.demons[key]; if(!d) return;
+  if(d.intensity<=0){ alert(d.name+' 已暂退，静好。'); return; }
+  const cut=8+Math.floor(Math.random()*11);
+  d.intensity=Math.max(0, d.intensity-cut);
+  const act=d.acts[Math.floor(Math.random()*d.acts.length)];
+  addHist('👹 运功削弱「'+d.name+'」：'+act+'（-'+cut+'）');
+  if(d.intensity<=0) celebrateTask('👹 「'+d.name+'」暂退 · 这一刻你赢了');
+  save(); render();
+}
+function demonRouse(key){
+  const d=S.demons[key]; if(!d) return;
+  d.intensity=40; save(); render();
+}
+function renderDemons(){
+  const el=document.getElementById('demonBox'); if(!el) return;
+  const keys=Object.keys(S.demons);
+  el.innerHTML=keys.map(function(k){
+    const d=S.demons[k], pct=d.intensity;
+    const state=d.intensity<=0?'暂退 · 静好':(d.intensity<30?'式微':(d.intensity<60?'缠身':'汹涌'));
+    return '<div class="demon'+(d.intensity<=0?' retreated':'')+'">'
+      +'<div class="demon-h">'+d.icon+' '+d.name+' <span class="demon-state">'+state+'</span></div>'
+      +'<div class="demon-bar"><i style="width:'+pct+'%"></i></div>'
+      +'<div class="demon-act"><button class="btn sm '+(d.intensity<=0?'ghost':'primary')+'" onclick="demonWeaken(\''+k+'\')">'+(d.intensity<=0?'🌀 再唤起':'🌀 运功削弱')+'</button>'
+      +(d.intensity<=0?'<button class="btn sm ghost" onclick="demonRouse(\''+k+'\')">唤回重修</button>':'')+'</div>'
+      +'</div>';
+  }).join('')+'<div class="hint">心魔不必击败，运功削弱一分是一分。点到即收，不必强求。</div>';
 }
 
 function renderEnergyPage(){
