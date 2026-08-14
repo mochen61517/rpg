@@ -687,6 +687,7 @@ function defaultState(){
     todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
     jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
+    garden: {planted:false, species:null, birthXP:0, revealed:false, history:[]}, // v6.0.31 灵圃（种树养花盲盒）
     pets: [                        // 灵宠（可交互猫角色，可多只）
       { name:'土豆', birthday:'2021-02-24', adopted:'',
         breed:'中华田园（狸花橘）', color:'橘黄虎斑', emoji:'🐱',
@@ -1049,6 +1050,9 @@ function migrate(){
   if(!Array.isArray(S.birthdayReminders)) S.birthdayReminders=[];
   if(!Array.isArray(S.birthdayQuests)) S.birthdayQuests=[];
   delete S.pet;   // 旧单只字段已并入 S.pets
+  // v6.0.31 灵圃兜底
+  if(!S.garden || typeof S.garden!=='object') S.garden={planted:false,species:null,birthXP:0,revealed:false,history:[]};
+  if(!Array.isArray(S.garden.history)) S.garden.history=[];
   // v5.21 新字段兜底（身体/心理年龄）
   if(!S.bioAge || typeof S.bioAge!=='object') S.bioAge={sleepHours:null,steps:null,restingHR:null,lastCompute:'',bodyAge:0,mentalAge:0,factors:{}};
   // v5.21.1 低频疗愈组冷却

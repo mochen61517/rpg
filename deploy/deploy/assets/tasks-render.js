@@ -2407,7 +2407,7 @@ function render(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v5.20 通知中心
@@ -3041,6 +3041,70 @@ function energyAdvice(){
   }
   return tips;
 }
+// ===== v6.0.31 灵圃（种树养花 · 盲盒 · 修为所化）=====
+const GARDEN_SPECIES=[
+  {key:'pine',name:'青松',kind:'tree',bloom:'🌲'},
+  {key:'willow',name:'垂柳',kind:'tree',bloom:'🌳'},
+  {key:'plum',name:'寒梅',kind:'tree',bloom:'🌸'},
+  {key:'peach',name:'桃树',kind:'tree',bloom:'🌸'},
+  {key:'osmanthus',name:'丹桂',kind:'tree',bloom:'🌼'},
+  {key:'lotus',name:'清莲',kind:'flower',bloom:'🌺'},
+  {key:'orchid',name:'幽兰',kind:'flower',bloom:'🌸'},
+  {key:'sunflower',name:'金葵',kind:'flower',bloom:'🌻'},
+  {key:'chrys',name:'秋菊',kind:'flower',bloom:'🌼'}
+];
+const GARDEN_STAGES=[
+  {min:0,   em:'🌰', name:'种子'},
+  {min:80,  em:'🌱', name:'发芽'},
+  {min:250, em:'🌿', name:'幼苗'},
+  {min:600, em:'🪴', name:'抽枝'},
+  {min:1200,em:'',   name:'盛放'}
+];
+function gardenStageOf(gained){ let s=GARDEN_STAGES[0]; for(const st of GARDEN_STAGES){ if(gained>=st.min) s=st; } return s; }
+function plantGarden(){
+  if(S.garden.planted) return;
+  const sp=GARDEN_SPECIES[Math.floor(Math.random()*GARDEN_SPECIES.length)];
+  S.garden.planted=true; S.garden.species=sp.key; S.garden.birthXP=overallXP(); S.garden.revealed=false;
+  addHist('🌳 灵圃新栽下一粒种子（修为所化 · 盲盒）'); save(); render();
+  celebrateTask('🌳 灵圃栽培 · 一粒种子落入土中');
+}
+function replantGarden(){
+  if(S.garden.species) S.garden.history.push({species:S.garden.species, bloomedOn:todayStr()});
+  S.garden.planted=false; S.garden.species=null; S.garden.birthXP=0; S.garden.revealed=false;
+  save(); render();
+}
+function renderGarden(){
+  const el=document.getElementById('gardenBox'); if(!el) return;
+  const g=S.garden;
+  if(!g.planted){
+    let hist='';
+    if(g.history && g.history.length){
+      const names=g.history.map(h=>{const sp=GARDEN_SPECIES.find(x=>x.key===h.species);return sp?sp.bloom+' '+sp.name:'';}).filter(Boolean);
+      if(names.length) hist='<div class="garden-hist">园中已收获 '+g.history.length+' 株：'+names.join('、')+'</div>';
+    }
+    el.innerHTML='<div class="garden-empty"><div class="garden-seed">🌰</div><div>灵圃尚空。你每一分修为，都会化作一粒种子。</div><button class="btn sm primary" onclick="plantGarden()">🌱 栽下一粒种子</button></div>'+hist;
+    return;
+  }
+  const sp=GARDEN_SPECIES.find(x=>x.key===g.species)||GARDEN_SPECIES[0];
+  const gained=Math.max(0, overallXP()-g.birthXP);
+  const st=gardenStageOf(gained);
+  const bloomed=gained>=GARDEN_STAGES[GARDEN_STAGES.length-1].min;
+  const em=bloomed?sp.bloom:st.em;
+  if(!g.revealed && gained>=GARDEN_STAGES[1].min){ g.revealed=true; save(); }
+  const label=g.revealed?('「'+sp.name+'」'+(sp.kind==='flower'?'花':'树')):'一粒未名的种子';
+  const full=GARDEN_STAGES[GARDEN_STAGES.length-1].min;
+  const pct=Math.min(100, Math.round(gained/full*100));
+  const stageName=bloomed?'盛放':st.name;
+  let extra=bloomed
+    ? '<div class="garden-bloom">🌟 已盛放！可留作园中景，或 <button class="btn sm" onclick="replantGarden()">🌱 再种一株</button></div>'
+    : '<div class="garden-next">再攒 <b>'+Math.max(0, full-gained)+'</b> 加权经验，便迎来盛放。</div>';
+  el.innerHTML='<div class="garden-plant">'+em+'</div>'
+    +'<div class="garden-name">'+label+'</div>'
+    +'<div class="garden-stage">阶段：'+stageName+'（'+pct+'%）</div>'
+    +'<div class="garden-bar"><i style="width:'+pct+'%"></i></div>'
+    +extra;
+}
+
 function renderEnergyPage(){
   const root=document.getElementById('energyPageRoot'); if(!root) return;
   const e=energyState(); const advice=energyAdvice(); const ranges=[7,30,90];
