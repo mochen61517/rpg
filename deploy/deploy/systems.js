@@ -173,9 +173,15 @@ function renderEnergy(){
   const el=document.getElementById('energyBox'); if(!el) return;
   const e=energyState();
   el.innerHTML=
-     '<div class="en-top"><span class="en-lab '+e.cls+'">'+e.label+'</span><b class="en-num">'+e.v+'</b><span class="en-unit">/100</span></div>'
-    +'<div class="en-bar"><i class="'+e.cls+'" style="width:'+e.v+'%"></i></div>'
-    +'<div class="en-tip">'+e.tip+' <a class="en-more" onclick="showPage(\'energy\')">看详情 ›</a></div>';
+     '<div class="en-card" onclick="showPage(\'energy\')" title="查看精力详情">'
+    +  '<div class="en-left">'
+    +    '<span class="en-lab '+e.cls+'">'+e.label+'</span>'
+    +    '<div class="en-score"><b class="en-num">'+e.v+'</b><span class="en-unit">/100</span></div>'
+    +  '</div>'
+    +  '<div class="en-right">'
+    +    '<div class="en-tip">'+e.tip+'</div>'
+    +  '</div>'
+    +'</div>';
 }
 function renderLifeBanner(){
   const el=document.getElementById('lifeBanner'); if(!el) return;
@@ -196,7 +202,7 @@ function renderLifeBanner(){
   for(let i=0;i<todayKey.length;i++){ h=((h^(todayKey.charCodeAt(i)))*16777619)>>>0; }
   function rng(){ h=((h+0x6D2B79F5)*0x9E3779B1)>>>0; return (h>>>0)/4294967296; }
 
-  // 网易云风格：每日一位「生活主角」大数字 + 三句生活小记（各主题不同措辞，不重复句式）
+  // 每日一句：从生活意象中随机选一位「主角」，只展示一条，浪漫、诗意、不堆叠
   const themes=[
     {icon:'🌅', name:'日出', past:livedDays, total:totalDays,
      line:(p,r)=>'你已迎来 <b>'+p.toLocaleString()+'</b> 次日出，余生还有约 '+r.toLocaleString()+' 场——请别错过任何一个清晨。'},
@@ -206,24 +212,38 @@ function renderLifeBanner(){
      line:(p)=>'你路过 <b>'+p+'</b> 个春天，第 '+(p+1)+' 个正在悄悄发芽。'},
     {icon:'🌕', name:'满月', past:Math.floor(livedDays/29.53), total:Math.floor(totalDays/29.53),
      line:(p)=>'你见过 <b>'+p.toLocaleString()+'</b> 轮满月，每一轮都曾有人为你点亮一盏灯。'},
+    {icon:'🌊', name:'潮汐', past:livedDays, total:totalDays,
+     line:(p,r)=>'你已错过 <b>'+p.toLocaleString()+'</b> 次潮汐，但下一浪，永远正向你赶来。'},
+    {icon:'✨', name:'星光', past:livedDays, total:totalDays,
+     line:(p,r)=>'你与 <b>'+p.toLocaleString()+'</b> 个夜晚擦肩而过，总有一颗星，是为你而亮的。'},
   ];
-  const feat=themes[Math.floor(rng()*themes.length)];
-  const others=themes.filter(t=>t!==feat);
+  // 保证不与昨日重复：当日 seed 随机后，若与昨日结果相同则后移一位
+  function themeIdxForDate(d){
+    const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    let hh=2166136261>>>0;
+    for(let i=0;i<key.length;i++){ hh=((hh^key.charCodeAt(i))*16777619)>>>0; }
+    function rng2(){ hh=((hh+0x6D2B79F5)*0x9E3779B1)>>>0; return (hh>>>0)/4294967296; }
+    return Math.floor(rng2()*themes.length);
+  }
+  const yest=new Date(now); yest.setDate(yest.getDate()-1);
+  let idx=Math.floor(rng()*themes.length);
+  if(idx===themeIdxForDate(yest)) idx=(idx+1)%themes.length;
+  const feat=themes[idx];
+  const remF=Math.max(0, feat.total-feat.past);
   const openers=[
     '今天，是你余生里最年轻的一天。',
     '此刻的你，比往后任何一天都更接近清晨。',
     '余生还长，但今天的太阳，只会升起这一次。',
+    '世界还在，你也还在，这就够了。',
+    '不必追赶时间，你已经是时间本身。',
   ];
   const opener=openers[Math.floor(rng()*openers.length)];
-  const remF=Math.max(0, feat.total-feat.past);
   el.innerHTML=
-     '<div class="lb-head">☀️ 今天，是你余生里最年轻的一天</div>'
-    +'<div class="lb-hero">'
-    +  '<div class="lb-hero-ic">'+feat.icon+' '+feat.name+'</div>'
-    +  '<div class="lb-hero-num">'+feat.past.toLocaleString()+'</div>'
-    +  '<div class="lb-hero-sentence">'+feat.line(feat.past,remF)+'</div>'
+     '<div class="lb-head">☀️ 今日一句</div>'
+    +'<div class="lb-poem">'
+    +  '<span class="lb-poem-ic">'+feat.icon+'</span>'
+    +  '<span class="lb-poem-t">'+feat.line(feat.past,remF)+'</span>'
     +'</div>'
-    +'<div class="lb-notes">'+others.map(t=>{ const r=Math.max(0,t.total-t.past); return '<div class="lb-note"><span class="lb-note-ic">'+t.icon+'</span><span class="lb-note-t">'+t.line(t.past,r)+'</span></div>'; }).join('')+'</div>'
     +'<div class="lb-bar-wrap">'
     +  '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
     +  '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
@@ -260,6 +280,20 @@ function renderLiunian(){
     +'<div class="ln-sug">'+sug.map(s=>'<button class="btn sm ghost" onclick="addJieqiIdea('+JSON.stringify(s.t).replace(/"/g,'&quot;')+',\''+s.x+'\')">'+s.t+'</button>').join('')+'</div>'
     +'<div class="hint">丁火日主喜金水（清凉流动）、忌火土过旺（燥烈壅塞）。节气为近似日期，误差 ±1 天。</div>';
 }
+let npcChatOpen=new Set();
+function npcToggleChat(qid){ if(npcChatOpen.has(qid))npcChatOpen.delete(qid); else npcChatOpen.add(qid); var el=document.getElementById('qi_'+qid); if(el)el.classList.toggle('open-chat',npcChatOpen.has(qid)); var box=el?el.querySelector('.npc-chat'):null; if(box)box.style.display=npcChatOpen.has(qid)?'block':'none'; }
+function npcSend(qid){
+  var ta=document.getElementById('npcChat_'+qid); if(!ta)return; var v=(ta.value||'').trim(); if(!v)return;
+  var q=S.npc.active.find(function(x){return x.id===qid;}); if(!q)return;
+  if(!q.chat)q.chat=[];
+  q.chat.push({who:'me',t:v,ts:new Date().toISOString().slice(0,16).replace('T',' ')});
+  var reply=npcReply(q.npc,q,v);
+  q.chat.push({who:'npc',t:reply,ts:new Date().toISOString().slice(0,16).replace('T',' ')});
+  var rel=npcRel(q.npc); rel.know=(rel.know||0)+1; if(rel.know<=10) S.bonusXP=(S.bonusXP||0)+2;
+  var nm=(NPCS.find(function(n){return n.id===q.npc;})||{}).n||'故人';
+  addHist('💬 与'+nm+'聊了聊：'+v.slice(0,12)+(v.length>12?'…':''));
+  save(); render();
+}
 function renderNpc(){
   const el=document.getElementById('npcBox'); if(!el) return;
   if(!S.npc.active.length){ el.innerHTML='<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
@@ -267,18 +301,29 @@ function renderNpc(){
     const p=NPCS.find(n=>n.id===q.npc)||{n:'?',ic:'❓',d:''};
     const ri=npcRelInfo(p.id);
     const adv=nextAdvancedNpcEvent(p.id,ri.xp),marks=[6,10].map(lv=>S.npcEvents[p.id+'_'+lv]).filter(Boolean).map(x=>x.mark);
-    return '<div class="npcq '+(q.done?'done':'')+'" id="qi_'+q.id+'">'
+    const open=npcChatOpen.has(q.id);
+    const mc=(q.chat?q.chat.filter(m=>m.who==='me').length:0);
+    const msgs=(q.chat&&q.chat.length)?q.chat.map(m=>'<div class="npc-msg '+(m.who==='me'?'me':'npc')+'"><span class="npc-msg-who">'+(m.who==='me'?'我':escHtml(p.n))+'</span><span class="npc-msg-t">'+escHtml(m.t)+'</span></div>').join(''):'<div class="npc-chat-empty">点「💬 聊聊」，告诉他你练了什么、练得怎样——他记得越多，越懂你。</div>';
+    return '<div class="npcq '+(q.done?'done':'')+(open?' open-chat':'')+'" id="qi_'+q.id+'">'
       +'<div class="npc-ic">'+p.ic+'</div>'
       +'<div class="npc-body"><div class="npc-n">'+p.n+' <span class="npc-d">'+p.d+'</span></div>'
       +'<div class="npc-t">「'+q.t+'」</div>'
-      +'<div class="npc-rel"><span class="npc-rel-lv">'+ri.name+' · '+ri.xp+'</span><span class="npc-rel-bar"><i style="width:'+ri.pct+'%"></i></span></div>'
+      +'<div class="npc-rel"><span class="npc-rel-lv">'+ri.name+' · '+ri.xp+(ri.know?' · 聊'+ri.know:'')+'</span><span class="npc-rel-bar"><i style="width:'+ri.pct+'%"></i></span></div>'
       +'<div class="npc-memory">'+npcMemory(p,ri)+'</div>'
       +(S.npcEvents[p.id]?'<span class="npc-event-done">🧿 '+NPC_EVENTS[p.id].relic.name+(marks.length?' · '+marks.join(' · '):'')+'</span>':(ri.xp>=3?'<div><button class="btn sm ghost npc-event-btn" onclick="openNpcEvent(\''+p.id+'\')">📜 专属事件 · 熟识</button></div>':''))
-      +(adv?'<div><button class="btn sm ghost npc-event-btn" onclick="openAdvancedNpcEvent(\''+p.id+'\','+adv.lv+')">📖 '+(adv.lv===6?'知交':'莫逆')+'事件 · '+adv.e.title+'</button></div>':'')+'</div>'
+      +(adv?'<div><button class="btn sm ghost npc-event-btn" onclick="openAdvancedNpcEvent(\''+p.id+'\','+adv.lv+')">📖 '+(adv.lv===6?'知交':'莫逆')+'事件 · '+adv.e.title+'</button></div>':'')
+      +'<div class="npc-chat"'+(open?'':' style="display:none"')+'>'
+      +'<div class="npc-chat-msgs" id="npcMsgs_'+q.id+'">'+msgs+'</div>'
+      +'<div class="npc-chat-compose"><textarea id="npcChat_'+q.id+'" rows="2" placeholder="比如：今天把《平沙落雁》第一段顺下来了，左手按弦还是疼…"></textarea><button class="btn sm primary" onclick="npcSend(\''+q.id+'\')">发送</button></div>'
+      +'</div>'
+      +'</div>'
       +'<div class="npc-r"><span class="npc-xp">+'+q.xp+'</span>'
-      +'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="npcDone(\''+q.id+'\')">'+(q.done?'撤销':'交差')+'</button></div>'
+      +'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="npcDone(\''+q.id+'\')">'+(q.done?'撤销':'交差')+'</button>'
+      +'<button class="btn sm ghost" onclick="npcToggleChat(\''+q.id+'\')">💬 聊聊'+(mc?' '+mc:'')+'</button>'
+      +'</div>'
       +'</div>';
   }).join('')
+  + birthdayQuestRowsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
@@ -440,10 +485,11 @@ function dailyQuote(off){
   const themed=QUOTES.filter(q=>q.j && q.j.indexOf(j.name)>=0);
   const seed=[...todayStr()].reduce((a,c)=>a+c.charCodeAt(0),0);
   const o=off||0;
-  if(themed.length>0 && o===0) return themed[seed % themed.length]; // 基线优先当令（带「当令」标）
-  // 换一句 / 无当令：在「通库名言 + 名人小故事」中轮换，保证有变化也更丰富
-  const gen=QUOTES.filter(q=>!q.j).concat(SOUL_STORIES);
-  return gen[(seed + o) % gen.length];
+  const pool=QUOTES.concat(SOUL_STORIES); // 全库（含当令名言，抽到时自动带「当令」标）
+  // 当令优先：仅当有多个当令可选时，才在当令池内按日期种子轮换（保证每日都变）
+  if(themed.length>1 && o===0) return themed[seed % themed.length];
+  // 否则在「全部名言 + 名人小故事」中按日期种子轮换，保证每日刷新
+  return pool[(seed + o) % pool.length];
 }
 function renderQuote(){
   const el=document.getElementById('quoteBanner'); if(!el) return;
@@ -524,11 +570,25 @@ function renderDraw(){
 
 // —— ③ 远方来信 ——
 const LETTERS_ORDER=['yunnan','xizang','chuanxi','guizhou','guangxi','hainan','xinjiang','japan','sweden','beijing'];
+// 交错解锁序列：按地点轮流，避免某个地方（如云南）连发 9 封。
+// 每项是 [place, idx]，idx 为该地点在 LETTERS[place] 中的下标。
+const LETTER_SEQ=[
+  ['yunnan',0],['xizang',0],['yunnan',1],['chuanxi',0],['yunnan',2],['guizhou',0],
+  ['yunnan',3],['guangxi',0],['yunnan',4],['hainan',0],['yunnan',5],['xinjiang',0],
+  ['yunnan',6],['japan',0],['yunnan',7],['sweden',0],['yunnan',8],['beijing',0],
+  ['xizang',1],['chuanxi',1]
+];
 const LETTERS={
   yunnan:[
     {t:'昆明 · 第一封信', b:'这里的云是低的，低到像要落进翠湖里。你先前说想找个凉爽近水的地方，昆明八月不过二十多度，风一过就凉。我在滇池边坐了一下午，什么也没做，难得地，不觉得浪费。', task:{t:'给云南写一句你想对它说的话', xp:15}},
     {t:'大理 · 风的形状', b:'洱海的水是安静的蓝，苍山在背后沉默地绿着。古城里随便一家小院都种着花。你说不想一直在北京——这里的人不急，连卖花的老太太都慢。也许你可以先来住满一个月，看看是不是真的合。', task:{t:'列三个你最想在大理做的事', xp:15}},
     {t:'丽江 · 雪山与慢', b:'玉龙雪山远远白着，古城的溪水从脚边流过。夜里四方街有歌，有人弹吉他唱老歌。你喜水，这里处处是水。我替你把窗打开了，风进来，丁火也就凉了半分。', task:null},
+    {t:'普洱 · 茶山的凉', b:'茶山一层层绿上去，雾常年在。这里海拔高，夏天不用空调，夜里要盖薄被。你喜凉，普洱的凉是浸在茶香里的，慢得理直气壮。我在一棵古茶树下坐了很久，什么也没想。', task:{t:'给自己泡一杯茶，认真喝完', xp:15}},
+    {t:'腾冲 · 和顺与热海', b:'和顺的巷子静得能听见自己走路。热海的水烫，但高原的风是凉的，泡完不闷。火山、湿地、古籍，小城把历史和松弛都收着。你若想找个安静处住一阵，这里不错。', task:{t:'查一查腾冲的住处与气候', xp:15}},
+    {t:'建水 · 慢城的底气', b:'古城没被游客挤变形。文庙、双龙桥、米轨小火车，慢得有底气。傍晚的烧烤摊烟火气足，老人们下棋不急。你说不想一直在北京——这里的人也不急。', task:{t:'写一句你对「慢城」的想象', xp:15}},
+    {t:'抚仙湖 · 冷而透的水', b:'水清到能看见十几米下的石头，比洱海更静、更冷。你喜水，这里的水是透的、凉的，风一过就起细浪。我在湖边坐了一下午，难得地，不觉得浪费。', task:null},
+    {t:'弥勒 · 红砖与林子', b:'东风韵的红砖房子像从地里长出来的外星建筑，太平湖的林子凉。小城把艺术和松弛揉在一起，红酒、温泉、湖，都不赶。你若想换个环境待几天，这里不吵。', task:{t:'列三个你理想小城该有的气质', xp:15}},
+    {t:'西双版纳 · 湿热的另一面', b:'告庄的夜是热的，热带植物园的绿稠得化不开。你说过喜清凉不喜湿热，所以版纳不是长住的地方——但偶尔来看看这个「另一个云南」，也值得。热带的浓，是云南的另一张脸。', task:{t:'记一句你对版纳的感受（哪怕只是「太热」）', xp:15}},
   ],
   xizang:[
     {t:'拉萨 · 海拔之上', b:'这里的天蓝得不像话，经幡被风念了一整年。氧气薄，反而让人慢下来、只想好好呼吸。若你来，记得先缓几天，别跟身体较劲。', task:{t:'做一组深呼吸，想象自己在高原', xp:10}},
@@ -560,19 +620,63 @@ const LETTERS={
     {t:'北京 · 给现在的你', b:'你正身处其中，也许倦了。但那些球馆、琴房、老同事，都是你一点点攒下的据点。离开或留下都行，先别否定它们。', task:{t:'给北京写一句感谢或告别', xp:10}},
   ],
 };
-function letterTotal(){ let n=0; LETTERS_ORDER.forEach(p=>{ n+=(LETTERS[p]||[]).length; }); return n; }
+// 「远方回信」池：信库 20 封寄达后，从这里每天循环一封，让远方来信一直不断。
+// 内容不绑定具体城市，是与你自身的回响，避免和 LETTERS 重复。
+const LETTER_WELL=[
+  {t:'回信 · 关于慢', b:'你总怕虚度，可虚度的反面不是忙，是愿意停。今天试着什么都不赶，让时间自己流。', task:{t:'允许自己无所事事半小时', xp:10}},
+  {t:'回信 · 关于凉', b:'你喜凉。北京的八月闷，但你心里有云南的风。需要时把窗开着，想像自己在抚仙湖边。', task:null},
+  {t:'回信 · 关于身体', b:'球馆、器械、汗出透——你用身体确认自己活着。今天也动一动，不为身材，为掌控感。', task:{t:'今天动一动身子（打球/健身/散步）', xp:10}},
+  {t:'回信 · 关于琴', b:'琴房是你的避难所。哪怕只弹十分钟，指尖的旋律会替你清掉一天的杂。', task:{t:'今天碰一下琴，哪怕只一首', xp:10}},
+  {t:'回信 · 关于远', b:'地图在你心里长。想去的地方不用一次走完，先让它们在心里抵达，脚步自然会跟上。', task:null},
+  {t:'回信 · 关于自由', b:'你想要的从来不是逃离，是能自主的一天。把今天的一件小事，握回自己手里。', task:{t:'今天做一件完全由你决定的小事', xp:10}},
+  {t:'回信 · 关于规律', b:'你靠规律活得不焦虑。今晚照常睡、照常起，节奏是你给自己的温柔。', task:{t:'今晚按时睡，给明天留节奏', xp:10}},
+  {t:'回信 · 关于唱', b:'卡拉OK的均分是你和自己玩的方式。下次去，挑一首难一点的，不为分，为开心。', task:null},
+  {t:'回信 · 关于怕普通', b:'你怕普通，可普通是把事做好的底色。今天做完一件小事，就算普通，也踏实。', task:{t:'今天认真做完一件小事', xp:10}},
+  {t:'回信 · 关于云南', b:'你心里已经住了云南。不用立刻搬去，先让那股凉意在日常里留个缝。', task:null},
+  {t:'回信 · 关于此刻', b:'你正处在一个过渡期。过渡不是停，是换轨道前的蓄力。信会一直陪你，直到你点亮那个愿望。', task:null},
+  {t:'回信 · 关于人', b:'你需要的不是很多人，是一两个能托住你的人。今天给那样的人一句真的问候。', task:{t:'给一个在乎的人发句真的问候', xp:10}},
+];
+// 人生愿望是否「本次主动点亮」（历史已达成的不算，避免一开就停信）
+function anyWishReached(){ return (S.wishes||[]).some(w=>w.un===true && !w.pre); }
+// 首次运行把历史已点亮愿望标记为 pre（预设达成项），仅执行一次
+function migrateWishesPre(){
+  if(S._wishPreTagged) return;
+  (S.wishes||[]).forEach(w=>{ if(w.un===true) w.pre=true; });
+  S._wishPreTagged=true; save();
+}
+function letterPlaceName(l){
+  if(l.place==='well') return '远方回信';
+  return (TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+}
+function letterTotal(){ return LETTER_SEQ.length; }
 function letterCheck(force){
-  if(!S.letters) S.letters={unlocked:[],pointer:0};
-  const hasUnread=(S.letters.unlocked||[]).some(l=>!l.read);
+  if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0};
+  if(typeof S.letters.wellIdx!=='number') S.letters.wellIdx=0;
+  migrateWishesPre();
+  const list=S.letters.unlocked||[];
+  // 人生愿望已点亮（非历史预设）→ 远方来信收束，不再寄新信
+  if(anyWishReached()){ return; }
+  const hasUnread=list.some(l=>!l.read);
   if(hasUnread && !force) return;
-  if(S.letters.pointer>=letterTotal()) return;
-  let rem=S.letters.pointer, target=null;
-  for(const p of LETTERS_ORDER){ const arr=LETTERS[p]||[]; if(rem<arr.length){ target={place:p,idx:rem}; break; } rem-=arr.length; }
-  if(!target) return;
-  const meta=LETTERS[target.place][target.idx];
-  S.letters.unlocked.push({place:target.place, idx:target.idx, read:false, date:todayStr(), title:meta.t, body:meta.b, task:meta.task?{...meta.task,done:false}:null});
-  S.letters.pointer++;
-  addHist('✉️ 远方来信：'+meta.t); save();
+  // 先寄信库里的（交错去重，忽略回信池）
+  const have=new Set(list.filter(l=>l.place!=='well').map(l=>l.place+'#'+l.idx));
+  let idx=-1;
+  for(let k=0;k<LETTER_SEQ.length;k++){ if(!have.has(LETTER_SEQ[k][0]+'#'+LETTER_SEQ[k][1])){ idx=k; break; } }
+  if(idx>=0){
+    const tgt=LETTER_SEQ[idx];
+    const meta=LETTERS[tgt[0]][tgt[1]];
+    if(meta){
+      list.push({place:tgt[0], idx:tgt[1], read:false, date:todayStr(), title:meta.t, body:meta.b, task:meta.task?{...meta.task,done:false}:null});
+      S.letters.pointer=idx+1;
+      addHist('✉️ 远方来信：'+meta.t); save();
+      return;
+    }
+  }
+  // 信库寄完 → 从「远方回信」池继续，每天一封，直到人生愿望点亮
+  const wm=LETTER_WELL[S.letters.wellIdx % LETTER_WELL.length];
+  list.push({place:'well', idx:S.letters.wellIdx, read:false, date:todayStr(), title:wm.t, body:wm.b, task:wm.task?{...wm.task,done:false}:null});
+  S.letters.wellIdx++;
+  addHist('✉️ 远方来信：'+wm.t); save();
 }
 function letterUnread(){ return (S.letters.unlocked||[]).filter(l=>!l.read).length; }
 function renderLetters(){
@@ -581,20 +685,26 @@ function renderLetters(){
   let h='<h2>✉️ 远方来信 <span class="note">按你心里的地图，慢慢寄到</span>';
   const un=letterUnread(); if(un) h+=' <span class="badge-new">'+un+' 封未读</span>';
   h+='</h2>';
-  if(!list.length){ h+='<div class="hint">还没有来信。先在旅行地图上点亮你心里的目的地，信会一封封寄来——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
+  if(!list.length){ h+='<div class="hint">还没有来信。信会按节奏慢慢寄到——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
   h+='<div class="letter-list">';
   list.forEach((l,i)=>{
-    const placeName=(TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+    const placeName=letterPlaceName(l);
     h+='<div class="letter-item'+(l.read?' read':'')+'" onclick="openLetter('+i+')">'
       +'<span class="lt">'+l.title+'</span><span class="lp">'+placeName+'</span>'
       +'<span class="ls">'+(l.read?'已读':'未读')+'</span></div>';
   });
-  h+='</div>'; el.innerHTML=h;
+  h+='</div>';
+  if(anyWishReached()){
+    h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，远方的信就此收束。地图与脚印会一直在，信箱留着你来时的路。</div>';
+  }else{
+    h+='<div class="hint" style="margin-top:10px">✉️ 远方来信会一直寄来，直到你点亮一个人生愿望。已寄达 '+list.length+' 封。</div>';
+  }
+  el.innerHTML=h;
 }
 function openLetter(i){
   const l=(S.letters.unlocked||[])[i]; if(!l) return;
   l.read=true; save(); renderLetters();
-  const placeName=(TRAVEL_PLACES.find(p=>p.id===l.place)||{}).name||l.place;
+  const placeName=letterPlaceName(l);
   let body='<div class="letter-head">'+l.title+'</div><div class="letter-from">—— 寄自 '+placeName+'</div><div class="letter-body">'+l.body+'</div>';
   if(l.task){
     body+='<div class="letter-task">附：'+l.task.t+' <b>+'+l.task.xp+' XP</b></div>';
@@ -611,6 +721,280 @@ function respondLetter(i){
   try{ touchActivity(todayStr()); }catch(_){}
   celebrateTask('远方回响 ✦ +'+l.task.xp);
   save(); checkAch(); hideModal('letterModal'); render();
+}
+
+// ===== 灵宠（可交互猫角色，可多只） =====
+// 数据在 S.pets[]；开屏问候 + 生日信 + 召唤 + 可编辑档案
+function catToHumanAge(y){            // 兽医通用换算：第1年=15，第2年=25，之后每年+4
+  y=Math.max(0,Math.floor(y||0));
+  if(y<=0) return 0; if(y===1) return 15; if(y===2) return 25;
+  return 25+(y-2)*4;
+}
+function petAgeInfo(p){
+  p=p||(S.pets&&S.pets[0])||{}; const bd=p.birthday||'2021-02-24'; const ad=p.adopted;
+  const today=new Date(todayStr()+'T00:00:00'); const b=new Date(bd+'T00:00:00');
+  let ms=today-b; if(ms<0) ms=0;
+  const daysTotal=Math.floor(ms/86400000);
+  let y=today.getFullYear()-b.getFullYear();
+  const m=today.getMonth()-b.getMonth();
+  if(m<0 || (m===0 && today.getDate()<b.getDate())) y--;   // 按生日周年算整岁（当天满岁）
+  const catYears=Math.max(0,y);
+  let daysTogether=null;
+  if(ad && ad.length>=10){ const a2=new Date(ad+'T00:00:00'); let ams=today-a2; if(ams<0) ams=0; daysTogether=Math.floor(ams/86400000); }
+  const isBirthday=bd.slice(5)===todayStr().slice(5);
+  return {catYears,humanYears:catToHumanAge(catYears),daysTotal,daysTogether,isBirthday,
+    breed:p.breed,color:p.color,name:p.name,emoji:p.emoji||'🐱',personality:p.personality||[]};
+}
+function petNextBirthday(bd){
+  if(!bd||bd.length<5) return '未知';
+  const mmdd=bd.slice(5); const now=new Date(todayStr()+'T00:00:00'); const y=now.getFullYear();
+  let d=new Date(y+'-'+mmdd+'T00:00:00');
+  if(d<now) d=new Date((y+1)+'-'+mmdd+'T00:00:00');
+  return mmdd+'（还有约 '+Math.ceil((d-now)/86400000)+' 天）';
+}
+const PET_LINES={
+  greet:['铲屎官，今天辛苦啦，和你在一起好安心呀','喵～你回来啦，我一直在等你呢','蹭蹭你，今天也要开开心心的哦','你忙了一天，我给你呼噜呼噜解解压','土豆来啦，今天的你也很好很好','把头靠过来——蹭一下，充电完成'],
+  task:['又完成一件！我就知道你最棒啦 🐾','看见你认真的样子，我也想蹭蹭你庆祝','又往前走了一步，乖，摸摸头','你做到啦，我要扑上来给你一个猫抱'],
+  comfort:['累了就靠着我和猫一起发会儿呆吧','不想动也没关系，今天陪你瘫着','你不用一直坚强，在我这儿可以软下来','呼噜呼噜——听，这是给你的安心'],
+  playful:['我要扑你的鼠标线啦——开玩笑的，蹭一下就好','今天的风很凉，适合窝在你腿上打盹','你打字我在旁边监工，顺便帮你暖手'],
+};
+function pickPetLine(kind){
+  const arr=(PET_LINES[kind]&&PET_LINES[kind].length)?PET_LINES[kind]:PET_LINES.greet;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function showPetToast(line, p){
+  const el=document.getElementById('petToast'); if(!el) return;
+  p=p||(S.pets&&S.pets[0])||{};
+  const f=el.querySelector('.pet-toast-face'), nm=el.querySelector('.pet-toast-name'), ln=el.querySelector('.pet-toast-line');
+  if(f) f.textContent=p.emoji||'🐱'; if(nm) nm.textContent=p.name||'猫'; if(ln) ln.textContent=line;
+  el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'), 6500);
+}
+function summonPet(i){
+  const pets=S.pets||[]; if(!pets.length) return;
+  if(typeof i!=='number' || isNaN(i)) i=Math.floor(Math.random()*pets.length);
+  const p=pets[i]||pets[0];
+  const kind=Math.random()<0.5?'greet':(Math.random()<0.5?'playful':'comfort');
+  showPetToast(pickPetLine(kind), p);
+}
+function summonPotato(){ summonPet(0); }   // 兼容旧调用（召唤土豆）
+function petStageTxt(catYears){
+  if(catYears>=1&&catYears<3) return '青少年猫，正调皮';
+  if(catYears>=3&&catYears<7) return '壮年猫，稳重又黏人';
+  if(catYears>=7&&catYears<11) return '中年猫，温柔沉静';
+  if(catYears>=11) return '老猫，慢慢陪你';
+  return '小猫咪';
+}
+function petBirthdayLetterText(p){
+  p=p||(S.pets&&S.pets[0])||{}; const info=petAgeInfo(p); const bd=p.birthday||'2021-02-24';
+  const dt=(info.daysTogether!=null)?info.daysTogether.toLocaleString('zh-CN'):'（还没记录接回家日）';
+  return '亲爱的铲屎官：\n\n今年我 '+info.catYears+' 岁啦（猫咪 '+info.catYears+' 岁，相当于你们人类大约 '+info.humanYears+' 岁），'+petStageTxt(info.catYears)+'。\n\n从 '+bd+' 你把我接回家，到今天，我们已经一起度过了 '+dt+' 天。\n\n这段时间我过得很快乐——有你的腿可以趴，有你的手可以蹭，有你喊我「'+(p.name||'猫')+'」的声音可以等。\n\n下一个年岁，也要一直在一起哦。🐾\n\n—— '+(p.name||'猫');
+}
+function petBdayHtml(p){
+  const t=petBirthdayLetterText(p);
+  return '<div class="pet-bday-letter">'+escapeHtml(t).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')+'</p></div>';
+}
+function petCheck(){
+  const pets=S.pets||[]; if(!pets.length) return;
+  const t=todayStr();
+  const notGreeted=pets.filter(function(p){ return p.lastGreet!==t; });   // 开屏问候：每天随机一只猫冒泡
+  if(notGreeted.length && Math.random()<0.7){
+    const p=notGreeted[Math.floor(Math.random()*notGreeted.length)];
+    p.lastGreet=t;
+    try{ showPetToast(pickPetLine('greet'), p); }catch(e){}
+  }
+  const yr=String(new Date(t+'T00:00:00').getFullYear());                 // 生日信：今天=某只猫生日且今年未展示
+  pets.forEach(function(p){
+    const info=petAgeInfo(p);
+    if(info.isBirthday && yr!==String(p.birthdayShown||'')){
+      p.birthdayShown=yr;
+      try{ showModal('petBirthdayModal', '<div class="letter-head">🎂 '+(p.name||'猫')+' 的生日信</div>'+petBdayHtml(p)); }catch(e){}
+      save();
+    }
+  });
+}
+function renderPet(){
+  const el=document.getElementById('petBox'); if(!el) return;
+  const pets=S.pets||[];
+  if(!pets.length){ el.innerHTML='<div class="dash-empty">还没有灵宠。在「添加灵宠」里认识一只猫吧。</div>'; return; }
+  let h='';
+  pets.forEach(function(p,i){
+    const info=petAgeInfo(p);
+    const stageTxt=info.catYears>=3&&info.catYears<7?'壮年猫':(info.catYears>=7?'中年猫+':'小猫咪');
+    h+='<div class="pet-panel">'
+      +'<div class="pet-avatar">'+(p.emoji||'🐱')+'</div>'
+      +'<div class="pet-id"><div class="pet-name">'+escapeHtml(p.name||'猫')+'</div>'
+      +'<div class="pet-meta">'+escapeHtml(p.breed||'未知品种')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
+      +'<button class="btn sm" onclick="summonPet('+i+')">召唤'+(p.name||'猫')+' 🐾</button></div>';
+    h+='<div class="pet-stat">🎂 '+info.catYears+' 岁（人类≈'+info.humanYears+' 岁 · '+stageTxt+'） · 🤝 在一起 '+(info.daysTogether!=null?info.daysTogether:'—')+' 天</div>';
+    if(info.isBirthday) h+='<div style="margin-top:8px">'+petBdayHtml(p)+'</div>';
+    else h+='<div class="hint" style="margin-top:8px">'+(p.name||'猫')+' 的生日（'+petNextBirthday(p.birthday)+'）会收到她的一封信 💌</div>';
+    h+='<details class="fold" style="margin-top:10px"><summary>✏️ 编辑'+(p.name||'猫')+'的资料</summary>'
+      +'<div class="pet-edit">'
+      +'<label>名字</label><input id="petName_'+i+'" value="'+escapeHtml(p.name||'')+'">'
+      +'<label>生日</label><input id="petBday_'+i+'" type="date" value="'+escapeHtml(p.birthday||'')+'">'
+      +'<label>接回家日</label><input id="petAdopt_'+i+'" type="date" value="'+escapeHtml(p.adopted||'')+'">'
+      +'<label>品种</label><input id="petBreed_'+i+'" value="'+escapeHtml(p.breed||'')+'">'
+      +'<label>毛色</label><input id="petColor_'+i+'" value="'+escapeHtml(p.color||'')+'">'
+      +'<label>性格（逗号分隔）</label><input id="petPers_'+i+'" value="'+escapeHtml((p.personality||[]).join('，'))+'">'
+      +'<label>想对'+(p.name||'猫')+'说的话 / 备注</label><textarea id="petNotes_'+i+'" rows="2">'+escapeHtml(p.notes||'')+'</textarea>'
+      +'<button class="btn sm primary" onclick="savePetProfile('+i+')">保存资料</button>'
+      +'</div></details>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function savePetProfile(i){
+  const p=(S.pets||[])[i]; if(!p) return;
+  const g=id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
+  p.name=g('petName_'+i)||'猫'; p.birthday=g('petBday_'+i)||'2021-02-24'; p.adopted=g('petAdopt_'+i)||'';
+  p.breed=g('petBreed_'+i); p.color=g('petColor_'+i);
+  const pers=g('petPers_'+i); p.personality=pers?pers.split(/[，,]/).map(s=>s.trim()).filter(Boolean):p.personality;
+  p.notes=g('petNotes_'+i);
+  save(); renderPet();
+  try{ showPetToast('资料更新好啦，我还是最爱你的'+(p.name||'猫'), p); }catch(_){}
+}
+
+// ===== 重要日子 · 生日提醒 + 自动江湖委托 =====
+const BIRTHDAY_LEAD_DAYS = 3;     // 生日提前 N 天来信通知 + 安排江湖委托
+// 阴历→阳历换算表（1900-2100，标准 lunarInfo，来源 solarlunar）
+const LUNAR_INFO=[0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x05ac0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x092e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a4d0,0x0d150,0x0f252,0x0d520];
+function lunarLeapMonth(y){ return LUNAR_INFO[y-1900]&0xf; }
+function lunarLeapDays(y){ const lm=lunarLeapMonth(y); if(!lm) return 0; return (LUNAR_INFO[y-1900]&0x10000)?30:29; }
+function lunarMonthDays(y,m){ return (LUNAR_INFO[y-1900]&(0x10000>>m))?30:29; }
+function lunarYearDays(y){ let s=348; for(let i=0x8000;i>0x8;i>>=1) s+=(LUNAR_INFO[y-1900]&i)?1:0; return s+lunarLeapDays(y); }
+function lunarToSolar(ly,lm,ld){
+  let offset=0; for(let i=1900;i<ly;i++) offset+=lunarYearDays(i);
+  for(let i=1;i<lm;i++) offset+=lunarMonthDays(ly,i);
+  const lm2=lunarLeapMonth(ly);
+  if(lm2>0 && lm2<lm) offset+=lunarLeapDays(ly);
+  offset+=ld-1;
+  const d=new Date(Date.UTC(1900,0,31)+offset*86400000);
+  return {y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()};
+}
+
+function birthdayEntities(){
+  const arr=[];
+  (S.pets||[]).forEach(function(p,idx){ arr.push({uid:'pet_'+idx,type:'pet',name:p.name||'猫',rel:'灵宠',date:(p.birthday||'').slice(5)||p.birthday,lunar:false,note:''}); });
+  (S.birthdays||[]).forEach(function(b,idx){ arr.push({uid:'bd_'+idx,type:'person',name:b.name,rel:b.rel,date:b.date||'',lunar:!!b.lunar,note:b.note||''}); });
+  return arr;
+}
+function nextOccurrence(e, nowStr){
+  nowStr=nowStr||todayStr();
+  const now=new Date(nowStr+'T00:00:00');
+  if(e.lunar){
+    const mm=parseInt(e.date.slice(0,2),10), dd=parseInt(e.date.slice(3,5),10);
+    if(isNaN(mm)||isNaN(dd)) return {solar:'',daysLeft:9999,year:now.getFullYear(),label:e.date+'（阴历）'};
+    let s=lunarToSolar(now.getFullYear(),mm,dd);
+    let sd=new Date(s.y+'-'+(s.m<10?'0':'')+s.m+'-'+(s.d<10?'0':'')+s.d+'T00:00:00');
+    if(sd<now){ const s2=lunarToSolar(now.getFullYear()+1,mm,dd); sd=new Date(s2.y+'-'+(s2.m<10?'0':'')+s2.m+'-'+(s2.d<10?'0':'')+s2.d+'T00:00:00'); s=s2; }
+    const solar=(s.m<10?'0':'')+s.m+'-'+(s.d<10?'0':'')+s.d;
+    return {solar:solar,year:s.y,daysLeft:Math.ceil((sd-now)/86400000),label:s.m+'月'+s.d+'日（阴历'+e.date+'）'};
+  }
+  const mmdd=e.date; if(!mmdd||mmdd.length<5) return {solar:'',daysLeft:9999,year:now.getFullYear(),label:e.date};
+  const y=now.getFullYear();
+  let d=new Date(y+'-'+mmdd+'T00:00:00');
+  if(d<now) d=new Date((y+1)+'-'+mmdd+'T00:00:00');
+  return {solar:mmdd,year:d.getFullYear(),daysLeft:Math.ceil((d-now)/86400000),label:mmdd.replace('-','月')+'日'};
+}
+function birthdayReminderText(e, occ){
+  const who=e.name;
+  const lead = occ.daysLeft===0 ? ('今天就是 '+who+' 的生日啦') : ('还有 '+occ.daysLeft+' 天就是 '+who+'（'+e.rel+'）的生日');
+  const prep = e.note ? ('记得：'+e.note+'。') : '';
+  if(e.type==='pet'){
+    return '亲爱的铲屎官：\n\n'+lead+'（'+occ.label+'）。\n\n'+prep+'陪 '+(who)+' 多玩一会儿，给她最爱的罐头或冻干，拍张生日照留念吧——被你记挂着的猫，最幸福了。\n\n已为你备好一份生日江湖委托，去完成它，给她一个稳稳的生日。🐾';
+  }
+  return '亲爱的 Mochen：\n\n'+lead+'（'+occ.label+'）。\n\n'+prep+'重要的人，值得被认真地惦记。已为你备好一份生日江湖委托，去完成它，让这份心意落进日常里。💌';
+}
+function birthdayQuestTitle(e){
+  if(e.type==='pet') return '🎂 给'+e.name+'过生日：备好罐头/冻干 + 拍张生日照';
+  if(e.name==='我自己') return '🎂 给自己的生日：放半天假 + 写一句今年的愿望';
+  if(e.rel==='父亲') return '🎂 给爸爸的生日：打个电话 / 发消息说声生日快乐';
+  if(e.rel==='母亲') return '🎂 给妈妈的生日：做顿饭 / 买束花 / 视频通话';
+  return '🎂 给'+e.name+'的生日：发一句祝福，约个见面';
+}
+function birthdayCheck(nowStr){
+  nowStr=nowStr||todayStr();
+  let created=0;
+  birthdayEntities().forEach(function(e){
+    const occ=nextOccurrence(e, nowStr);
+    if(occ.daysLeft<0 || occ.daysLeft>BIRTHDAY_LEAD_DAYS) return;   // 仅临近窗口内（提前 N 天 ~ 当天）
+    const key=e.uid+'#'+occ.year;
+    const si=+e.uid.split('_')[1];
+    const storeObj = e.type==='pet' ? (S.pets||[])[si] : (S.birthdays||[])[si];
+    if(storeObj && storeObj.remindKey===key) return;                // 今年已提醒过
+    if(storeObj) storeObj.remindKey=key;
+    const id='bdr_'+e.uid+'_'+occ.year;
+    (S.birthdayReminders=S.birthdayReminders||[]).push({id:id,forName:e.name,rel:e.rel,type:e.type,solarDate:occ.solar,daysLeft:occ.daysLeft,body:birthdayReminderText(e,occ),year:occ.year,read:false,questId:'bdq_'+e.uid+'_'+occ.year});
+    const qid='bdq_'+e.uid+'_'+occ.year;
+    const quests=S.birthdayQuests=S.birthdayQuests||[];
+    if(!quests.some(function(q){return q.id===qid;})){
+      quests.push({id:qid,icon:'🎂',forName:e.name,rel:e.rel,type:e.type,title:birthdayQuestTitle(e),a:'MIND',xp:(e.type==='pet'?25:(e.name==='我自己'?30:25)),due:occ.solar,done:false,year:occ.year,bdayLabel:occ.label});
+    }
+    created++;
+  });
+  if(created) save();
+  return created;
+}
+function birthdayQuestRowsHtml(){
+  const qs=(S.birthdayQuests||[]).filter(function(q){return !q.done;});
+  if(!qs.length) return '';
+  return '<div class="npcq bday-quest-head"><div class="npc-ic">🎂</div><div class="npc-body"><div class="npc-n">生日江湖委托</div><div class="npc-t">重要日子临近，为他们在江湖里留一份心意</div></div></div>'
+    + qs.map(function(q){
+      return '<div class="npcq bday-quest">'
+        +'<div class="npc-ic">'+q.icon+'</div>'
+        +'<div class="npc-body"><div class="npc-n">'+escapeHtml(q.forName)+' <span class="npc-d">'+(q.rel||'')+'</span></div>'
+        +'<div class="npc-t">「'+escapeHtml(q.title)+'」</div>'
+        +'<div class="npc-rel"><span class="jh-attr">🧠 心智</span><span class="jh-diff">'+jianghuStars(1)+'</span></div></div>'
+        +'<div class="npc-r"><span class="npc-xp">+'+q.xp+'</span>'
+        +'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="birthdayQuestToggle(\''+q.id+'\')">'+(q.done?'撤销':'完成')+'</button></div>'
+        +'</div>';
+    }).join('');
+}
+function birthdayQuestToggle(id){
+  const qs=S.birthdayQuests||[]; const q=qs.find(function(x){return x.id===id;}); if(!q) return;
+  const a='MIND';
+  if(!q.done){ q.done=true; grant(a,q.xp); addHist('✔【生日委托】'+q.title+' +'+q.xp+' XP',q.xp); save(); render(); try{ celebrateTask('🎂 '+q.title+' · +'+q.xp+' XP'); }catch(e){} }
+  else { q.done=false; grant(a,q.xp,true); addHist('✘【生日委托】'+q.title,-q.xp); save(); render(); }
+}
+function renderBirthday(){
+  const el=document.getElementById('birthdayBox'); if(!el) return;
+  const ents=birthdayEntities();
+  if(!ents.length){ el.innerHTML='<div class="dash-empty">还没有设置重要日子。</div>'; return; }
+  const now=todayStr();
+  // 按距离现在的时间升序（daysLeft 越小 = 越近）排列，时间越近的生日来信越靠前
+  const items=ents.map(function(e){
+    return { e:e, occ:nextOccurrence(e, now) };
+  }).sort(function(a,b){ return a.occ.daysLeft - b.occ.daysLeft; });
+  let anyUnread=false;
+  let h='';
+  items.forEach(function(it){
+    const e=it.e;
+    const occ=it.occ;
+    const qid='bdq_'+e.uid+'_'+occ.year;
+    const q=(S.birthdayQuests||[]).find(function(x){return x.id===qid;});
+    const rem=(S.birthdayReminders||[]).find(function(x){return x.id==='bdr_'+e.uid+'_'+occ.year;});
+    if(rem && !rem.read){ rem.read=true; anyUnread=true; }
+    const cnt = occ.daysLeft===0?'🎉 今天！':('还有 '+occ.daysLeft+' 天');
+    const icon = e.type==='pet'?'🐱':(e.rel==='自己'?'🎂':(e.rel==='父亲'?'👨':(e.rel==='母亲'?'👩':'💛')));
+    const yrTag = occ.year>new Date(now+'T00:00:00').getFullYear() ? '（明年）' : '';
+    let card='<div class="bday-card'+(occ.daysLeft<=BIRTHDAY_LEAD_DAYS?' soon':'')+'">'
+      +'<div class="bday-ic">'+icon+'</div>'
+      +'<div class="bday-main"><div class="bday-name">'+escapeHtml(e.name)+' <span class="bday-rel">'+escapeHtml(e.rel)+'</span></div>'
+      +'<div class="bday-date">下一次生日：'+escapeHtml(occ.label)+yrTag+' · <b>'+cnt+'</b></div>';
+    if(rem){
+      card+='<div class="bday-letter">'+escapeHtml(rem.body).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')+'</p></div>';
+    } else {
+      card+='<div class="bday-letter muted">生日临近（提前 '+BIRTHDAY_LEAD_DAYS+' 天）时会自动寄来一封信，并为你安排一份生日江湖委托。</div>';
+    }
+    if(q){
+      card+='<div class="bday-quest-row"><span>🎂 '+escapeHtml(q.title)+'</span>'
+        +'<button class="btn xs '+(q.done?'ghost':'primary')+'" onclick="birthdayQuestToggle(\''+q.id+'\')">'+(q.done?'已完成 ✓':'完成 +'+q.xp)+'</button></div>';
+    }
+    card+='</div></div>';
+    h+=card;
+  });
+  el.innerHTML=h;
+  if(anyUnread){ try{ save(); }catch(e){} }
 }
 
 // —— ④ 江湖偶遇 ——
@@ -787,8 +1171,8 @@ function tripFormHtml(id){
     +'<div class="tf-row two">'
       +(wish
         ? '<span class="tf-hint">这一栏是你还「想去」的地方 🌱</span>'
-        : '<label>到访日期 <input id="tfDate" type="date" value="'+tripEscape(t?t.date||'':'')+'"></label>'
-          +'<label>评分 <span id="tfStars" class="tf-stars">'+tripStars(t?(t.rating||0):0).split('').map((s,i)=>'<i data-n="'+(i+1)+'">'+s+'</i>').join('')+'</span></label>')
+        : '<label>到访日期 <input id="tfDate" type="text" placeholder="YYYY / YYYY-MM / YYYY-MM-DD" value="'+tripEscape(t?t.date||'':'')+'"></label>'
+          +'<label>评分 <span id="tfStars" class="tf-stars">'+tripStars(t?(t.rating||0):0).split('').map((s,i)=>'<i data-n="'+(i+1)+'"'+(i<(t?(t.rating||0):0)?' class="on"':'')+'>'+s+'</i>').join('')+'</span></label>')
     +'</div>'
     +'<textarea id="tfRefl" class="tf-refl" rows="3" maxlength="400" placeholder="'+(wish?'想去的理由（风景 / 故事 / 心愿）…':'那次的感受 / 一句记忆 / 还想再去的理由…')+'">'+(t?tripEscape(t.refl||''):'')+'</textarea>'
     +'<div class="tf-foot">'
@@ -818,9 +1202,11 @@ function tripSubmit(id){
   const wish=!document.getElementById('tfWish')?!!_tripWish:document.getElementById('tfWish').checked;
   let rating=0,date='';
   if(!wish){
-    rating=parseInt((document.querySelector('#tfStars i.on')||{}).dataset?.n||'0',10)||0;
-    date=((document.getElementById('tfDate')||{}).value||'');
-    if(!date) date=todayStr();
+    const starsEl=document.getElementById('tfStars');
+    const onStars=starsEl?starsEl.querySelectorAll('i.on'):[];
+    rating=onStars.length;
+    date=((document.getElementById('tfDate')||{}).value||'').trim();
+    if(!/^\d{4}(-\d{2}){0,2}$/.test(date)) date=todayStr();
   }
   if(id){
     const t=S.trips.find(x=>x.id===id);
@@ -849,7 +1235,11 @@ document.addEventListener('click',function(e){
   const i=e.target.closest && e.target.closest('#tfStars i'); if(!i) return;
   const starsEl=document.getElementById('tfStars'); if(!starsEl) return;
   const n=parseInt(i.dataset.n||'0',10);
-  [...starsEl.children].forEach((s,idx)=>s.classList.toggle('on',idx<n));
+  [...starsEl.children].forEach((s,idx)=>{
+    const on=idx<n;
+    s.classList.toggle('on',on);
+    s.textContent=on?'★':'☆';
+  });
 });
 
 // —— 通知中心：仪表盘小喇叭 + 左侧导航红点 ——
@@ -858,27 +1248,64 @@ function notifList(){
   if(S.enc && S.enc.cur && !S.enc.seen)
     arr.push({page:'dashboard', ic:'🪄', t:'江湖偶遇待回应', d:(S.enc.cur.who||'故人')+'在等你', key:'enc'});
   if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length)
-    arr.push({page:'week', ic:'📜', t:'本周江湖委托已刷新', d:'四位故人各留一言 · 在周月任务页', key:'npc'});
+    arr.push({page:'action', st:'action', ic:'📜', t:'本周江湖委托已刷新', d:'四位故人各留一言 · 在今日行动页', key:'npc'});
   const lu=letterUnread();
   if(lu>0)
     arr.push({page:'map', ic:'✉️', t:lu+' 封远方来信未读', d:'点开看看', key:'letter'});
-  if(S.draw && S.draw.date===todayStr() && !S.draw.claimed)
-    arr.push({page:'dashboard', ic:'🎴', t:'今日宜忌可承接', d:'承气运 +20 XP', key:'draw', scroll:'drawBox'});
   // v5.45 嘉奖箱未兑换提醒
   const _unclaim=(S.rewards&&S.rewards.drops||[]).filter(d=>!d.claimed).length;
   if(_unclaim>0){
-    arr.push({page:'loot', ic:'🎁', t:'嘉奖箱有 '+_unclaim+' 个未享用', d:'去翻翻看 · 点选「我享用啦」封存', key:'reward', scroll:'rewardList'});
+    arr.push({page:'growth', ic:'🎁', t:'嘉奖箱有 '+_unclaim+' 个未享用', d:'去翻翻看 · 点选「我享用啦」封存', key:'reward', scroll:'rewardList'});
   }
+  // 我的揭榜：未完成的任务（逾期优先）进 dashboard 提示区
+  try{
+    const _mj=(S.myJianghu||[]).filter(function(e){return !e.done;});
+    _mj.sort(function(a,b){ return (a.deadline<b.deadline?-1:1); });
+    _mj.forEach(function(e){
+      const _od=e.deadline<Date.now();
+      arr.push({page:'action', tab:'my', ic:'🗡️', t:'揭榜待完成：'+e.t, d:(_od?'已逾期 · ':'截止 ')+fmtDeadline(e.deadline)+(_od?'（仍可完成）':''), key:'myjianghu', scroll:'myJianghuBox'});
+    });
+  }catch(e){}
+  // 生日来信：临近窗口内未读的提醒进通知中心
+  try{
+    (S.birthdayReminders||[]).forEach(function(r){
+      if(r.read) return;
+      arr.push({page:'journey', ic:'💌', t:(r.forName||'')+' 的生日来信', d:(r.daysLeft===0?'今天！':('还有 '+r.daysLeft+' 天')+' · 已备好江湖委托'), key:'bday_'+r.id, scroll:'birthdayBox'});
+    });
+  }catch(e){}
   return arr;
 }
 function notifGo(el){
-  const p=el.dataset.page, s=el.dataset.scroll;
+  const p=el.dataset.page, s=el.dataset.scroll, tab=el.dataset.tab, st=el.dataset.st;
+  _isDeepLink=true;   // 深层链接期间不强制重置为第一个 tab，保留精准跳转
+  try{
+  // 先决定短期任务页内的顶层 tab（江湖榜子 tab 与 action 顶层 tab 分开处理）
+  if(tab && typeof S==='object' && S){
+    S.stTab='jianghu'; S.jhTab=tab;
+  } else if(st && typeof S==='object' && S){
+    S.stTab=st;
+  }
+  // 先切到目标页（滚动锚点可能在别的页面里）
+  if(p && p!==getActivePage()){ showPage(p); }
+  // v5.51.20 嘉奖箱已并入修行成长页【嘉奖箱】tab：掉落奖励后切到该页并展开嘉奖 tab
+  if(s==='rewardList'){
+    try{ if(typeof showPage==='function') showPage('growth'); }catch(e){}
+    try{ if(typeof switchGrowthTab==='function') switchGrowthTab('rewards'); }catch(e){}
+  }
   if(s){
     const t=document.getElementById(s);
-    if(t){ t.scrollIntoView({behavior:'smooth',block:'center'}); t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); }
+    if(t){
+      // 展开所有祖先 <details>，否则折叠区里的锚点不可见
+      let n=t.parentElement;
+      while(n){ if(n.tagName==='DETAILS' && !n.open) n.open=true; n=n.parentElement; }
+      t.scrollIntoView({behavior:'smooth',block:'center'});
+      t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse');
+    }
   }
-  if(p && p!==getActivePage()){ showPage(p); }
-  else if(!s && p){ showPage(p); }
+  if(tab && p==='action'){ try{ switchShortTaskTab('jianghu'); switchJianghuTab(tab); }catch(e){} }
+  } finally {
+    _isDeepLink=false;
+  }
   return false;
 }
 function getActivePage(){
@@ -889,13 +1316,13 @@ function renderNotifications(){
   const list=notifList();
   if(!list.length){
     el.style.display='';
-    el.innerHTML='<div class="notif-h">🔔 待你回应</div><div class="notif-empty">暂无待你回应的互动 ✨<br><small>完成江湖偶遇、查收远方来信、承接今日宜忌后，这里会亮起提醒</small></div>';
+    el.innerHTML='<div class="notif-h">🔔 待你回应</div><div class="notif-empty">暂无待你回应的互动 ✨<br><small>完成江湖偶遇、查收远方来信后，这里会亮起提醒</small></div>';
     return;
   }
   el.style.display='';
   let h='<div class="notif-h">🔔 待你回应 <span class="notif-cnt">'+list.length+'</span></div><div class="notif-rows">';
   list.forEach(n=>{
-    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" onclick="notifGo(this)">'
+    h+='<div class="notif-row" data-page="'+n.page+'" data-scroll="'+(n.scroll||'')+'" data-tab="'+(n.tab||'')+'" data-st="'+(n.st||'')+'" onclick="notifGo(this)">'
       +'<span class="notif-ic">'+n.ic+'</span>'
       +'<span class="notif-t">'+n.t+'</span>'
       +'<span class="notif-d">'+n.d+'</span>'
@@ -905,9 +1332,10 @@ function renderNotifications(){
   el.innerHTML=h;
 }
 function navBadgeCount(page){
-  if(page==='current'){
+  if(page==='short'||page==='action'||page==='current'){
     let c=0;
     if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length) c++;
+    c += (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
     return c;
   }
   if(page==='map') return letterUnread();
@@ -915,12 +1343,35 @@ function navBadgeCount(page){
   return 0;
 }
 function renderNavBadges(){
-  ['current','map','growth'].forEach(p=>{
+  ['short','map','growth'].forEach(p=>{
     const sp=document.getElementById('navBadge-'+p); if(!sp) return;
     const c=navBadgeCount(p);
     sp.textContent = c>0 ? (c>99?'99+':String(c)) : '';
     sp.style.display = c>0 ? 'inline-block' : 'none';
   });
+  try{ renderShortTaskBadges(); }catch(e){}
+}
+function shortTaskBadgeData(){
+  const hasNpc = !!(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length);
+  const myUndone = (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
+  return {hasNpc:hasNpc?1:0, myUndone:myUndone, total:(hasNpc?1:0)+myUndone};
+}
+function renderShortTaskBadges(){
+  const d=shortTaskBadgeData();
+  const setBadge=function(id,n){
+    const el=document.getElementById(id); if(!el) return;
+    const show=n>0;
+    el.textContent = show ? (n>99?'99+':String(n)) : '';
+    el.style.display = show ? 'inline-block' : 'none';
+  };
+  setBadge('stBadge-action',0);
+  setBadge('stBadge-jianghu',d.total);
+  setBadge('stBadge-week',0);
+  setBadge('jhBadge-npc',d.hasNpc);
+  setBadge('jhBadge-day',0);
+  setBadge('jhBadge-week',0);
+  setBadge('jhBadge-month',0);
+  setBadge('jhBadge-my',d.myUndone);
 }
 function markSideSeen(){
   let ch=false;
@@ -1208,6 +1659,7 @@ function buildReport(kind, start, end){
   const sd=windowAttrMinutes(S.sideDaily,start,end);
   const sw=windowAttrMinutes(S.sideWeekly,start,end);
   const sm=windowAttrMinutes(S.sideMonthly,start,end);
+  const jwDone=jianghuPeriodDone('week'), jmDone=jianghuPeriodDone('month');
   const hrs={BADMINTON:daily.hrs.BADMINTON+weekly.hrs.BADMINTON+sd.hrs.BADMINTON+sw.hrs.BADMINTON+sm.hrs.BADMINTON,
              CAREER:daily.hrs.CAREER+weekly.hrs.CAREER+sd.hrs.CAREER+sw.hrs.CAREER+sm.hrs.CAREER,
              BODY:daily.hrs.BODY+weekly.hrs.BODY+sd.hrs.BODY+sw.hrs.BODY+sm.hrs.BODY,
@@ -1231,7 +1683,7 @@ function buildReport(kind, start, end){
   const lines=[];
   lines.push('📊 '+(kind==='week'?'周报':'月报')+'（'+start+' ~ '+end+'）');
   lines.push('🔥 灯火不熄：'+computeStreak()+' 日');
-  lines.push('⚔️ 完成行动：日常 '+daily.count+' · 周常 '+weekly.count+' · 轶事 '+(sd.count+sw.count+sm.count));
+  lines.push('⚔️ 完成行动：日常 '+daily.count+' · 江湖周榜 '+jwDone+' · 江湖月榜 '+jmDone+' · 轶事 '+(sd.count+sw.count+sm.count));
   lines.push('🧭 四系投入：'+Object.keys(ATTRS).map(k=>ATTRS[k].name+' '+(hrs[k]/60).toFixed(1)+'h').join(' · ')+'（合计 '+(totalMin/60).toFixed(1)+'h）');
   if(monthDone.length) lines.push('🌕 本月主线推进：'+monthDone.join('、'));
   if(yearDoneList.length) lines.push('🗺️ 今年大道完成：'+yearDoneList.join('、'));
@@ -1259,7 +1711,8 @@ function buildReport(kind, start, end){
     +'<div class="rep-stats">'
       +'<div class="rep-stat"><b>'+computeStreak()+'</b><span>🔥 灯火不熄 · 日</span></div>'
       +'<div class="rep-stat"><b>'+daily.count+'</b><span>⚔️ 日常完成</span></div>'
-      +'<div class="rep-stat"><b>'+weekly.count+'</b><span>📆 周常完成</span></div>'
+      +'<div class="rep-stat"><b>'+jwDone+'</b><span>🗡️ 周榜完成</span></div>'
+      +'<div class="rep-stat"><b>'+jmDone+'</b><span>🗡️ 月榜完成</span></div>'
       +'<div class="rep-stat"><b>'+(sd.count+sw.count+sm.count)+'</b><span>📜 轶事</span></div>'
       +'<div class="rep-stat"><b>Lv.'+gL+'</b><span>📈 当前等级</span></div>'
     +'</div>'
@@ -1356,15 +1809,14 @@ function reorganizeDetailPages(){
   // 高频信息在前；设置、录入和内容管理沉到底部或归入设置页。
   move('data','身体指标','energy');
   move('data','资产快照','ledger','每日搬砖打卡');
-  move('current','羽毛球专精','growth','修行卷册');
-  move('data','周报 / 月报','week','月行大计');
-  move('current','任务生成器','data','补充灵感');
+  move('action','羽毛球专精','growth','修行卷册');
+    move('action','任务生成器','data','补充灵感');
   move('journey','角色档案','journey','丁火流年');
   merge('journey','丁火流年','命格 · 丁火流年');
   move('journey','修为说明','growth','修行卷册');
   move('journey','长期目标','longterm');
 
-  const monthly=byTitle('week','月行大计');
+  const monthly=byTitle('action','月行大计');
   const monthlyTitle=monthly&&monthly.querySelector('h2');
   if(monthlyTitle) monthlyTitle.innerHTML='🌙 月度挑战 <span class="note">每月 1 日刷新 · 区别于长期主线</span>';
 
@@ -1375,11 +1827,7 @@ function reorganizeDetailPages(){
     growthFirst?.insertAdjacentElement('afterend',xp);
   }
   // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
-  detailGroup('growth','🛡️ 收藏与嘉奖','装备、奖励需要时再展开',[
-    document.querySelector('#page-loot > .loot-tabs'),
-    document.getElementById('lootEquips'),
-    document.getElementById('lootRewards')
-  ]);
+  // v5.51.20 嘉奖箱已并入修行成长页【嘉奖箱】tab；装备库功能移除（角色设定的故人信物已承载故事收藏诉求）
   move('loot','故人信物','journey');
   detailGroup('journey','🗺️ 人生足迹','旅行地图、目标与远方来信',[
     document.querySelector('#page-map > .lifemap')
@@ -1398,12 +1846,12 @@ function reorganizeDetailPages(){
 
   setupUsageTracking();
   setupLifeCompoundUI();
+  try{ switchGrowthTab('compound'); }catch(e){ console.warn('init growth tab',e); }
 
   setHead('energy','精力 · 恢复','今日状态优先 · 身体指标 · 趋势放后');
   setHead('ledger','钱庄 · 金币人生','目标与资产优先 · 记录与分析随后');
   setHead('journey','角色设定','角色档案 · 命格历程 · 时间轴设置');
-  setHead('current','今日行动','今日主线 · 复利轨道 · 江湖任务日榜');
-  setHead('week','本周卷册','本周重点 · 周期复盘 · 月度衔接');
+  setHead('action','短期任务','今日行动 · 江湖榜 · 周期揭榜');
   setHead('growth','修行 · 成长','等级与专精优先 · 成就愿望随后');
   setHead('data','设置与内容管理','存档与反馈 · 通知 · 随机内容库');
 }
@@ -1412,27 +1860,33 @@ function reorganizeDetailPages(){
 // reading 用真实历史基数 182h（不虚构拆分自「精神享受」）；身体/职业/生涯教练沿用 S.goals 真实基数。
 // realms：按「总累计小时」自动升级的武侠境界阶梯（每轨道自带风味名）。
 const LIFE_TRACKS={
-  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BADMINTON_LIFETIME_HOURS*60,unit:'终身',rec:30,paused:false,
+  badminton:{ic:'🏸',n:'羽毛球',a:'BADMINTON',base:BM_PLAY_BASE+BM_BASIC_BASE,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[2000,'向名扬俱乐部'],[4000,'区里成名'],[6000,'省队水准'],[8000,'全国新锐'],[10000,'一代宗师']],
-    variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。']},
-  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:150*60,unit:'累计',rec:15,paused:false,
+    variants:['练启动步时，留意身体变轻的那一刻。','只观察一次击球后的回位。','打十个好球，不追求多，只记住最顺的一拍。','步法慢就是快，今天多球先求稳。','把反手高远练三十球，让身体记住节奏。','录一段自己的杀球，回看时只看脚步。']},
+  singing:{ic:'🎤',n:'唱歌',a:'MIND',base:122*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'敢开嗓'],[150,'麦上常客'],[400,'小有所成'],[800,'一曲倾城'],[1500,'绕梁宗师']],
     variants:['唱一首旧歌，找回当时的自己。','只认真唱最喜欢的一段。','留意哪一句让呼吸真正舒展开。']},
   reading:{ic:'📖',n:'阅读',a:'MIND',base:182*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[100,'初窥门径'],[300,'渐入佳境'],[600,'博观约取'],[1000,'胸有丘壑'],[1500,'一代书宗']],
     variants:['读五页，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。']},
-  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:150*60,unit:'累计',rec:15,paused:false,
+  piano:{ic:'🎹',n:'钢琴',a:'MIND',base:178*60,unit:'累计',rec:15,paused:false,
     realms:[[0,'初出茅庐'],[50,'认谱'],[150,'小曲流畅'],[400,'小有所成'],[800,'登堂入室'],[1500,'琴心宗师']],
     variants:['只练一个乐句，听它比昨天顺一点。','闭眼弹一次熟悉的片段。','把最卡的两小节放慢一半。']},
-  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:250*60,unit:'累计',rec:10,paused:false,
+  stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:150*60,unit:'累计',rec:10,paused:false,
     realms:[[0,'初出茅庐'],[50,'舒展'],[150,'柔和'],[400,'松活'],[800,'筋长一寸'],[1500,'养生宗师']],
     variants:['先问身体：今天哪里最需要被照顾？','用三分钟把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。']},
-  body:{ic:'💪',n:'身体健康',a:'BODY',base:898*60,unit:'终身',rec:20,paused:false,
-    realms:[[0,'初出茅庐'],[500,'体魄渐实'],[1000,'小有所成'],[2000,'康健有成'],[3000,'钢筋铁骨']],
-    variants:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。']},
+  strength:{ic:'🏋️',n:'力量训练',a:'BODY',base:Math.round(61.7*60),unit:'累计',rec:20,paused:false,
+    realms:[[0,'初出茅庐'],[50,'初见肌力'],[150,'动作稳健'],[400,'力量渐长'],[800,'小有所成'],[1500,'钢筋铁骨']],
+    variants:['今天练一个让你更有掌控感的动作。','重量不变也没关系，先把动作做满。','感受发力，而不是急着冲数字。']},
+  meditation:{ic:'🧘',n:'冥想呼吸',a:'BODY',base:Math.round(65.8*60),unit:'累计',rec:10,paused:false,
+    realms:[[0,'初出茅庐'],[50,'开始入座'],[150,'呼吸平稳'],[400,'心念清明'],[800,'内观有成'],[1500,'定心宗师']],
+    variants:['先坐下来，呼吸三次，其余再说。','今天只观察一次吸气的全过程。','念头跑了就轻轻回来，不用责备自己。']},
   career:{ic:'💼',n:'职业发展',a:'CAREER',base:1017*60,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[500,'独当一面'],[1000,'小有所成'],[2000,'业内立足']],
-    variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']}
+    variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']},
+  ai:{ic:'🤖',n:'AI提效',a:'CAREER',base:0,unit:'累计',rec:20,paused:false,
+    realms:[[0,'初出茅庐'],[100,'工具上手'],[300,'流程打通'],[600,'半自动'],[1000,'人机协同'],[1500,'AI 原生']],
+    variants:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。']}
 };
 const LIFE_PROMPTS=['今天哪个普通瞬间值得被保存？','今天有什么声音、气味或光线让你停了一下？','哪一刻你感觉自己不是在赶路，而是在生活？','今天身体给了你什么细小反馈？','今天有什么东西比预想中更好？','如果只留下一帧，你想留下什么？'];
 function ensureLifeCompound(){
@@ -1441,6 +1895,16 @@ function ensureLifeCompound(){
   if(!Array.isArray(S.lifeCompound.memories))S.lifeCompound.memories=[];
   // v5.45 用户可改的轨道基数（小时）。改完即写入；首次访问时用 LIFE_TRACKS 默认值兜底。
   if(!S.lifeCompound.bases||typeof S.lifeCompound.bases!=='object')S.lifeCompound.bases={};
+  // v5.45.1 迁移：v5.45 默认 {singing:150*60, piano:150*60, stretch:250*60} → v5.45.1 iHour 真实 {122,178,150}
+  // 只迁「bases 仍是 v5.45 默认」的用户；已用 editLifeBase 自改的不会被覆盖（值不在 v5.45 默认范围）
+  if(!S.lifeCompound._v5451_migrated){
+    var OLD5={singing:150*60, piano:150*60, stretch:250*60};
+    var NEW51={singing:122*60, piano:178*60, stretch:150*60};
+    Object.keys(OLD5).forEach(function(k){
+      if(S.lifeCompound.bases[k]===OLD5[k]) S.lifeCompound.bases[k]=NEW51[k];
+    });
+    S.lifeCompound._v5451_migrated=true;
+  }
   Object.keys(LIFE_TRACKS).forEach(function(k){
     if(typeof S.lifeCompound.bases[k]!=='number') S.lifeCompound.bases[k]=LIFE_TRACKS[k].base;
   });
@@ -1469,9 +1933,11 @@ function editLifeBase(key){
 // 导致「力量训练」「职业行动」做完不进任何轨道 —— 既重复又漏账）。
 function lifeTrackOfTask(item){
   const t=(item&&item.t)||'';
-  if(/羽毛球|打球|多球|步法/.test(t)) return 'badminton';
+  if(/羽毛球|打球|对抗|比赛|挥拍|多球|实战|基本功|步法|专项|技术练习|挥拍练习/.test(t)) return 'badminton';
   if(/拉伸|放松|恢复|筋膜/.test(t)) return 'stretch';
-  if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'body';
+  if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'strength';
+  if(/冥想|呼吸|正念|打坐|静坐/.test(t)) return 'meditation';
+  if(/AI提效|AI 提效|用 ?AI|AI 工具|AI 学习|提示词|prompt|自动化工作流|coze|扣子/.test(t)) return 'ai';
   if(/职业|求职|事业编|央企|文职|简历|面试/.test(t)) return 'career';
   const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|弹琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);
   return mind.length===1?mind[0]:'';
@@ -1494,9 +1960,62 @@ function migrateDailyIntoTracks(){
   S.migr.dailyMoved=moved;
   try{ save(); }catch(e){}
 }
+// v5.49 羽毛球拆「打球 / 基本功」：历史 1649h 按 2/3·1/3 拆到两轨道基数；旧日志(key=badminton)已归打球。
+function migrateBmSplit(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.bmSplit) return;
+  S.migr.bmSplit=todayStr();
+  try{
+    ensureLifeCompound();
+    S.lifeCompound.bases.badminton = BM_PLAY_BASE;   // 打球（含旧日志）
+    S.lifeCompound.bases.bmbasic = BM_BASIC_BASE;     // 基本功（按比例预填，可双击改）
+    save();
+  }catch(e){}
+}
+// v5.51.18 合并「羽毛球·打球 / 羽毛球·基本功」为单一「羽毛球」轨道（同一分类不拆分显示）。
+function migrateBmMerge(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.bmMerge) return;
+  try{
+    ensureLifeCompound();
+    const b=S.lifeCompound.bases.bmbasic;
+    if(typeof b==='number'){
+      S.lifeCompound.bases.badminton=(S.lifeCompound.bases.badminton||0)+b;
+      delete S.lifeCompound.bases.bmbasic;
+    }
+    S.lifeCompound.logs.forEach(function(x){ if(x.key==='bmbasic') x.key='badminton'; });
+    S.migr.bmMerge=todayStr();
+    save();
+  }catch(e){}
+}
+// v6.0.26 身体健康拆分为力量训练 + 冥想呼吸；base 按 iHour 2026 年 1-6 月截图汇总重置。
+function migrateBodySplit(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.bodySplit) return;
+  ensureLifeCompound();
+  let moved=0;
+  if(Array.isArray(S.lifeCompound.logs)){
+    S.lifeCompound.logs.forEach(function(x){
+      if(x.key!=='body') return;
+      const text=String(x.id||'')+' '+String(x.t||'')+' '+String(x.a||'');
+      if(/力量|健身|撸铁|核心|课表|有氧|跑步/.test(text)) x.key='strength';
+      else if(/冥想|呼吸|正念|打坐|静坐/.test(text)) x.key='meditation';
+      else x.key='strength'; // 无法识别的默认归入力量训练
+      moved++;
+    });
+  }
+  // 旧 body base 不再使用；新轨道 base 由 LIFE_TRACKS 默认值提供（iHour 截图汇总）。
+  if(typeof S.lifeCompound.bases.body==='number') delete S.lifeCompound.bases.body;
+  S.migr.bodySplit=todayStr();
+  console.log('migrateBodySplit: moved', moved);
+  try{ save(); }catch(e){}
+}
 function practiceLogs(key){return ensureLifeCompound().logs.filter(x=>x.key===key);}
 function practiceNewMinutes(key){return practiceLogs(key).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceTodayMinutes(key){return practiceLogs(key).filter(x=>x.d===todayStr()).reduce((n,x)=>n+(+x.min||0),0);}
+// v6.0.10 显示用：当前查看的日期（REC_DATE 或今天）当天该轨道分钟数。
+// 今日行动页切到补录日期时，复利图标/今日主线都按这一天渲染，已点亮的照常亮起。
+function practiceViewMinutes(key){return practiceLogs(key).filter(x=>x.d===recordDateStr()).reduce((n,x)=>n+(+x.min||0),0);}
 function practiceWeekMinutes(key){const start=monday();return practiceLogs(key).filter(x=>x.d>=start&&x.d<=shiftDate(start,6)).reduce((n,x)=>n+(+x.min||0),0);}
 function trackStage(totalMin, realms){
   const H=totalMin/60; let cur=realms[0], next=null;
@@ -1506,9 +2025,9 @@ function trackStage(totalMin, realms){
   return {n:cur[1], at, next: next?{h:nh,n:next[1]}:null, pct, H};
 }
 function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
-function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(todayStr()+key,t.variants.length)];}
+function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(recordDateStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
-  const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=todayStr(),lc=ensureLifeCompound();
+  const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=recordDateStr(),lc=ensureLifeCompound();
   // v5.44.1 同步存属性，便于 weeklyReviewStats 直接归类（不必再反查 LIFE_TRACKS）
   lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick',a:t.a});grant(t.a,min,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(min*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+min+' 分钟 · +'+xpGain+' XP');
 }
@@ -1519,7 +2038,7 @@ function syncLifePracticeFromTask(item,d,min,remove){
 }
 function saveLifeMemory(){
   const input=document.getElementById('lifeMemoryInput'),sel=document.getElementById('lifeMemoryTrack');const textv=(input&&input.value||'').trim();if(!textv)return;
-  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:todayStr(),text:textv,key:sel&&sel.value||'life'});if(input)input.value='';save();renderLifeCompound();celebrateTask('✨ 一枚生活碎片已被留下');
+  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,key:sel&&sel.value||'life'});if(input)input.value='';save();renderLifeCompound();celebrateTask('✨ 一枚生活碎片已被留下');
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 // v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。
@@ -1532,13 +2051,13 @@ function recordLifePractice(key){
 }
 function clearLifeToday(key){
   const t=LIFE_TRACKS[key]; if(!t) return;
-  const d=todayStr(), lc=ensureLifeCompound();
+  const d=recordDateStr(), lc=ensureLifeCompound();
   const gone=lc.logs.filter(function(x){return x.key===key&&x.d===d;});
   if(!gone.length) return;
   const mins=gone.reduce(function(n,x){return n+(+x.min||0);},0);
   lc.logs=lc.logs.filter(function(x){return !(x.key===key&&x.d===d);});
   try{ grant(t.a, -mins, false); }catch(e){}
-  addHist(t.ic+' '+t.n+'撤销今日记录 −'+mins+' 分钟', -mins, d);
+  addHist(t.ic+' '+t.n+'撤销'+fmtMD(d)+'记录 −'+mins+' 分钟', -mins, d);
   save(); renderLifeCompound(); render();
 }
 // v5.42 复利轨道改为图标优先：默认只显示图标，点击图标展开时间录入器；
@@ -1550,18 +2069,19 @@ function renderLifeCompound(){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
   const live=keys.filter(function(k){return !LIFE_TRACKS[k].paused;});
-  const todayActive=keys.filter(function(k){return practiceTodayMinutes(k)>0;}).length;
+  const viewDate=recordDateStr();
+  const isViewToday=viewDate===todayStr();
+  const viewActive=keys.filter(function(k){return practiceViewMinutes(k)>0;}).length;
   const mems=S.lifeCompound.memories||[];
-  const todayMems=mems.filter(function(x){return x.d===todayStr();}).length;
-  const todayMin=keys.reduce(function(n,k){return n+practiceTodayMinutes(k);},0);
-  const prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
+  const viewMin=keys.reduce(function(n,k){return n+practiceViewMinutes(k);},0);
+  const prompt=LIFE_PROMPTS[seededIndex(viewDate,LIFE_PROMPTS.length)];
 
   const quick=document.getElementById('lifeBlendBox');
   if(quick) quick.innerHTML=
-    '<div class="lc-head"><div><b>🌱 今日行动 · 复利轨道</b><span>点图标记一笔，今天完成的会亮起来</span></div>'
-      +'<div class="lc-score">'+todayActive+'/'+live.length+' 条已点亮 · 共 '+todayMin+' 分钟</div></div>'
+    '<div class="lc-head"><div><b>🌱 '+(isViewToday?'今日行动':'补录')+' · 复利轨道</b><span>'+(isViewToday?'点图标记一笔，今天完成的会亮起来':('这里显示 '+fmtMD(viewDate)+' 已点亮的情况；点图可在那天补记一笔'))+'</span></div>'
+      +'<div class="lc-score">'+viewActive+'/'+live.length+' 条已点亮 · 共 '+viewMin+' 分钟'+(isViewToday?'':' · '+fmtMD(viewDate))+'</div></div>'
     +'<div class="lc-ic-row">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
-      const t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), lit=m>0;
+      const t=LIFE_TRACKS[k], m=practiceViewMinutes(k), lit=m>0;
       return '<button class="lc-ic-btn '+(lit?'lit':'dim')+(_lcOpenTrack===k?' open':'')+'" onclick="lcToggle(\''+k+'\')" title="'+escHtml(lifeVariant(k))+'">'
         +'<span class="lc-ic">'+t.ic+'</span>'
         +'<span class="lc-ic-name">'+t.n+'</span>'
@@ -1569,9 +2089,9 @@ function renderLifeCompound(){
         +'</button>';
     }).join('')+'</div>'
     +(_lcOpenTrack?(function(){
-        const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceTodayMinutes(k), rec=t.rec||15;
+        const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceViewMinutes(k), rec=t.rec||15;
         return '<div class="lc-expand">'
-          +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>今天已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
+          +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>'+(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
           +'<button class="btn xs ghost lc-close" onclick="lcClose()" title="收起">✕</button></div>'
           +'<div class="lc-expand-body">'
             +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
@@ -1579,10 +2099,10 @@ function renderLifeCompound(){
             +'<span class="lc-unit">分钟</span>'
             +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
             +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
-            +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销今天这条轨道的全部记录">↺</button>':'')
+            +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销当天这条轨道的全部记录">↺</button>':'')
           +'</div></div>';
       })():'')
-    +'<div class="lc-memory"><div><b>✨ 今日生活碎片</b><span>'+prompt+'</span></div>'
+    +'<div class="lc-memory"><div><b>✨ '+(isViewToday?'今日生活碎片':fmtMD(viewDate)+'生活碎片')+'</b><span>'+prompt+'</span></div>'
       +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
       +keys.map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
       +'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…">'
@@ -1601,13 +2121,16 @@ function renderLifeCompound(){
         +'<div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span>'
         +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';
     }).join('')+'</div>'
-    +'<div class="lp-note">羽毛球/身体/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
+    +'<div class="lp-note">羽毛球/力量/冥想/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
 }
 
 function setupLifeCompoundUI(){
   ensureLifeCompound();
   try{ migrateDailyIntoTracks(); }catch(e){ console.warn('daily->tracks migrate',e); }
-  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';document.getElementById('todayDetailCockpit')?.insertAdjacentElement('afterend',p);}
+  try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
+  try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
+  try{ migrateBodySplit(); }catch(e){ console.warn('body split migrate',e); }
+  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('recBar')||document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('afterend',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
 }
@@ -1671,7 +2194,7 @@ function fortuneToday(){
     const bmRecent=[0,1,2].some(i=>{ const dd=shiftDate(td,-i); return logs.some(x=>x.key==='badminton'&&x.d===dd); });
     if(!bmRecent && raw>=1.5) yi.push('已经 3 天没碰球拍了 · 去活动筋骨');
     if(practiceWeekMinutes('career')===0) yi.push('本周职业主线还是 0 · 先做 30 分钟');
-    if(practiceTodayMinutes('stretch')===0 && practiceTodayMinutes('badminton')>0) yi.push('今天打过球了 · 补 10 分钟拉伸');
+    if(practiceTodayMinutes('stretch')===0 && practiceTodayMinutes('badminton')>0) yi.push('今天练过球了 · 补 10 分钟拉伸');
     const activeToday=Object.keys(LIFE_TRACKS).filter(k=>practiceTodayMinutes(k)>0).length;
     if(activeToday>=4) ji.push('今天已点亮 '+activeToday+' 条轨道 · 别再加码了');
   }catch(e){}
@@ -1769,7 +2292,7 @@ function trackUsage(kind,key){
 }
 function usageLabel(row){
   const names={page:'页面',group:'展开',action:'操作'};
-  const pages={dashboard:'仪表盘',energy:'精力恢复',current:'今日行动',week:'本周卷册',longterm:'长期主线',ledger:'钱庄',journey:'角色设定',growth:'修行成长',data:'设置'};
+  const pages={dashboard:'仪表盘',energy:'精力恢复',action:'短期任务',current:'短期任务',week:'本周卷册',longterm:'长期主线',ledger:'钱庄',journey:'角色设定',growth:'修行成长',data:'设置'};
   return (names[row.kind]||row.kind)+' · '+(row.kind==='page'?(pages[row.key]||row.key):row.key);
 }
 function renderUsageInsights(){
@@ -1790,34 +2313,56 @@ function setupUsageTracking(){
 }
 
 (async ()=>{
+function _initErr(label,e){
+  console.error('[init:'+label+']', e);
+  try{
+    const bar=document.getElementById('__initErrBar');
+    const msg=(e&&e.message)||String(e);
+    if(bar){ bar.textContent='⚠ 初始化警告['+label+']：'+msg+'（不影响登录，可继续使用；某页空白请截图反馈）'; bar.style.display='block'; }
+    else{
+      const b=document.createElement('div'); b.id='__initErrBar';
+      b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#7a2222;color:#fff;padding:10px 12px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+      b.textContent='⚠ 初始化警告['+label+']：'+msg+'（不影响登录，可继续使用；某页空白请截图反馈）';
+      document.body.appendChild(b);
+    }
+  }catch(_){}
+}
 try{
   await load();
+  try{ initAvatar(); }catch(e){ console.warn('init avatar',e); }
   reorganizeDetailPages();
   applyTheme();                   // 应用上次选择的命理主题皮肤
   newDay();                       // 日期变化时自动结算连击、重置日常/周/月
   REC_DATE='';                   // 默认记今天
   const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
   lastLevel = lvlOf(overallXP());
-  try{ npcRoll(); checkVolume(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
+  try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
+  try{ petCheck(); }catch(e){ console.warn('pet init',e); }
+  try{ birthdayCheck(); }catch(e){ console.warn('birthday init',e); }
   checkAch();
-  render();
-  applyDashOrder();
-  initDashDrag();
-  const _ip=(location.hash||'#dashboard').slice(1);
-  showPage(['dashboard','journey','current','longterm','growth','map','ledger','loot','data'].indexOf(_ip)>=0?_ip:'dashboard');
+  try{ render(); }catch(e){ _initErr('render', e); }
+  try{ applyDashOrder(); }catch(e){}
+  try{ initDashDrag(); }catch(e){}
+  const _validPages=['dashboard','journey','action','jianghu','longterm','growth','map','ledger','data'];
+  let _ip=(location.hash||'#dashboard').slice(1);
+  if(_ip==='loot') _ip='growth'; // 战利品页已并入修行页，旧 hash 防空白
+  if(_validPages.indexOf(_ip)<0) _ip='dashboard';
+  try{ showPage(_ip); }catch(e){ _initErr('showPage', e); }
   try{ maybeShowBrief(); }catch(e){}
   try{ loadWeather(false); }catch(e){}   // 天象：命中 1 小时缓存则不发请求
-  fillGhInputs();
-  renderAssetEditor();
+  try{ fillGhInputs(); }catch(e){}
+  try{ renderAssetEditor(); }catch(e){}
   const lDate=document.getElementById('lDate'); if(lDate) lDate.value=todayStr();
   const _w=document.getElementById('weightInput'); if(_w && S.weight) _w.value=S.weight;
   if(FS_AVAILABLE && !saveFileHandle){
     const b=document.getElementById('fsBanner'); if(b) b.style.display='block';
   }
   const _pc=document.getElementById('pwdCur'); if(_pc) _pc.textContent = ((store.get(PWD_KEY)||'').trim()!=='')? '当前：自定义口令' : '当前：默认口令';
-  setupPwdGate();
-  startAutoBackup();
 }catch(e){
-  document.body.insertAdjacentHTML('afterbegin','<div style="color:var(--warn);padding:12px">初始化出错：'+e.message+'</div>');
+  _initErr('init', e);
+}finally{
+  // 登录门必须无条件绑定：即便上面任何渲染出错，也至少能进入系统（彻底避免“点击进入没反应”）
+  try{ setupPwdGate(); }catch(e){ console.error('setupPwdGate',e); }
+  try{ startAutoBackup(); }catch(e){}
 }
 })();

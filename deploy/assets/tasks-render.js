@@ -1395,7 +1395,9 @@ function yearTrackFor(t){
   if(/阅读|读书|小说|看书|书/.test(t)) return 'reading';
   if(/钢琴|琴|弹琴|乐器/.test(t)) return 'piano';
   if(/唱歌|声乐|歌|合唱/.test(t)) return 'singing';
-  if(/身体|健康|健身|拉伸|恢复|体能/.test(t)) return 'body';
+  if(/力量|健身|撸铁|有氧|跑步|核心|课表|体能/.test(t)) return 'strength';
+  if(/冥想|呼吸|正念|打坐|静坐/.test(t)) return 'meditation';
+  if(/身体|健康|拉伸|恢复/.test(t)) return 'strength';
   return '';
 }
 function badmintonAvgHours(key, weeks){
@@ -1647,7 +1649,8 @@ const TRACK_LIGHT_HINTS={
   piano:['今天弹一小段，让手指先醒过来。','打开琴盖，只练一个乐句也很好。','听一听琴声怎么把房间填满。','把最卡的两小节放慢一半。'],
   reading:['读几页书，收藏一句让你停下来的话。','不追页数，只寻找一个新念头。','换一个舒服的位置读十分钟。','今天允许自己只读喜欢的那一本。'],
   stretch:['今天给身体十分钟，问问它哪里紧。','铺一张垫子，把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。','先问身体：今天哪里最需要被照顾？'],
-  body:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。','今天对身体的照顾，会在明天还给你。'],
+  strength:['今天练一个让你更有掌控感的动作。','重量不变也没关系，先把动作做满。','感受发力，而不是急着冲数字。','给身体十分钟，它会还你一整天的稳定。'],
+  meditation:['先坐下来，呼吸三次，其余再说。','今天只观察一次吸气的全过程。','念头跑了就轻轻回来，不用责备自己。','哪怕三分钟，也算今天给心留出空间。'],
   badminton:['今天去球场，哪怕只打半小时。','把注意力放在脚步，而不是输赢。','找一个人，认真地打一局。','启动步练三组，身体会记得。','今天练十组基础动作，身体会记得。','录一段自己的练习，回看脚步。','基本功不求快，只求对。','先练稳，再练狠。'],
   career:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。','整理一份材料，也算往前走了一步。'],
   ai:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。','让 AI 先跑一个草稿，你来定方向。']
@@ -2742,7 +2745,7 @@ function allTaskLists(){
 // 历史 lifeCompound.logs 没 a 字段时也能正确归类；若 log 已带 a 字段则优先读它）
 const LIFE_KEY2ATTR={
   badminton:'BADMINTON', singing:'MIND', reading:'MIND', piano:'MIND',
-  stretch:'BODY', body:'BODY', career:'CAREER', coach:'MIND', ai:'CAREER'
+  stretch:'BODY', strength:'BODY', meditation:'BODY', career:'CAREER', coach:'MIND', ai:'CAREER'
 };
 function minutesOn(dateStr){
   let m=0;

@@ -1875,9 +1875,12 @@ const LIFE_TRACKS={
   stretch:{ic:'🧘',n:'放松拉伸',a:'BODY',base:150*60,unit:'累计',rec:10,paused:false,
     realms:[[0,'初出茅庐'],[50,'舒展'],[150,'柔和'],[400,'松活'],[800,'筋长一寸'],[1500,'养生宗师']],
     variants:['先问身体：今天哪里最需要被照顾？','用三分钟把呼吸送到最紧的位置。','不追求幅度，只感受紧张慢慢松开。']},
-  body:{ic:'💪',n:'身体健康',a:'BODY',base:898*60,unit:'终身',rec:20,paused:false,
-    realms:[[0,'初出茅庐'],[500,'体魄渐实'],[1000,'小有所成'],[2000,'康健有成'],[3000,'钢筋铁骨']],
-    variants:['今天有一项让自己更有力的小练习吗？','留意睡眠和饮食里哪一件最划算。','给身体十分钟纯粹的恢复。']},
+  strength:{ic:'🏋️',n:'力量训练',a:'BODY',base:Math.round(61.7*60),unit:'累计',rec:20,paused:false,
+    realms:[[0,'初出茅庐'],[50,'初见肌力'],[150,'动作稳健'],[400,'力量渐长'],[800,'小有所成'],[1500,'钢筋铁骨']],
+    variants:['今天练一个让你更有掌控感的动作。','重量不变也没关系，先把动作做满。','感受发力，而不是急着冲数字。']},
+  meditation:{ic:'🧘',n:'冥想呼吸',a:'BODY',base:Math.round(65.8*60),unit:'累计',rec:10,paused:false,
+    realms:[[0,'初出茅庐'],[50,'开始入座'],[150,'呼吸平稳'],[400,'心念清明'],[800,'内观有成'],[1500,'定心宗师']],
+    variants:['先坐下来，呼吸三次，其余再说。','今天只观察一次吸气的全过程。','念头跑了就轻轻回来，不用责备自己。']},
   career:{ic:'💼',n:'职业发展',a:'CAREER',base:1017*60,unit:'终身',rec:30,paused:false,
     realms:[[0,'初出茅庐'],[500,'独当一面'],[1000,'小有所成'],[2000,'业内立足']],
     variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']},
@@ -1932,7 +1935,8 @@ function lifeTrackOfTask(item){
   const t=(item&&item.t)||'';
   if(/羽毛球|打球|对抗|比赛|挥拍|多球|实战|基本功|步法|专项|技术练习|挥拍练习/.test(t)) return 'badminton';
   if(/拉伸|放松|恢复|筋膜/.test(t)) return 'stretch';
-  if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'body';
+  if(/力量训练|健身|撸铁|有氧|跑步|核心|课表/.test(t)) return 'strength';
+  if(/冥想|呼吸|正念|打坐|静坐/.test(t)) return 'meditation';
   if(/AI提效|AI 提效|用 ?AI|AI 工具|AI 学习|提示词|prompt|自动化工作流|coze|扣子/.test(t)) return 'ai';
   if(/职业|求职|事业编|央企|文职|简历|面试/.test(t)) return 'career';
   const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|弹琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);
@@ -1983,6 +1987,28 @@ function migrateBmMerge(){
     S.migr.bmMerge=todayStr();
     save();
   }catch(e){}
+}
+// v6.0.26 身体健康拆分为力量训练 + 冥想呼吸；base 按 iHour 2026 年 1-6 月截图汇总重置。
+function migrateBodySplit(){
+  if(!S.migr||typeof S.migr!=='object') S.migr={};
+  if(S.migr.bodySplit) return;
+  ensureLifeCompound();
+  let moved=0;
+  if(Array.isArray(S.lifeCompound.logs)){
+    S.lifeCompound.logs.forEach(function(x){
+      if(x.key!=='body') return;
+      const text=String(x.id||'')+' '+String(x.t||'')+' '+String(x.a||'');
+      if(/力量|健身|撸铁|核心|课表|有氧|跑步/.test(text)) x.key='strength';
+      else if(/冥想|呼吸|正念|打坐|静坐/.test(text)) x.key='meditation';
+      else x.key='strength'; // 无法识别的默认归入力量训练
+      moved++;
+    });
+  }
+  // 旧 body base 不再使用；新轨道 base 由 LIFE_TRACKS 默认值提供（iHour 截图汇总）。
+  if(typeof S.lifeCompound.bases.body==='number') delete S.lifeCompound.bases.body;
+  S.migr.bodySplit=todayStr();
+  console.log('migrateBodySplit: moved', moved);
+  try{ save(); }catch(e){}
 }
 function practiceLogs(key){return ensureLifeCompound().logs.filter(x=>x.key===key);}
 function practiceNewMinutes(key){return practiceLogs(key).reduce((n,x)=>n+(+x.min||0),0);}
@@ -2095,7 +2121,7 @@ function renderLifeCompound(){
         +'<div class="lp-meta"><span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span>'+practiceDays(k)+' 个投入日</span>'
         +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';
     }).join('')+'</div>'
-    +'<div class="lp-note">羽毛球/身体/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
+    +'<div class="lp-note">羽毛球/力量/冥想/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
 }
 
 function setupLifeCompoundUI(){
@@ -2103,6 +2129,7 @@ function setupLifeCompoundUI(){
   try{ migrateDailyIntoTracks(); }catch(e){ console.warn('daily->tracks migrate',e); }
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
   try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
+  try{ migrateBodySplit(); }catch(e){ console.warn('body split migrate',e); }
   if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('recBar')||document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('afterend',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
