@@ -641,6 +641,19 @@
   .decade-t{flex:1;font-size:13px;line-height:1.6}
   .decade-tag{font-size:10px;padding:1px 7px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
   .decade-tag.open{background:var(--grw);color:#0f1115;border-color:var(--grw)}
+  /* v6.0.28 十年大运：已过去年份置灰沉底 + 当前年高亮 + 年报折叠 */
+  .decade-row.past{opacity:.5}
+  .decade-row.past .decade-y{color:var(--dim)}
+  .decade-row.cur{background:rgba(212,168,75,.07);border-radius:8px;padding-left:8px;margin-left:-8px}
+  .decade-row.cur .decade-y{color:var(--grw)}
+  .decade-main{flex:1;min-width:0}
+  .decade-sum{margin-top:5px;display:flex;align-items:center;gap:10px}
+  .ys-toggle{cursor:pointer;font-size:11px;color:var(--gold);user-select:none}
+  .ys-toggle:hover{text-decoration:underline}
+  .ys-body{margin-top:10px}
+  .ys-extra{display:grid;gap:6px;margin:13px 0 4px}
+  .ys-row{font-size:12px;color:var(--txt);line-height:1.5}
+  .ys-row b{color:var(--gold)}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
   .month-cell{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
   .month-cell .m{float:right;font-size:11px;color:var(--dim)}

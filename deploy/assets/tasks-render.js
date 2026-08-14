@@ -1500,12 +1500,25 @@ function yearAnalysisCard(c,i){
 }
 function renderLongterm(){
   const dpEl=document.getElementById('decadePlan');
-  if(dpEl) dpEl.innerHTML=DECADE_PLAN.map(p=>`
-    <div class="decade-row">
-      <div class="decade-y">${p.y}</div>
-      <div class="decade-t">${p.t}</div>
-      <span class="decade-tag ${p.open?'open':''}">${p.open?'进行中':'待开启'}</span>
-    </div>`).join('');
+  if(dpEl){
+    const curY=new Date().getFullYear();
+    // 排序：当前/未来年在前（按年升序），已过去的年沉到底部（置灰）
+    const rows=DECADE_PLAN.map(p=>({y:p.y,t:p.t,open:!!p.open,past:p.y<curY}));
+    rows.sort((a,b)=> (a.past===b.past)? (a.y-b.y) : (a.past?1:-1));
+    const openSet=S.yearSummaryOpen||[];
+    dpEl.innerHTML=rows.map(p=>{
+      const open=openSet.indexOf(String(p.y))>=0;
+      return '<div class="decade-row'+(p.past?' past':'')+(p.y===curY?' cur':'')+'">'
+        +'<div class="decade-y">'+p.y+'</div>'
+        +'<div class="decade-main">'
+          +'<div class="decade-t">'+escHtml(p.t)+'</div>'
+          +'<div class="decade-sum"><span class="decade-tag '+(p.open?'open':'')+'">'+(p.open?'进行中':'待开启')+'</span>'
+            +'<span class="ys-toggle" onclick="toggleYearSummary('+p.y+')">📖 年度人生总结 '+(open?'▲':'▼')+'</span></div>'
+          +(open?'<div class="ys-body">'+yearSummaryHtml(p.y)+'</div>':'')
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }
 
   const ylEl=document.getElementById('yearListLong');
   if(ylEl) ylEl.innerHTML=S.year.map((c,i)=>yearAnalysisCard(c,i)).join('')||'<div class="hint">还没有设定今年大道。</div>';
@@ -2780,6 +2793,53 @@ function weeklyReviewStats(wk){
   valid.forEach(d=>{const m=minutesOn(d),a=attrMinutesOn(d);total+=m;done+=doneCountOn(d);energy+=energyStateForDate(d).v;if(m>best.m)best={d,m};Object.keys(attr).forEach(k=>attr[k]+=a[k]||0);});
   const active=valid.filter(d=>minutesOn(d)>0||doneCountOn(d)>0).length;
   return {wk,end:shiftDate(wk,6),dates:valid,attr,total,done,active,best,energy:valid.length?Math.round(energy/valid.length):100};
+}
+/* ---------- v6.0.28 年度人生总结：按年回算，挂在十年大运对应年份下 ---------- */
+function yearlyStats(yk){
+  yk=yk||String(new Date().getFullYear());
+  const today=todayStr(), end=yk+'-12-31';
+  const attr={BADMINTON:0,CAREER:0,BODY:0,MIND:0};
+  let total=0,done=0,energy=0,days=0,best={d:'',m:-1};
+  const sd=new Date(yk+'-01-01T00:00:00'), ed=new Date(end+'T00:00:00');
+  for(let d=new Date(sd); d<=ed; d.setDate(d.getDate()+1)){
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(ds>today) break;
+    const m=minutesOn(ds), a=attrMinutesOn(ds);
+    total+=m; done+=doneCountOn(ds); energy+=energyStateForDate(ds).v;
+    if(m>best.m) best={d:ds,m};
+    Object.keys(attr).forEach(k=>attr[k]+=a[k]||0); days++;
+  }
+  const trips=(S.trips||[]).filter(t=>t.date&&t.date.slice(0,4)===yk);
+  const wishTrips=trips.filter(t=>t.wish), visTrips=trips.filter(t=>!t.wish);
+  const wishes=(S.wishes||[]), wishesReached=wishes.filter(w=>w.un===true).length;
+  return {yk,start:yk+'-01-01',end,attr,total,done,energy:days?Math.round(energy/days):100,best,trips:trips.length,wishTrips,visTrips,wishesReached,wishesTotal:wishes.length};
+}
+function yearSummaryHtml(yk){
+  const st=yearlyStats(yk), max=Math.max(1,...Object.values(st.attr));
+  const yq=S.year||[], yDone=yq.filter((c,i)=>yearDone(i)).length;
+  const tripNames=st.wishTrips.concat(st.visTrips).slice(0,8).map(t=>escHtml(t.name)+(t.wish?' ✦':'')).join('、')||'—';
+  return '<div class="wr-card ys-card">'
+    +'<div class="wr-head"><div><div class="wr-kicker">YEARLY CHRONICLE · '+yk+' 年度卷册</div><div class="wr-title">这一年，时间去了哪里</div></div>'
+    +'<div class="wr-range">'+st.start+' ～ '+st.end+(st.end>=todayStr()?'（截至今日）':'')+'</div></div>'
+    +'<div class="wr-stats">'
+      +'<div class="wr-stat"><b>'+st.done+'</b><span>完成行动</span></div>'
+      +'<div class="wr-stat"><b>'+h(st.total)+'</b><span>记录投入</span></div>'
+      +'<div class="wr-stat"><b>'+st.energy+'</b><span>平均精力</span></div>'
+      +'<div class="wr-stat"><b>'+st.trips+'</b><span>去过地方</span></div>'
+    +'</div>'
+    +'<div class="wr-bars">'+Object.keys(ATTRS).map(a=>'<div class="wr-bar"><span>'+ATTRS[a].icon+' '+ATTRS[a].name+'</span><span class="wr-track"><i style="width:'+Math.round(st.attr[a]/max*100)+'%;background:'+ATTRS[a].color+'"></i></span><b>'+h(st.attr[a])+'</b></div>').join('')+'</div>'
+    +'<div class="ys-extra">'
+      +'<div class="ys-row">🎯 年度主线完成 <b>'+yDone+'/'+yq.length+'</b></div>'
+      +'<div class="ys-row">🌟 点亮人生愿望 <b>'+st.wishesReached+'/'+st.wishesTotal+'</b></div>'
+      +'<div class="ys-row">🧳 走过：'+tripNames+'</div>'
+    +'</div>'
+    +'</div>';
+}
+function toggleYearSummary(yk){
+  if(!S.yearSummaryOpen) S.yearSummaryOpen=[];
+  const k=String(yk), i=S.yearSummaryOpen.indexOf(k);
+  if(i>=0) S.yearSummaryOpen.splice(i,1); else S.yearSummaryOpen.push(k);
+  save(); renderLongterm();
 }
 function recommendWeekFocus(st){
   if(st.energy<45)return {a:'BODY',why:'本周平均精力偏低，下一周先把恢复和身体放回中心。'};
