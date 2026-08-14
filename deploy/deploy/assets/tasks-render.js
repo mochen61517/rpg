@@ -1762,9 +1762,89 @@ const JIANGHU_BANK=[
   {id:'jh_next1',t:'睡前写下明天的第一件事',a:'CAREER',diff:1,xp:6},
   {id:'jh_kind',t:'对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
 ];
-/* 任务按周期改写文案：日榜用 base t，周/月榜若有 tWeek/tMonth 则改用，避免日任务原样出现在月榜 */
+/* v6.0.23 周榜独立任务池：周度行为口径（7 天内可完成），与日榜/月榜完全分开，避免三榜任务重合 */
+const JIANGHU_WEEK_POOL=[
+  // ★★★★★ 硬骨头（一周内要咬牙坚持或一次性做完的抗拒型事）
+  {id:'jh_w_overdue',t:'本周干掉一件拖了很久的事',a:'CAREER',diff:5,xp:40},
+  {id:'jh_w_noshort',t:'本周不打开小红书',a:'MIND',diff:5,xp:40},
+  {id:'jh_w_hardtalk',t:'本周完成一次你回避的对话/邮件',a:'CAREER',diff:5,xp:40},
+  {id:'jh_w_early',t:'本周 5 天 23:30 前上床（手机放床外）',a:'BODY',diff:5,xp:40},
+  {id:'jh_w_am',t:'本周 5 天上午完成一次运动（不留到晚上）',a:'BODY',diff:5,xp:40},
+  // ★★★★ 要咬牙（需要整块时间或对外动作）
+  {id:'jh_w_apply',t:'本周投递 / 跟进 2 个真正想去的岗位',a:'CAREER',diff:4,xp:30},
+  {id:'jh_w_deep',t:'本周 3 天深度工作 45 分钟 · 中途不切窗口',a:'CAREER',diff:4,xp:30},
+  {id:'jh_w_bm',t:'本周 2 次羽毛球专项练习（步法/多球）',a:'BADMINTON',diff:4,xp:30},
+  {id:'jh_w_sing',t:'本周 K 歌 1 次并冲 85+（稳定站上舒适区）',a:'MIND',diff:4,xp:35},
+  {id:'jh_w_review',t:'本周写 2 篇 300 字复盘 · 只写事实不修辞',a:'MIND',diff:4,xp:30},
+  {id:'jh_w_reach',t:'本周联系 2 位很久没联系的人',a:'CAREER',diff:4,xp:30},
+  {id:'jh_w_strength',t:'本周力量训练 2 次（每次 30 分钟）',a:'BODY',diff:4,xp:30},
+  // ★★★ 常规精进（按周累计）
+  {id:'jh_w_read',t:'本周累计阅读 100 页',a:'MIND',diff:3,xp:20},
+  {id:'jh_w_piano',t:'本周练琴 3 次（每次 20 分钟+）',a:'MIND',diff:3,xp:20},
+  {id:'jh_w_singtrain',t:'本周 2 次 30 分钟声乐训练（哼鸣+长音强弱推拉+舒适区曲目）',a:'MIND',diff:3,xp:25},
+  {id:'jh_w_ai',t:'本周学 1 个 AI 新用法并实际用上',a:'CAREER',diff:3,xp:20},
+  {id:'jh_w_tidy',t:'本周整理 2 次（桌面/文件/衣柜任选）',a:'BODY',diff:3,xp:20},
+  {id:'jh_w_walk',t:'本周 3 次出门走 30 分钟（不戴耳机）',a:'BODY',diff:3,xp:20},
+  {id:'jh_w_bmhit',t:'本周打球 / 挥拍 3 次（合计 90 分钟）',a:'BADMINTON',diff:3,xp:20},
+  {id:'jh_w_sing15',t:'本周认真唱 3 次（每次 15 分钟+）',a:'MIND',diff:3,xp:20},
+  // ★★ 顺手能做
+  {id:'jh_w_stretch',t:'本周拉伸 3 次（每次 10 分钟）',a:'BODY',diff:2,xp:12},
+  {id:'jh_w_breath',t:'本周 4 天做 4-7-8 深呼吸',a:'BODY',diff:2,xp:12},
+  {id:'jh_w_singrec',t:'本周把 K 歌成绩记进年主线进度（声音画像追踪）',a:'MIND',diff:2,xp:12},
+  {id:'jh_w_water',t:'本周 6 天喝够 1.5L 水',a:'BODY',diff:2,xp:12},
+  {id:'jh_w_note',t:'本周记 4 条真实观察（不评判）',a:'MIND',diff:2,xp:12},
+  {id:'jh_w_shadow',t:'本周空挥累计 300 拍',a:'BADMINTON',diff:2,xp:12},
+  {id:'jh_w_movie',t:'本周认真看完 1 部电影（不刷手机）',a:'MIND',diff:2,xp:12},
+  // ★ 几乎不费力
+  {id:'jh_w_sun',t:'本周 3 天晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
+  {id:'jh_w_cook',t:'本周给自己认真做 2 顿饭',a:'BODY',diff:1,xp:6},
+  {id:'jh_w_song',t:'本周 2 次完整听一首歌（什么都不做）',a:'MIND',diff:1,xp:6},
+  {id:'jh_w_next1',t:'本周 5 天睡前写下明天的第一件事',a:'CAREER',diff:1,xp:6},
+  {id:'jh_w_kind',t:'本周 5 天对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
+];
+/* v6.0.23 月榜独立任务池：月度累计口径（次数/小时/天数），与日榜/周榜完全分开 */
+const JIANGHU_MONTH_POOL=[
+  // ★★★★★ 硬骨头
+  {id:'jh_m_sleep',t:'本月 23:30 前入睡累计 20 天',a:'BODY',diff:5,xp:40},
+  {id:'jh_m_noshort',t:'本月碎片时间不刷短视频累计 25 天',a:'MIND',diff:5,xp:40},
+  {id:'jh_m_deep',t:'本月深度工作累计 20 小时',a:'CAREER',diff:5,xp:40},
+  {id:'jh_m_apply',t:'本月投递 / 跟进 5 个目标岗位',a:'CAREER',diff:5,xp:40},
+  {id:'jh_m_hardtalk',t:'本月完成 3 件拖延已久的对话 / 邮件',a:'CAREER',diff:5,xp:40},
+  // ★★★★ 要咬牙
+  {id:'jh_m_book',t:'本月读完 1 本书',a:'MIND',diff:4,xp:30},
+  {id:'jh_m_bm',t:'本月羽毛球累计 8 小时（打球/专项/挥拍）',a:'BADMINTON',diff:4,xp:30},
+  {id:'jh_m_strength',t:'本月力量训练 8 次',a:'BODY',diff:4,xp:30},
+  {id:'jh_m_review',t:'本月写 8 篇复盘 · 只写事实不修辞',a:'MIND',diff:4,xp:30},
+  {id:'jh_m_reach',t:'本月主动联系 4 位很久没联系的人',a:'CAREER',diff:4,xp:30},
+  {id:'jh_m_sing',t:'本月 K 歌 4 次并冲 85+',a:'MIND',diff:4,xp:35},
+  {id:'jh_m_ledger',t:'本月完成一次财务复盘 / 记账梳理',a:'CAREER',diff:4,xp:30},
+  // ★★★ 常规精进（按月累计）
+  {id:'jh_m_read',t:'本月累计阅读 400 页',a:'MIND',diff:3,xp:20},
+  {id:'jh_m_piano',t:'本月练琴累计 8 小时',a:'MIND',diff:3,xp:20},
+  {id:'jh_m_singtrain',t:'本月完成 8 次 30 分钟声乐训练',a:'MIND',diff:3,xp:25},
+  {id:'jh_m_ai',t:'本月学 4 个 AI 新用法并实际用上',a:'CAREER',diff:3,xp:20},
+  {id:'jh_m_tidy',t:'本月整理 8 次（桌面/文件/衣柜任选）',a:'BODY',diff:3,xp:20},
+  {id:'jh_m_walk',t:'本月 12 次出门走 30 分钟',a:'BODY',diff:3,xp:20},
+  {id:'jh_m_bmhit',t:'本月打球 / 挥拍累计 12 小时',a:'BADMINTON',diff:3,xp:20},
+  {id:'jh_m_sing15',t:'本月认真唱 12 次（每次 15 分钟+）',a:'MIND',diff:3,xp:20},
+  // ★★ 顺手能做
+  {id:'jh_m_stretch',t:'本月拉伸 12 次',a:'BODY',diff:2,xp:12},
+  {id:'jh_m_water',t:'本月 25 天喝够 1.5L 水',a:'BODY',diff:2,xp:12},
+  {id:'jh_m_note',t:'本月记 15 条真实观察（不评判）',a:'MIND',diff:2,xp:12},
+  {id:'jh_m_shadow',t:'本月空挥累计 1200 拍',a:'BADMINTON',diff:2,xp:12},
+  {id:'jh_m_movie',t:'本月完整看完 2 部电影（不刷手机）',a:'MIND',diff:2,xp:12},
+  {id:'jh_m_next1',t:'本月 22 天睡前写下明天的第一件事',a:'CAREER',diff:2,xp:12},
+  // ★ 几乎不费力
+  {id:'jh_m_sun',t:'本月 12 天晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
+  {id:'jh_m_cook',t:'本月认真做饭 8 次',a:'BODY',diff:1,xp:6},
+  {id:'jh_m_song',t:'本月 8 次完整听一首歌（什么都不做）',a:'MIND',diff:1,xp:6},
+  {id:'jh_m_kind',t:'本月 22 天对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
+];
+/* 三池合一索引：日榜用 base t，周/月池的 t 本身已是周期文案 */
 const JIANGHU_MAP={};
 JIANGHU_BANK.forEach(function(t){ JIANGHU_MAP[t.id]=t; });
+JIANGHU_WEEK_POOL.forEach(function(t){ JIANGHU_MAP[t.id]=t; });
+JIANGHU_MONTH_POOL.forEach(function(t){ JIANGHU_MAP[t.id]=t; });
 JIANGHU_MAP[JIANGHU_PIN.id]=JIANGHU_PIN;
 function jianghuDisplayText(id, kind){
   const t=JIANGHU_MAP[id];
@@ -1857,6 +1937,8 @@ function jianghuPeriodKey(kind){
   if(kind==='week') return monday();
   return thisMonth()+'-01';
 }
+/* 周/月榜任务池版本：升级后旧榜单（含进行中的本周/本月）立即换新池任务 */
+const JIANGHU_PERIOD_POOL_VER=2;
 function ensureJianghuPeriod(kind, force){
   const key=jianghuPeriodKey(kind);
   const st = kind==='week' ? (S.jianghuWeek=S.jianghuWeek||{key:'',seed:0,list:[]}) : (S.jianghuMonth=S.jianghuMonth||{key:'',seed:0,list:[]});
@@ -1864,25 +1946,26 @@ function ensureJianghuPeriod(kind, force){
   if(force) st.seed++;
   // 硬上限：存量超过 6 条直接截断保留前 6 条（含已完成），不再整榜重摇
   if(Array.isArray(st.list) && st.list.length>6) st.list=st.list.slice(0,6);
-  const stale = st.key!==key || !Array.isArray(st.list) || !st.list.length;
+  const pool = kind==='week' ? JIANGHU_WEEK_POOL : JIANGHU_MONTH_POOL;
+  const stale = st.key!==key || st.poolVer!==JIANGHU_PERIOD_POOL_VER || !Array.isArray(st.list) || !st.list.length;
   if(stale || force){
     const old=(st.key===key && Array.isArray(st.list))?st.list:[];
     const list=[];
     [5,4,3,2,1].forEach(function(lv){
-      const pool=JIANGHU_BANK.filter(function(x){ return x.diff===lv && !list.some(function(y){return y.id===x.id;}); });
-      if(!pool.length) return;
-      const x=pool[seededIndex(key+'|'+kind+'|'+lv+'|'+st.seed, pool.length)];
+      const pl=pool.filter(function(x){ return x.diff===lv && !list.some(function(y){return y.id===x.id;}); });
+      if(!pl.length) return;
+      const x=pl[seededIndex(key+'|'+kind+'|'+lv+'|'+st.seed, pl.length)];
       list.push(Object.assign({},x,{done:false}));
     });
     // 上限 6 条：再从不重复的池子里补 1 条
-    const extraPool=JIANGHU_BANK.filter(function(x){ return !list.some(function(y){return y.id===x.id;}); });
+    const extraPool=pool.filter(function(x){ return !list.some(function(y){return y.id===x.id;}); });
     if(extraPool.length){
       const ex=extraPool[seededIndex(key+'|'+kind+'|extra|'+st.seed, extraPool.length)];
       list.push(Object.assign({},ex,{done:false}));
     }
     list.sort(function(a,b){ return (b.diff-a.diff) || (b.xp-a.xp) || (a.id<b.id?-1:1); });
     list.forEach(function(x){ const o=old.filter(function(y){return y.id===x.id;})[0]; if(o&&o.done) x.done=true; });
-    st.key=key; st.list=list;
+    st.key=key; st.poolVer=JIANGHU_PERIOD_POOL_VER; st.list=list;
   }
   return st;
 }
@@ -1909,7 +1992,7 @@ function renderJianghuPeriod(kind){
         +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuPeriodToggle(\''+kind+'\',\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'+(x.done?'':(accepted?'<span class="jh-accepted">🔒 已揭榜</span>':'<button class="btn xs ghost" data-src="'+kind+'" data-id="'+x.id+'" onclick="jianghuAccept(this.dataset.src,this.dataset.id)">🗡️ 揭榜</button>'))
         +'</div>';
     }).join('')+'</div>'
-    +'<div class="hint">难度按你过往的完成情况排定：作息/抗拒型的事排最上、给最高积分；越往下越顺手。做不到就跳过，榜是给你挑的，不是逼你的。</div>';
+    +'<div class="hint">'+(isWeek?'周榜从「周度任务池」抽 6 条，越靠上难度越大、积分越高，本周内完成都算数。':'月榜从「月度目标池」抽 6 条，全是按月累计的口径（次数/小时/天数），月底前完成都算数。')+'做不到就跳过，榜是给你挑的，不是逼你的。</div>';
 }
 function jianghuPeriodToggle(kind, idv){
   const st=ensureJianghuPeriod(kind), arr=(st.list||[]).filter(function(q){return q.id===idv;});
