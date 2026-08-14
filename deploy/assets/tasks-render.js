@@ -1729,6 +1729,13 @@ const JIANGHU_BANK=[
   {id:'jh_overdue',t:'干掉一件拖了 7 天以上的事',a:'CAREER',diff:5,xp:40},
   {id:'jh_am_move',t:'上午就完成一次运动（不留到晚上）',a:'BODY',diff:5,xp:40},
   {id:'jh_hardtalk',t:'开一次你一直在回避的对话/邮件',a:'CAREER',diff:5,xp:40},
+  {id:'jh_noscroll_bed',t:'睡前 1 小时不碰手机',a:'MIND',diff:5,xp:40},
+  {id:'jh_cold',t:'早上用冷水冲脸 / 冲凉 1 分钟（用冷水叫醒自己）',a:'BODY',diff:5,xp:40},
+  {id:'jh_full_clean',t:'彻底清空一次积压（待办/消息/邮件，处理完或归档）',a:'CAREER',diff:5,xp:40},
+  {id:'jh_voice_rec',t:'完整录一遍自己的演唱 / 弹唱，并认真听完',a:'MIND',diff:5,xp:40},
+  {id:'jh_nojunk',t:'今天不点外卖，不买任何非必需品',a:'BODY',diff:5,xp:40},
+  {id:'jh_publish',t:'发一条对别人有用的内容（帖子/回复/作品任选）',a:'CAREER',diff:5,xp:40},
+  {id:'jh_morning',t:'完成完整晨间流程（洗漱-运动-早餐，不留尾巴到下午）',a:'BODY',diff:5,xp:40},
   // ★★★★ 要咬牙（需要整块时间或对外动作）
   {id:'jh_deep45',t:'深度工作 45 分钟 · 中途不切窗口',a:'CAREER',diff:4,xp:30},
   {id:'jh_apply',t:'投递 / 跟进一个真正想去的岗位',a:'CAREER',diff:4,xp:30},
@@ -1737,6 +1744,11 @@ const JIANGHU_BANK=[
   {id:'jh_reachout',t:'主动联系一位很久没联系的人',a:'CAREER',diff:4,xp:30},
   {id:'jh_bmdrill',t:'羽毛球专项练习 40 分钟（步法/多球）',a:'BADMINTON',diff:4,xp:30},
   {id:'jh_sing_k85',t:'本周 K 歌 1 次并冲 85+（稳定站上舒适区）',a:'MIND',diff:4,xp:35},
+  {id:'jh_run30',t:'慢跑 / 快走 30 分钟',a:'BODY',diff:4,xp:30},
+  {id:'jh_write500',t:'写 500 字（日记/随笔/复盘任选）',a:'MIND',diff:4,xp:30},
+  {id:'jh_learn30',t:'跟完一节课程 / 教程（30 分钟+）',a:'CAREER',diff:4,xp:30},
+  {id:'jh_meet_p',t:'和一位朋友约一次见面 / 长聊',a:'MIND',diff:4,xp:30},
+  {id:'jh_help',t:'为家人 / 朋友做一件具体的事（跑腿/修东西/帮忙）',a:'MIND',diff:4,xp:30},
   // ★★★ 需要起身（常规精进）
   {id:'jh_read20',t:'阅读 20 页',a:'MIND',diff:3,xp:20},
   {id:'jh_piano20',t:'练琴 20 分钟',a:'MIND',diff:3,xp:20},
@@ -1746,6 +1758,10 @@ const JIANGHU_BANK=[
   {id:'jh_tidy30',t:'整理 30 分钟（桌面 / 文件 / 衣柜任选）',a:'BODY',diff:3,xp:20},
   {id:'jh_walk30',t:'出门走 30 分钟，不戴耳机',a:'BODY',diff:3,xp:20},
   {id:'jh_bmhit',t:'挥拍 / 打球 30 分钟',a:'BADMINTON',diff:3,xp:20},
+  {id:'jh_deliberate',t:'20 分钟刻意练习（发球/唱法/琴曲任选一段）',a:'MIND',diff:3,xp:20},
+  {id:'jh_veg3',t:'今天吃够 3 份蔬菜',a:'BODY',diff:3,xp:20},
+  {id:'jh_english20',t:'英语输入 20 分钟（听力/阅读任选）',a:'CAREER',diff:3,xp:20},
+  {id:'jh_focus_nochat',t:'今天不点开微信消息红点（定时集中回复）',a:'MIND',diff:3,xp:20},
   // ★★ 顺手能做
   {id:'jh_stretch10',t:'拉伸 10 分钟',a:'BODY',diff:2,xp:12},
   {id:'jh_breath',t:'深呼吸 3 分钟（4-7-8 节律）',a:'BODY',diff:2,xp:12},
@@ -1755,12 +1771,23 @@ const JIANGHU_BANK=[
   {id:'jh_note',t:'记一条今天真实的观察（不评判）',a:'MIND',diff:2,xp:12},
   {id:'jh_shadow',t:'空挥 100 拍',a:'BADMINTON',diff:2,xp:12},
   {id:'jh_movie',t:'认真看一部电影（不刷手机）',a:'MIND',diff:2,xp:12},
+  {id:'jh_meditate10',t:'冥想 10 分钟',a:'MIND',diff:2,xp:12},
+  {id:'jh_nosugar_drink',t:'今天不喝含糖饮料',a:'BODY',diff:2,xp:12},
+  {id:'jh_photo1',t:'拍一张今天值得记住的照片',a:'MIND',diff:2,xp:12},
+  {id:'jh_stand_move',t:'每坐 1 小时起身活动 5 分钟',a:'BODY',diff:2,xp:12},
   // ★ 几乎不费力（但对状态有用）
   {id:'jh_sun',t:'晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
   {id:'jh_cook',t:'给自己认真做一顿饭',a:'BODY',diff:1,xp:6},
   {id:'jh_song',t:'完整听一首歌，什么都不做',a:'MIND',diff:1,xp:6},
   {id:'jh_next1',t:'睡前写下明天的第一件事',a:'CAREER',diff:1,xp:6},
-  {id:'jh_kind',t:'对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
+  {id:'jh_kind',t:'对自己说一句不带评判的话',a:'MIND',diff:1,xp:6},
+  {id:'jh_makebed',t:'铺好床 / 睡前把房间恢复原样',a:'BODY',diff:1,xp:6},
+  {id:'jh_green',t:'看 5 分钟绿色（植物/窗外/公园）',a:'MIND',diff:1,xp:6},
+  {id:'jh_thanks1',t:'真心感谢今天遇到的一个人',a:'MIND',diff:1,xp:6},
+  {id:'jh_water_am',t:'起床后先喝一杯水',a:'BODY',diff:1,xp:6},
+  {id:'jh_read10',t:'读 10 页书',a:'MIND',diff:1,xp:6},
+  {id:'jh_wash',t:'睡前完成完整洗漱 + 护肤',a:'BODY',diff:1,xp:6},
+  {id:'jh_expect',t:'想一件明天值得期待的事',a:'MIND',diff:1,xp:6}
 ];
 /* v6.0.23 周榜独立任务池：周度行为口径（7 天内可完成），与日榜/月榜完全分开，避免三榜任务重合 */
 const JIANGHU_WEEK_POOL=[
@@ -1770,6 +1797,13 @@ const JIANGHU_WEEK_POOL=[
   {id:'jh_w_hardtalk',t:'本周完成一次你回避的对话/邮件',a:'CAREER',diff:5,xp:40},
   {id:'jh_w_early',t:'本周 5 天 23:30 前上床（手机放床外）',a:'BODY',diff:5,xp:40},
   {id:'jh_w_am',t:'本周 5 天上午完成一次运动（不留到晚上）',a:'BODY',diff:5,xp:40},
+  {id:'jh_w_nophone6',t:'本周 6 天起床后 30 分钟不碰手机',a:'MIND',diff:5,xp:40},
+  {id:'jh_w_clean',t:'本周完成一次深度整理（家里一个区域彻底理清）',a:'BODY',diff:5,xp:40},
+  {id:'jh_w_nojunk',t:'本周 5 天不点外卖 / 不买非必需品',a:'BODY',diff:5,xp:40},
+  {id:'jh_w_essay',t:'本周写一篇完整的文章 / 深度复盘（1500 字+）',a:'MIND',diff:5,xp:40},
+  {id:'jh_w_course',t:'本周学完一门短课程 / 啃完一个教程',a:'CAREER',diff:5,xp:40},
+  {id:'jh_w_noscroll',t:'本周 5 天睡前 1 小时不碰手机',a:'MIND',diff:5,xp:40},
+  {id:'jh_w_voice',t:'本周录 1 首完整作品并认真听一遍',a:'MIND',diff:5,xp:40},
   // ★★★★ 要咬牙（需要整块时间或对外动作）
   {id:'jh_w_apply',t:'本周投递 / 跟进 2 个真正想去的岗位',a:'CAREER',diff:4,xp:30},
   {id:'jh_w_deep',t:'本周 3 天深度工作 45 分钟 · 中途不切窗口',a:'CAREER',diff:4,xp:30},
@@ -1778,6 +1812,11 @@ const JIANGHU_WEEK_POOL=[
   {id:'jh_w_review',t:'本周写 2 篇 300 字复盘 · 只写事实不修辞',a:'MIND',diff:4,xp:30},
   {id:'jh_w_reach',t:'本周联系 2 位很久没联系的人',a:'CAREER',diff:4,xp:30},
   {id:'jh_w_strength',t:'本周力量训练 2 次（每次 30 分钟）',a:'BODY',diff:4,xp:30},
+  {id:'jh_w_run',t:'本周跑步 / 快走 3 次（合计 90 分钟）',a:'BODY',diff:4,xp:30},
+  {id:'jh_w_meet',t:'本周约 1 位朋友 / 同行线下见面或长聊',a:'MIND',diff:4,xp:30},
+  {id:'jh_w_english',t:'本周英语输入累计 2 小时',a:'CAREER',diff:4,xp:30},
+  {id:'jh_w_finance',t:'本周做一次财务梳理（记账/账单/预算）',a:'CAREER',diff:4,xp:30},
+  {id:'jh_w_deliberate',t:'本周 4 次 20 分钟刻意练习（发球/唱法/琴曲任选）',a:'MIND',diff:4,xp:30},
   // ★★★ 常规精进（按周累计）
   {id:'jh_w_read',t:'本周累计阅读 100 页',a:'MIND',diff:3,xp:20},
   {id:'jh_w_piano',t:'本周练琴 3 次（每次 20 分钟+）',a:'MIND',diff:3,xp:20},
@@ -1788,6 +1827,9 @@ const JIANGHU_WEEK_POOL=[
   {id:'jh_w_walk',t:'本周 3 次出门走 30 分钟（不戴耳机）',a:'BODY',diff:3,xp:20},
   {id:'jh_w_bmhit',t:'本周打球 / 挥拍 3 次（合计 90 分钟）',a:'BADMINTON',diff:3,xp:20},
   {id:'jh_w_sing15',t:'本周认真唱 3 次（每次 15 分钟+）',a:'MIND',diff:3,xp:20},
+  {id:'jh_w_veg',t:'本周 6 天吃够 3 份蔬菜',a:'BODY',diff:3,xp:20},
+  {id:'jh_w_med',t:'本周 4 天冥想 10 分钟',a:'MIND',diff:3,xp:20},
+  {id:'jh_w_photo',t:'本周拍 3 张值得记住的照片 / 记录一个高光时刻',a:'MIND',diff:3,xp:20},
   // ★★ 顺手能做
   {id:'jh_w_stretch',t:'本周拉伸 3 次（每次 10 分钟）',a:'BODY',diff:2,xp:12},
   {id:'jh_w_breath',t:'本周 4 天做 4-7-8 深呼吸',a:'BODY',diff:2,xp:12},
@@ -1797,12 +1839,23 @@ const JIANGHU_WEEK_POOL=[
   {id:'jh_w_shadow',t:'本周空挥累计 300 拍',a:'BADMINTON',diff:2,xp:12},
   {id:'jh_w_movie',t:'本周认真看完 1 部电影（不刷手机）',a:'MIND',diff:2,xp:12},
   {id:'jh_w_call',t:'本周给爸妈 / 家人打一次电话（10 分钟+）',a:'MIND',diff:2,xp:12},
+  {id:'jh_w_tea',t:'本周 5 天不喝含糖饮料',a:'BODY',diff:2,xp:12},
+  {id:'jh_w_stand',t:'本周 5 天每小时起身活动',a:'BODY',diff:2,xp:12},
+  {id:'jh_w_gratitude',t:'本周写 3 条感恩 / 欣赏清单',a:'MIND',diff:2,xp:12},
+  {id:'jh_w_plan',t:'本周日晚做一次周复盘 + 下周计划',a:'CAREER',diff:2,xp:12},
   // ★ 几乎不费力
   {id:'jh_w_sun',t:'本周 3 天晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
   {id:'jh_w_cook',t:'本周给自己认真做 2 顿饭',a:'BODY',diff:1,xp:6},
   {id:'jh_w_song',t:'本周 2 次完整听一首歌（什么都不做）',a:'MIND',diff:1,xp:6},
   {id:'jh_w_next1',t:'本周 5 天睡前写下明天的第一件事',a:'CAREER',diff:1,xp:6},
-  {id:'jh_w_kind',t:'本周 5 天对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
+  {id:'jh_w_kind',t:'本周 5 天对自己说一句不带评判的话',a:'MIND',diff:1,xp:6},
+  {id:'jh_w_plant',t:'本周 3 次亲近绿色（植物/公园/窗外）',a:'MIND',diff:1,xp:6},
+  {id:'jh_w_walk10',t:'本周 4 天饭后散步 10 分钟',a:'BODY',diff:1,xp:6},
+  {id:'jh_w_tidy5',t:'本周 5 天睡前 5 分钟整理',a:'BODY',diff:1,xp:6},
+  {id:'jh_w_thanks',t:'本周 3 次真心感谢身边的人',a:'MIND',diff:1,xp:6},
+  {id:'jh_w_fruit',t:'本周 5 天吃水果',a:'BODY',diff:1,xp:6},
+  {id:'jh_w_outing',t:'本周去 1 个没去过的地方（公园/街区/小店）',a:'MIND',diff:1,xp:6},
+  {id:'jh_w_off',t:'本周留半天完全放松（不安排任何事）',a:'MIND',diff:1,xp:6}
 ];
 /* v6.0.23 月榜独立任务池：月度累计口径（次数/小时/天数），与日榜/周榜完全分开 */
 const JIANGHU_MONTH_POOL=[
@@ -1812,6 +1865,13 @@ const JIANGHU_MONTH_POOL=[
   {id:'jh_m_deep',t:'本月深度工作累计 20 小时',a:'CAREER',diff:5,xp:40},
   {id:'jh_m_apply',t:'本月投递 / 跟进 5 个目标岗位',a:'CAREER',diff:5,xp:40},
   {id:'jh_m_hardtalk',t:'本月完成 3 件拖延已久的对话 / 邮件',a:'CAREER',diff:5,xp:40},
+  {id:'jh_m_nophone',t:'本月 25 天起床后 30 分钟不碰手机',a:'MIND',diff:5,xp:40},
+  {id:'jh_m_clean',t:'本月完成 2 次深度整理（家里区域彻底理清）',a:'BODY',diff:5,xp:40},
+  {id:'jh_m_nojunk',t:'本月 20 天不点外卖 / 不买非必需品',a:'BODY',diff:5,xp:40},
+  {id:'jh_m_write',t:'本月写 4 篇完整文章 / 深度复盘',a:'MIND',diff:5,xp:40},
+  {id:'jh_m_english',t:'本月英语输入累计 8 小时',a:'CAREER',diff:5,xp:40},
+  {id:'jh_m_noscroll',t:'本月 22 天睡前 1 小时不碰手机',a:'MIND',diff:5,xp:40},
+  {id:'jh_m_course',t:'本月学完 1 门完整课程',a:'CAREER',diff:5,xp:40},
   // ★★★★ 要咬牙
   {id:'jh_m_book',t:'本月读完 1 本书',a:'MIND',diff:4,xp:30},
   {id:'jh_m_bm',t:'本月羽毛球累计 8 小时（打球/专项/挥拍）',a:'BADMINTON',diff:4,xp:30},
@@ -1820,6 +1880,11 @@ const JIANGHU_MONTH_POOL=[
   {id:'jh_m_reach',t:'本月主动联系 4 位很久没联系的人',a:'CAREER',diff:4,xp:30},
   {id:'jh_m_sing',t:'本月 K 歌 4 次并冲 85+',a:'MIND',diff:4,xp:35},
   {id:'jh_m_ledger',t:'本月完成一次财务复盘 / 记账梳理',a:'CAREER',diff:4,xp:30},
+  {id:'jh_m_run',t:'本月跑步 / 快走累计 8 小时',a:'BODY',diff:4,xp:30},
+  {id:'jh_m_meet',t:'本月约 3 位朋友 / 同行见面或长聊',a:'MIND',diff:4,xp:30},
+  {id:'jh_m_finance',t:'本月做 2 次财务梳理（记账/预算）',a:'CAREER',diff:4,xp:30},
+  {id:'jh_m_deliberate',t:'本月 15 次 20 分钟刻意练习（发球/唱法/琴曲任选）',a:'MIND',diff:4,xp:30},
+  {id:'jh_m_voice',t:'本月录 4 首完整作品并认真听',a:'MIND',diff:4,xp:30},
   // ★★★ 常规精进（按月累计）
   {id:'jh_m_read',t:'本月累计阅读 400 页',a:'MIND',diff:3,xp:20},
   {id:'jh_m_piano',t:'本月练琴累计 8 小时',a:'MIND',diff:3,xp:20},
@@ -1830,6 +1895,9 @@ const JIANGHU_MONTH_POOL=[
   {id:'jh_m_bmhit',t:'本月打球 / 挥拍累计 12 小时',a:'BADMINTON',diff:3,xp:20},
   {id:'jh_m_sing15',t:'本月认真唱 12 次（每次 15 分钟+）',a:'MIND',diff:3,xp:20},
   {id:'jh_m_family',t:'本月陪父母 / 家人吃饭 2 次',a:'MIND',diff:3,xp:20},
+  {id:'jh_m_med',t:'本月冥想 15 次（每次 10 分钟）',a:'MIND',diff:3,xp:20},
+  {id:'jh_m_veg',t:'本月 25 天吃够 3 份蔬菜',a:'BODY',diff:3,xp:20},
+  {id:'jh_m_photo',t:'本月拍 12 张值得记住的照片 / 做一次月度回顾',a:'MIND',diff:3,xp:20},
   // ★★ 顺手能做
   {id:'jh_m_stretch',t:'本月拉伸 12 次',a:'BODY',diff:2,xp:12},
   {id:'jh_m_water',t:'本月 25 天喝够 1.5L 水',a:'BODY',diff:2,xp:12},
@@ -1838,11 +1906,24 @@ const JIANGHU_MONTH_POOL=[
   {id:'jh_m_movie',t:'本月完整看完 2 部电影（不刷手机）',a:'MIND',diff:2,xp:12},
   {id:'jh_m_call',t:'本月给爸妈 / 家人打 4 次电话',a:'MIND',diff:2,xp:12},
   {id:'jh_m_next1',t:'本月 22 天睡前写下明天的第一件事',a:'CAREER',diff:2,xp:12},
+  {id:'jh_m_tea',t:'本月 20 天不喝含糖饮料',a:'BODY',diff:2,xp:12},
+  {id:'jh_m_stand',t:'本月 20 天每小时起身活动',a:'BODY',diff:2,xp:12},
+  {id:'jh_m_thanks',t:'本月 10 次真心感谢身边的人',a:'MIND',diff:2,xp:12},
+  {id:'jh_m_plan',t:'本月 4 次周复盘 + 下周计划',a:'CAREER',diff:2,xp:12},
+  {id:'jh_m_outing',t:'本月去 3 个没去过的地方',a:'MIND',diff:2,xp:12},
   // ★ 几乎不费力
   {id:'jh_m_sun',t:'本月 12 天晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
   {id:'jh_m_cook',t:'本月认真做饭 8 次',a:'BODY',diff:1,xp:6},
   {id:'jh_m_song',t:'本月 8 次完整听一首歌（什么都不做）',a:'MIND',diff:1,xp:6},
-  {id:'jh_m_kind',t:'本月 22 天对自己说一句不带评判的话',a:'MIND',diff:1,xp:6}
+  {id:'jh_m_kind',t:'本月 22 天对自己说一句不带评判的话',a:'MIND',diff:1,xp:6},
+  {id:'jh_m_plant',t:'本月 10 次亲近绿色（植物/公园/窗外）',a:'MIND',diff:1,xp:6},
+  {id:'jh_m_walk10',t:'本月 15 天饭后散步 10 分钟',a:'BODY',diff:1,xp:6},
+  {id:'jh_m_tidy5',t:'本月 20 天睡前 5 分钟整理',a:'BODY',diff:1,xp:6},
+  {id:'jh_m_fruit',t:'本月 20 天吃水果',a:'BODY',diff:1,xp:6},
+  {id:'jh_m_off',t:'本月留 2 个半天完全放松',a:'MIND',diff:1,xp:6},
+  {id:'jh_m_breakfast',t:'本月 20 天吃早餐',a:'BODY',diff:1,xp:6},
+  {id:'jh_m_gift',t:'本月给自己买一件小礼物 / 犒劳一次',a:'MIND',diff:1,xp:6},
+  {id:'jh_m_done',t:'本月 20 天睡前想一件当天的小成就',a:'MIND',diff:1,xp:6}
 ];
 /* 三池合一索引：日榜用 base t，周/月池的 t 本身已是周期文案 */
 const JIANGHU_MAP={};
@@ -1942,7 +2023,7 @@ function jianghuPeriodKey(kind){
   return thisMonth()+'-01';
 }
 /* 周/月榜任务池版本：升级后旧榜单（含进行中的本周/本月）立即换新池任务 */
-const JIANGHU_PERIOD_POOL_VER=3;
+const JIANGHU_PERIOD_POOL_VER=4;
 /* 周/月榜常驻榜首：关系类任务每期必见（复用日榜 pin 机制，diff3 居中但不参与随机） */
 function jianghuPeriodPin(kind){
   return kind==='week'
