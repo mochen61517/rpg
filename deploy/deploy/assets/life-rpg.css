@@ -1575,6 +1575,15 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .myjh-done{opacity:.55}
 .jh-dead{font-size:12px;color:#9aa;margin-top:4px;width:100%;text-align:right}
 .jh-src{background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;font-size:12px;color:#bbb}
+/* ===== v6.0.34 节气系统 ===== */
+body[data-season]::after{content:'';position:fixed;top:0;left:0;right:0;height:3px;z-index:50;pointer-events:none;opacity:.85}
+body[data-season="木"]::after{background:linear-gradient(90deg,#7ed3a8,#9ccc65)}
+body[data-season="火"]::after{background:linear-gradient(90deg,#ff9f6b,#e98b8b)}
+body[data-season="土"]::after{background:linear-gradient(90deg,#e0b15a,#caa15a)}
+body[data-season="金"]::after{background:linear-gradient(90deg,#cfd8e3,#9bb6cc)}
+body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)}
+#fortuneBox .fo-season{font-size:12px;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6}
+#fortuneBox .fo-season-act{color:var(--grw);font-weight:700}
 /* ===== v6.0.33 人生收集册 ===== */
 #codexBox .codex-sec{margin-bottom:12px}
 #codexBox .codex-h{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px}

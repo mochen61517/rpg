@@ -2276,9 +2276,18 @@ function weatherAdvice(w){
   return {yi:yi,ji:ji};
 }
 
+function seasonAct(el){
+  const M={木:['春生之机，宜舒展生发、定新计划','户外散步 20 分钟 / 拉伸一组'],
+           火:['丁火忌燥，宜静守、补水、避烈阳','早睡半小时 / 闭眼静坐 10 分钟'],
+           土:['长夏主运化，宜沉淀、整理、复盘','大扫除一处 / 记一笔账'],
+           金:['秋金主收敛，宜决断、断舍离','复盘本周 / 读完手边一书'],
+           水:['冬水主藏养，宜蓄力、内观','写一句话给未来的自己 / 早睡']};
+  return M[el]||['顺时而为','按自己的节奏来'];
+}
 function renderFortune(){
   const el=document.getElementById('fortuneBox'); if(!el) return;
-  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w);
+  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w), jq=jieqiSuggest();
+  document.body.dataset.season=jq.el;
   const city=WX_CITIES[wxCityKey()];
   const stars='★'.repeat(f.tone.lv)+'☆'.repeat(5-f.tone.lv);
   let wxHtml;
@@ -2303,6 +2312,7 @@ function renderFortune(){
       +'<div class="fo-col fo-ji"><div class="fo-col-h">忌</div><ul>'+jiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
     +'</div>'
     +(yiTravelActive()?'<div class="fo-yi-travel">✈️ 今日宜出行：在「旅行·探索」复利轨道记录，或记旅行脚印，经验 +20%（气运加持）</div>':'')
+    +'<div class="fo-season">🌿 当令 · '+jq.jieqi+'（'+jq.el+'行）：'+seasonAct(jq.el)[0]+' <span class="fo-season-act">今日小行动 · '+seasonAct(jq.el)[1]+'</span></div>'
     +'<div class="fo-note">依你的命格「丁火 · 身强偏旺 · 喜金水清凉」判定，非通用黄历。带「·」的条目来自你自己的记录与'+city.n+'实时天气。</div>';
 }
 
