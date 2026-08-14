@@ -3098,7 +3098,7 @@ function energyAdvice(){
   }
   return tips;
 }
-// ===== v6.0.31 灵圃（种树养花 · 盲盒 · 修为所化）=====
+// ===== v6.0.39 灵圃（多项目盲盒栽种 · 时间驱动 · 我的植物）=====
 const GARDEN_SPECIES=[
   {key:'pine',name:'青松',kind:'tree',bloom:'🌲'},
   {key:'willow',name:'垂柳',kind:'tree',bloom:'🌳'},
@@ -3110,56 +3110,116 @@ const GARDEN_SPECIES=[
   {key:'sunflower',name:'金葵',kind:'flower',bloom:'🌻'},
   {key:'chrys',name:'秋菊',kind:'flower',bloom:'🌼'}
 ];
+// 每个项目的默认栽种周期（小时）：按「约一个月规律投入」估算，可逐株在卡片上改
+const GARDEN_CYCLE_H={
+  badminton:50, strength:60, meditation:20, stretch:15,
+  singing:25, piano:35, reading:25, ai:40, career:50, travel:30
+};
+// 生长阶段按「已投入时长 / 周期」比例划分
 const GARDEN_STAGES=[
-  {min:0,   em:'🌰', name:'种子'},
-  {min:80,  em:'🌱', name:'发芽'},
-  {min:250, em:'🌿', name:'幼苗'},
-  {min:600, em:'🪴', name:'抽枝'},
-  {min:1200,em:'',   name:'盛放'}
+  {min:0,    em:'🌰', name:'种子'},
+  {min:0.2,  em:'🌱', name:'发芽'},
+  {min:0.45, em:'🌿', name:'幼苗'},
+  {min:0.7,  em:'🪴', name:'抽枝'},
+  {min:1.0,  em:'',   name:'盛放'}
 ];
-function gardenStageOf(gained){ let s=GARDEN_STAGES[0]; for(const st of GARDEN_STAGES){ if(gained>=st.min) s=st; } return s; }
-function plantGarden(){
-  if(S.garden.planted) return;
-  const sp=GARDEN_SPECIES[Math.floor(Math.random()*GARDEN_SPECIES.length)];
-  S.garden.planted=true; S.garden.species=sp.key; S.garden.birthXP=overallXP(); S.garden.revealed=false;
-  addHist('🌳 灵圃新栽下一粒种子（修为所化 · 盲盒）'); save(); render();
-  celebrateTask('🌳 灵圃栽培 · 一粒种子落入土中');
+function gardenStageOf(frac){ let s=GARDEN_STAGES[0]; for(const st of GARDEN_STAGES){ if(frac>=st.min) s=st; } return s; }
+// 某项目在 [from,to] 区间内累计的分钟（任务 mins + 复利轨道 logs）
+function gardenProjMinutes(proj, from, to){
+  let m=0;
+  allTaskLists().forEach(function(list){ list.forEach(function(x){
+    if(lifeTrackOfTask(x)!==proj || !x.mins) return;
+    for(const d in x.mins){ if(d>=from && d<=to) m+=(+x.mins[d]||0); }
+  }); });
+  (S.lifeCompound&&S.lifeCompound.logs||[]).forEach(function(x){ if(x.key===proj && x.d>=from && x.d<=to) m+=(+x.min||0); });
+  return m;
 }
-function replantGarden(){
-  if(S.garden.species) S.garden.history.push({species:S.garden.species, bloomedOn:todayStr()});
-  S.garden.planted=false; S.garden.species=null; S.garden.birthXP=0; S.garden.revealed=false;
-  save(); render();
+function plantGarden(proj){
+  if(!proj || !LIFE_TRACKS[proj]) return;
+  if((S.garden.growing||[]).some(function(p){return p.proj===proj;})){ alert('「'+LIFE_TRACKS[proj].n+'」的灵圃里已经有一株在长了，先把它养到盛放吧。'); return; }
+  const ch=Math.max(1, Math.round(GARDEN_CYCLE_H[proj]||30));
+  const sp=GARDEN_SPECIES[Math.floor(Math.random()*GARDEN_SPECIES.length)];
+  S.garden.growing.push({id:id(), proj:proj, species:sp.key, plantedAt:todayStr(), cycleH:ch, revealed:false});
+  addHist('🌳 灵圃新栽「'+LIFE_TRACKS[proj].n+'」一株（盲盒·'+sp.name+'）'); save(); render();
+  celebrateTask('🌳 灵圃栽培 · 「'+LIFE_TRACKS[proj].n+'」落下一粒种子');
+}
+function setGardenCycle(gid, val){
+  const g=S.garden.growing.find(function(p){return p.id===gid;}); if(!g) return;
+  g.cycleH=Math.max(1, Math.round(+val||g.cycleH)); save(); render();
+}
+function harvestGarden(gid){
+  const g=S.garden.growing.find(function(p){return p.id===gid;}); if(!g) return;
+  S.garden.growing=S.garden.growing.filter(function(p){return p.id!==gid;});
+  S.garden.harvested.push({proj:g.proj, species:g.species, plantedAt:g.plantedAt, bloomedOn:todayStr(), cycleH:g.cycleH});
+  const t=LIFE_TRACKS[g.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===g.species;})||GARDEN_SPECIES[0];
+  addHist('🌳 「'+(t?t.n:'')+'」一株'+sp.name+'已盛放，收入我的植物'); save(); render();
+  celebrateTask('🌳 一株'+sp.name+'盛放 · 入住我的植物');
 }
 function renderGarden(){
   const el=document.getElementById('gardenBox'); if(!el) return;
-  const g=S.garden;
-  if(!g.planted){
-    let hist='';
-    if(g.history && g.history.length){
-      const names=g.history.map(h=>{const sp=GARDEN_SPECIES.find(x=>x.key===h.species);return sp?sp.bloom+' '+sp.name:'';}).filter(Boolean);
-      if(names.length) hist='<div class="garden-hist">园中已收获 '+g.history.length+' 株：'+names.join('、')+'</div>';
-    }
-    el.innerHTML='<div class="garden-empty"><div class="garden-seed">🌰</div><div>灵圃尚空。你每一分修为，都会化作一粒种子。</div><button class="btn sm primary" onclick="plantGarden()">🌱 栽下一粒种子</button></div>'+hist;
-    return;
+  const g=S.garden; const today=todayStr();
+  let html='';
+  // 栽种区：可种项目（未在生长的）
+  const growingProjs=(g.growing||[]).map(function(p){return p.proj;});
+  const avail=Object.keys(LIFE_TRACKS).filter(function(k){return !LIFE_TRACKS[k].paused && growingProjs.indexOf(k)<0;});
+  if(avail.length){
+    html+='<div class="garden-plant-row"><div class="garden-plant-label">🌱 栽一株（选个项目，用你在它上面花的时间养它长大）</div><div class="garden-proj-chips">';
+    avail.forEach(function(k){ const t=LIFE_TRACKS[k], def=GARDEN_CYCLE_H[k]||30;
+      html+='<button class="garden-proj" onclick="plantGarden(\''+k+'\')">'+t.ic+' '+t.n+'<span class="garden-proj-h">≈'+def+'h</span></button>';
+    });
+    html+='</div></div>';
   }
-  const sp=GARDEN_SPECIES.find(x=>x.key===g.species)||GARDEN_SPECIES[0];
-  const gained=Math.max(0, overallXP()-g.birthXP);
-  const st=gardenStageOf(gained);
-  const bloomed=gained>=GARDEN_STAGES[GARDEN_STAGES.length-1].min;
-  const em=bloomed?sp.bloom:st.em;
-  if(!g.revealed && gained>=GARDEN_STAGES[1].min){ g.revealed=true; save(); }
-  const label=g.revealed?('「'+sp.name+'」'+(sp.kind==='flower'?'花':'树')):'一粒未名的种子';
-  const full=GARDEN_STAGES[GARDEN_STAGES.length-1].min;
-  const pct=Math.min(100, Math.round(gained/full*100));
-  const stageName=bloomed?'盛放':st.name;
-  let extra=bloomed
-    ? '<div class="garden-bloom">🌟 已盛放！可留作园中景，或 <button class="btn sm" onclick="replantGarden()">🌱 再种一株</button></div>'
-    : '<div class="garden-next">再攒 <b>'+Math.max(0, full-gained)+'</b> 加权经验，便迎来盛放。</div>';
-  el.innerHTML='<div class="garden-plant">'+em+'</div>'
-    +'<div class="garden-name">'+label+'</div>'
-    +'<div class="garden-stage">阶段：'+stageName+'（'+pct+'%）</div>'
-    +'<div class="garden-bar"><i style="width:'+pct+'%"></i></div>'
-    +extra;
+  // 生长中
+  if(g.growing && g.growing.length){
+    html+='<div class="garden-sec-h">🌿 生长中（'+g.growing.length+'）</div><div class="garden-grid">';
+    g.growing.forEach(function(p){
+      const t=LIFE_TRACKS[p.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===p.species;})||GARDEN_SPECIES[0];
+      const cycleMin=p.cycleH*60;
+      const gained=gardenProjMinutes(p.proj, p.plantedAt, today);
+      const frac=cycleMin>0?Math.min(1, gained/cycleMin):0;
+      const st=gardenStageOf(frac);
+      const bloomed=frac>=1;
+      const em=bloomed?sp.bloom:st.em;
+      if(!p.revealed && frac>=GARDEN_STAGES[1].min){ p.revealed=true; save(); }
+      const label=p.revealed?('「'+sp.name+'」'+(sp.kind==='flower'?'花':'树')):'一粒未名的种子';
+      const pct=Math.round(frac*100);
+      const days7=gardenProjMinutes(p.proj, shiftDate(today,-6), today);
+      const avg=days7/7;
+      let eta=bloomed?'🌟 已盛放，可收入我的植物'
+        : avg>0 ? ('按近 7 天节奏，约还需 '+Math.max(1,Math.round((cycleMin-gained)/avg))+' 天')
+        : '近期这个项目还没记录时间，先去做一会儿吧';
+      html+='<div class="garden-card'+(bloomed?' bloomed':'')+'">'
+        +'<div class="gc-plant">'+em+'</div>'
+        +'<div class="gc-name">'+label+'</div>'
+        +'<div class="gc-proj">'+(t?t.ic+' '+t.n:'灵圃')+'</div>'
+        +'<div class="gc-stage">阶段：'+(bloomed?'盛放':st.name)+'（'+pct+'%）</div>'
+        +'<div class="garden-bar"><i style="width:'+pct+'%"></i></div>'
+        +'<div class="gc-mins">'+Math.round(gained)+' / '+(p.cycleH*60)+' 分钟</div>'
+        +'<div class="gc-eta">'+eta+'</div>'
+        +'<div class="gc-cycle">周期 <input class="gc-cycle-in" type="number" min="1" value="'+p.cycleH+'" onchange="setGardenCycle(\''+p.id+'\',this.value)"> h</div>'
+        +(bloomed?'<button class="btn sm primary" onclick="harvestGarden(\''+p.id+'\')">🌟 收入我的植物</button>'
+                 :'<div class="hint sm">继续在「'+(t?t.n:'')+'」上花时间，它就会长大</div>')
+        +'</div>';
+    });
+    html+='</div>';
+  }
+  // 我的植物
+  if(g.harvested && g.harvested.length){
+    html+='<div class="garden-sec-h">🪴 我的植物（'+g.harvested.length+'）</div><div class="garden-grid mine">';
+    g.harvested.slice().reverse().forEach(function(h){
+      const t=LIFE_TRACKS[h.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===h.species;})||GARDEN_SPECIES[0];
+      html+='<div class="garden-card mine-card">'
+        +'<div class="gc-plant">'+sp.bloom+'</div>'
+        +'<div class="gc-name">'+sp.name+(sp.kind==='flower'?'花':'树')+'</div>'
+        +'<div class="gc-proj">'+(t?t.ic+' '+t.n:(h.proj||'灵圃'))+'</div>'
+        +(h.bloomedOn?'<div class="gc-eta">盛放于 '+h.bloomedOn+'</div>':'')
+        +'</div>';
+    });
+    html+='</div>';
+  } else if(avail.length===0 && !(g.growing&&g.growing.length)){
+    html+='<div class="hint">灵圃暂时没有可种的项目，先把正在长的养到盛放吧。</div>';
+  }
+  el.innerHTML=html;
 }
 
 // ===== v6.0.32 时间胶囊（写给未来的自己）=====

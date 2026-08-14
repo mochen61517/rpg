@@ -26,6 +26,21 @@ const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
 };
+// 运行期错误兜底：任何未捕获 JS 错误显示在页面顶部红条，便于定位（不阻断使用）
+window.onerror=function(msg,src,line,col,err){
+  try{
+    const bar=document.getElementById('__runtimeErrBar');
+    const m=(err&&err.message)||msg||'未知错误';
+    if(bar){ bar.textContent='⚠ 运行错误：'+m+'（如影响使用请截图反馈）'; bar.style.display='block'; }
+    else{
+      const b=document.createElement('div'); b.id='__runtimeErrBar';
+      b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#7a2222;color:#fff;padding:10px 12px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+      b.textContent='⚠ 运行错误：'+m+'（如影响使用请截图反馈）';
+      document.body.appendChild(b);
+    }
+  }catch(_){}
+  return false;
+};
 let SAVE_OK = false;
 let REC_DATE = '';            // 当前「记录于」日期（补录入口），空=今天
 
@@ -96,6 +111,10 @@ const ATTRS = {
   MIND:{name:'灵台',color:'var(--mind)',icon:'🎹',desc:'心性修行 · 琴歌 / 阅读 / 沉浸'},
 };
 const BADMINTON_LIFETIME_HOURS = 1649;
+// v5.49 羽毛球按「打球 / 基本功」拆分历史 1649h：26 年前约一周基本功 2h、其余打球（用户口述），按 2/3 · 1/3 拆。
+// 旧复合轨道日志(key='badminton')归入打球；基本功历史基数按比例预填，可在卡片上双击改。
+const BM_PLAY_BASE = Math.round(BADMINTON_LIFETIME_HOURS*2/3*60);
+const BM_BASIC_BASE = BADMINTON_LIFETIME_HOURS*60 - BM_PLAY_BASE;
 const LEDGER_BASELINE = {
   net: 181596.0,
   incomeTotal: 595469.0,
@@ -146,6 +165,9 @@ function inheritedXP(){
 
 function id(){return Math.random().toString(36).slice(2,9)}
 function todayStr(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); } // 本地日期 YYYY-MM-DD
+// 当前「记录于」日期：补录入口（REC_DATE）生效时返回那天，否则返回今天。
+// 今日行动页的复利轨道 / 今日主线都用它判定「该显示/记录哪一天」，从而切到过去日期能看到那天已点亮的图标。
+function recordDateStr(){ return REC_DATE || todayStr(); }
 function fmtMD(s){ if(!s||s.length<10) return ''; const m=parseInt(s.slice(5,7),10), d=parseInt(s.slice(8,10),10); return m+'月'+d+'日'; } // 2026-07-30 → 7月30日
 function fmtFull(d){ if(!(d instanceof Date)) d=new Date(); const wd=['周日','周一','周二','周三','周四','周五','周六'][d.getDay()]; return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 · '+wd; }
 function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
@@ -326,7 +348,7 @@ function dropReward(tier, reason){
   // v5.45 全 tier 每日上限统一改为 5 次，micro/small 也走这条
   const k=todayStr();
   if(S.rewards.dailyDate!==k){ S.rewards.dailyDate=k; S.rewards.dailyCount=0; }
-  if(S.rewards.dailyCount>=5) return null;
+  if(S.rewards.dailyCount>=3) return null;
   S.rewards.dailyCount++;
   const r=pool[Math.floor(Math.random()*pool.length)];
   const drop={rewardId:r.id, ts:new Date().toISOString().slice(0,16).replace('T',' '), tier, reason:reason||''};
@@ -338,6 +360,8 @@ function claimReward(idx){
   if(!drop || drop.claimed) return;
   drop.claimed=true;
   drop.claimedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+  save();
+  render();   // 立即重绘：置灰 + 已享用按钮 + 移到列表底部
 }
 
 // 旅行地图：可解锁的地点目录（经纬度用于投影定位；wish=true 为人生愿望目的地）
@@ -555,6 +579,7 @@ function defaultState(){
     _meta:{schema:SAVE_SCHEMA_VERSION,app:'life-rpg',updated:''},
     bonusXP:0, streak:0, lastActiveDay:'', activeDays:[], history:[], pushToken:'',
     profile:{birthYear:1995, lifeExpect:85},  // 人生时间轴：出生年份、预期寿命（岁），用于余生横幅与命理时间轴
+    avatar:'',                                // 用户上传头像（base64 dataURL）；空则使用 HTML 默认头像
     lfLog:{},        // 低频疗愈组冷却日志：{heal:[日期...], eye:[...]}，跨任务对象持久
     migLf211:false,  // 必须为 false：load() 用 Object.assign(defaultState(), 老存档)，若默认 true 会覆盖掉老存档的缺失值，迁移将永不执行
     weights:{BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0},
@@ -587,6 +612,7 @@ function defaultState(){
         {id:id(),t:'跑通第一个付费客户',a:'CAREER',xp:100,min:0,mode:'fixed',done:false},
         {id:id(),t:'建立稳定副业收入流',a:'CAREER',xp:100,min:0,mode:'fixed',done:false},
       ]},
+      makeSingYear(),
     ],
     month:{t:'本月主线：推进求职 / 体制内进度（执行动作，非结果）',items:[
       {id:id(),t:'完成 1 次网申 / 投递',a:'CAREER',xp:0,min:60,mode:'time',done:false},
@@ -610,6 +636,7 @@ function defaultState(){
       {id:'careerCrown',ic:'💼',n:'术法精进',d:'业道连进 四周（主观认领）',un:false,auto:null},
       {id:'mindGuard',ic:'🎹',n:'灵台澄明',d:'心性充盈 四周（主观认领）',un:false,auto:null},
       {id:'mindBound',ic:'🎧',n:'守心有度',d:'心性不溺 四周（主观认领）',un:false,auto:null},
+      {id:'sing1',ic:'🎶',n:'歌艺修行',lv:'0',d:'进行中 · K歌从 80+ 冲击 90+',next:'1.0：单首稳定破 90（年道认领）',un:false,auto:q=>{var i=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';});return i>=0&&yearDone(i);}},
     ],
     goals: defaultGoals(),
     mainQ:null,
@@ -619,6 +646,7 @@ function defaultState(){
     sideWeekly: [],
     sideMonthly: [],
     sideMeta: {dailyDate:'',weeklyKey:'',monthlyKey:''},
+    myJianghu: [],
     assets: null,   // 资产快照：null=未录入（首次在设置页录入，仅存本机）
     ledger: [],
     coin: { target:0, initial:0, labor:[] },  // 金币人生：目标金币 / 初始金币 / 搬砖时长打卡（labor:[{id,date,hours,link}]）
@@ -635,8 +663,8 @@ function defaultState(){
     trend: [],                    // 趋势曲线时序快照：{d,xp,net,w}
     weight: null,                 // 最新体重（kg），仅用于趋势
     theme: 'light',               // 命理主题皮肤：light / bing(丁火清凉) / dark(命理·夜)
+    hiddenPages: ['ledger'],      // 默认隐藏的板块（导航与页面入口）；目前仅钱庄，可设置页恢复
     brief: { last:'' },           // 今日战报：最近展示日期
-    saga: { vol:1, done:[] },     // 章·卷制：当前卷号 + 已结算卷号列表
     npc: { active:[], week:'', seenWeek:'' },  // NPC 委托：本周在办委托 + 所属周 + 已读周
     npcRel: {},                                 // v5.23 NPC 关系：{npcId:{xp,done}}
     npcEvents: {},                              // v5.24 NPC 专属事件：{npcId:{choice,ts}}
@@ -660,12 +688,47 @@ function defaultState(){
     todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
     jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
+    garden: {growing:[], harvested:[]}, // v6.0.39 灵圃（多项目盲盒栽种 · 我的植物）
+    capsules: [],                  // v6.0.32 时间胶囊：{id,text,sealedOn,unlockOn,opened}
+    demons: {                     // v6.0.36 心魔挑战（温和：削弱而非击败）
+      procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},
+      anxiety:{name:'焦虑',icon:'🌫',intensity:60,acts:['闭眼呼吸 3 分钟','写下最担心的 1 件事','到户外走 10 分钟']},
+      overthink:{name:'内耗',icon:'🌀',intensity:60,acts:['写一句话给未来的自己','复盘本周得失','只做不想']}
+    },
+    pets: [                        // 灵宠（可交互猫角色，可多只）
+      { name:'土豆', birthday:'2021-02-24', adopted:'',
+        breed:'中华田园（狸花橘）', color:'橘黄虎斑', emoji:'🐱',
+        personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],
+        notes:'', lastGreet:'', birthdayShown:'', remindKey:'' },
+      { name:'pepper', birthday:'2022-06-25', adopted:'',
+        breed:'', color:'', emoji:'🐱',
+        personality:['黏人','爱撒娇','护食','半夜跑酷'],
+        notes:'', lastGreet:'', birthdayShown:'', remindKey:'' }
+    ],
+    birthdays: [                   // 重要日子·生日提醒（灵宠见 pets；此处为人）
+      {name:'我自己', rel:'自己', date:'06-15', lunar:false, note:'给自己放个假，写一句今年的生日愿望', remindKey:''},
+      {name:'我爸',  rel:'父亲', date:'12-05', lunar:false, note:'打个电话 / 发消息说声生日快乐', remindKey:''},
+      {name:'我妈',  rel:'母亲', date:'03-16', lunar:true,  note:'做顿饭 / 买束花 / 视频通话', remindKey:''},
+      {name:'鹿茸',  rel:'好友', date:'10-28', lunar:true,  note:'发一句生日祝福，约个见面', remindKey:''}
+    ],
+    birthdayReminders: [],        // 生日来信：临近时生成的提醒信 {id,forName,rel,type,solarDate,daysLeft,body,year,read,questId}
+    birthdayQuests: [],           // 生日江湖委托：{id,icon,forName,rel,type,title,a,xp,due,done,year,bdayLabel}
   };
 }
 
 let S = defaultState();
 let lastLevel = 0;     // 上次渲染时的总等级，用于检测升级并触发庆祝
 let newlyDone = [];    // 本帧刚完成的任务 id，用于触发闪光动效
+function makeSingYear(){
+  return {id:'yg_sing90', t:'声乐精进：K歌从 80+ 冲击 90+（2026）', paused:false, done:false, items:[
+    {id:id(), t:'建立每日 30 分钟训练习惯（哼鸣热身 + 长音强弱推拉 + 舒适区曲目）', a:'MIND', xp:0, min:30, mode:'time', done:false},
+    {id:id(), t:'锁定舒适区：柔润气声抒情 ballad（梁静茹/刘若英/郁可唯/王菲气声曲），先不碰爆发型', a:'MIND', xp:0, min:30, mode:'time', done:false},
+    {id:id(), t:'稳定性雷达拉到 88+（重拍亮起、音量不再「轻到听不见」）', a:'MIND', xp:0, min:0, mode:'fixed', done:false},
+    {id:id(), t:'完整跑舒适区曲目，稳定站上 85+（用进度区记每次 K 歌分数）', a:'MIND', xp:0, min:60, mode:'time', done:false},
+    {id:id(), t:'单首突破 90（选 空白格 / 痴心换情深 / 水中花 其一）', a:'MIND', xp:120, min:0, mode:'fixed', done:false},
+  ]};
+}
+
 function migrate(){
   // v5.21 曾误把长期投入 goals 的默认值写成旅行目标对象；旅行目标已有独立 travelGoals 字段。
   if(!Array.isArray(S.goals)) S.goals=defaultGoals();
@@ -844,6 +907,44 @@ function migrate(){
     }
     S.yearCareerCompact_v1 = true;
   }
+  // v5.50 年主线新增「声乐精进：K歌 80→90」+ 歌艺成就（兼容旧存档注入）
+  if(!S.yearSingGoal_v1){
+    if(!((S.year||[]).some(function(c){ return /唱歌|声乐|歌艺|K歌|从\s*80|80\s*\+/.test(c.t||''); }))){
+      S.year=S.year||[];
+      S.year.push(makeSingYear());
+      if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'年主线新增「声乐精进：K歌从 80+ 冲击 90+」并接入声音画像进度区',xp:0});
+    }
+    if(!((S.ach||[]).some(function(a){ return a.id==='sing1'; }))){
+      S.ach=S.ach||[];
+      S.ach.push({id:'sing1',ic:'🎶',n:'歌艺修行',lv:'0',d:'进行中 · K歌从 80+ 冲击 90+',next:'1.0：单首稳定破 90（年道认领）',un:false,auto:function(q){ var i=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';}); return i>=0 && yearDone(i); }});
+    }
+    S.yearSingGoal_v1=true;
+  }
+  // v6.0.35 隐藏成就注入（旧档兼容；解锁前不显示在待解锁列表）
+  if(S.ach && !S.ach.some(function(a){ return a.id==='h_known'; })){
+    var _yr=new Date().getFullYear();
+    var _hd=new Set((S.hist||[]).map(function(h){return h.d;}).filter(Boolean));
+    var _jq=[]; if(typeof JIEQI!=='undefined'){ JIEQI.forEach(function(q){ var ds=_yr+'-'+String(q[0]).padStart(2,'0')+'-'+String(q[1]).padStart(2,'0'); if(_hd.has(ds)) _jq.push(q[2]); }); }
+    S.ach.push(
+      {id:'h_known', ic:'🔍', n:'自知者明', d:'记录精力满 30 天 · 看清自己的节律', hidden:true, un:false, auto:function(){ return Object.keys(S.energy||{}).length>=30; }},
+      {id:'h_travel',ic:'🔍', n:'行走山河', d:'记过 5 处「去过」的旅行脚印', hidden:true, un:false, auto:function(){ return (S.trips||[]).filter(function(t){return !t.wish;}).length>=5; }},
+      {id:'h_wish', ic:'🔍', n:'愿力可观', d:'点亮 8 枚人生愿望', hidden:true, un:false, auto:function(){ return (S.wishes||[]).filter(function(w){return w.un;}).length>=8; }},
+      {id:'h_season',ic:'🔍', n:'与时偕行', d:'当年在 8 个节气当天留下记录', hidden:true, un:false, auto:function(){ return _jq.length>=8; }},
+      {id:'h_xp',    ic:'🔍', n:'修为初成', d:'累计加权经验突破 8000', hidden:true, un:false, auto:function(){ return overallXP()>=8000; }}
+    );
+  }
+  // v5.51.17 清理重复的歌唱年主线：保留 makeSingYear() 生成的「声乐精进：K歌从 80+ 冲击 90+」，删掉用户误新增的类似目标（如「纯K有6首歌可以达到90分+」）。
+  if(!S.yearSingDupClean_v1){
+    const singIdx=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';});
+    if(singIdx>=0){
+      const before=S.year.length;
+      const dupRe=/唱歌|声乐|K歌|90分|90\+|歌艺|纯K|6首歌/;
+      S.year=S.year.filter(function(c,i){ return !(i!==singIdx && dupRe.test(c.t||'')); });
+      const removed=before-S.year.length;
+      if(removed>0 && Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'清理重复的歌唱年主线 ×'+removed+' 条',xp:0});
+    }
+    S.yearSingDupClean_v1=true;
+  }
   // 兼容旧存档：清理月主线中不应存在的结果型项目（offer/体检/背调/入职等），并去重
   if(!S.monthOutcomeClean_v1){
     if(S.month && Array.isArray(S.month.items)){
@@ -912,8 +1013,7 @@ function migrate(){
   if(!S.lootTab) S.lootTab='equips';
   // v5.17 新字段兜底
   if(!S.brief || typeof S.brief!=='object') S.brief={last:''};
-  if(!S.saga || typeof S.saga!=='object') S.saga={vol:1,done:[]};
-  if(!Array.isArray(S.saga.done)) S.saga.done=[];
+  if(typeof S.avatar!=='string') S.avatar='';
   if(!S.npc || typeof S.npc!=='object') S.npc={active:[],week:'',seenWeek:''};
   if(!Array.isArray(S.npc.active)) S.npc.active=[];
   if(typeof S.npc.seenWeek!=='string') S.npc.seenWeek='';
@@ -944,6 +1044,49 @@ function migrate(){
   if(!S.bonds || typeof S.bonds!=='object') S.bonds={awarded:[],viewed:[]};
   if(!Array.isArray(S.bonds.awarded)) S.bonds.awarded=[];
   if(!Array.isArray(S.bonds.viewed)) S.bonds.viewed=[];
+  // 灵宠 pets（v6.0.9 由单只 S.pet 升级为多只数组）
+  if(!Array.isArray(S.pets)){
+    const _old=S.pet;
+    S.pets = (_old && typeof _old==='object') ? [_old] : [];
+  }
+  if(!S.pets.length) S.pets=[{name:'土豆',birthday:'2021-02-24',adopted:'',breed:'中华田园（狸花橘）',color:'橘黄虎斑',emoji:'🐱',personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],notes:'',lastGreet:'',birthdayShown:'',remindKey:''}];
+  S.pets.forEach(function(p){
+    if(typeof p.name!=='string'||!p.name) p.name='猫';
+    if(typeof p.birthday!=='string') p.birthday='2021-02-24';
+    if(typeof p.adopted!=='string') p.adopted='';
+    if(!Array.isArray(p.personality)) p.personality=['黏人','爱蹭人','爱撒娇','认主'];
+    if(typeof p.emoji!=='string'||!p.emoji) p.emoji='🐱';
+    if(typeof p.lastGreet!=='string') p.lastGreet='';
+    if(typeof p.birthdayShown!=='string') p.birthdayShown='';
+    if(typeof p.remindKey!=='string') p.remindKey='';
+  });
+  if(!Array.isArray(S.birthdays)) S.birthdays=[
+    {name:'我自己',rel:'自己',date:'06-15',lunar:false,note:'给自己放个假，写一句今年的生日愿望',remindKey:''},
+    {name:'我爸',rel:'父亲',date:'12-05',lunar:false,note:'打个电话 / 发消息说声生日快乐',remindKey:''},
+    {name:'我妈',rel:'母亲',date:'03-16',lunar:true,note:'做顿饭 / 买束花 / 视频通话',remindKey:''},
+    {name:'鹿茸',rel:'好友',date:'10-28',lunar:true,note:'发一句生日祝福，约个见面',remindKey:''}
+  ];
+  S.birthdays.forEach(function(b){ if(typeof b.remindKey!=='string') b.remindKey=''; if(typeof b.note!=='string') b.note=''; if(typeof b.lunar!=='boolean') b.lunar=false; });
+  if(!Array.isArray(S.birthdayReminders)) S.birthdayReminders=[];
+  if(!Array.isArray(S.birthdayQuests)) S.birthdayQuests=[];
+  delete S.pet;   // 旧单只字段已并入 S.pets
+  // v6.0.36 板块显隐默认：钱庄默认隐藏（仅旧档首次运行生效，用户清空后不覆盖）
+  if(!Array.isArray(S.hiddenPages)) S.hiddenPages=['ledger'];
+  // v6.0.39 灵圃：旧单株结构 → 多项目结构（growing / harvested）
+  if(!S.garden || typeof S.garden!=='object') S.garden={growing:[],harvested:[]};
+  if(!Array.isArray(S.garden.growing)) S.garden.growing=[];
+  if(!Array.isArray(S.garden.harvested)) S.garden.harvested=[];
+  // 旧版 planted/species/history 的数据尽量保留：已收获的转 harvested，正在种的丢弃（结构不兼容）
+  if(S.garden.history && Array.isArray(S.garden.history)){
+    S.garden.history.forEach(function(h){ S.garden.harvested.push({proj:'', species:h.species||'pine', plantedAt:'', bloomedOn:h.bloomedOn||'', cycleH:0}); });
+    delete S.garden.history;
+  }
+  if(!Array.isArray(S.capsules)) S.capsules=[]; // v6.0.32 时间胶囊兜底
+  if(!S.demons || typeof S.demons!=='object'){ // v6.0.36 心魔兜底
+    S.demons={procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},
+      anxiety:{name:'焦虑',icon:'🌫',intensity:60,acts:['闭眼呼吸 3 分钟','写下最担心的 1 件事','到户外走 10 分钟']},
+      overthink:{name:'内耗',icon:'🌀',intensity:60,acts:['写一句话给未来的自己','复盘本周得失','只做不想']}};
+  }
   // v5.21 新字段兜底（身体/心理年龄）
   if(!S.bioAge || typeof S.bioAge!=='object') S.bioAge={sleepHours:null,steps:null,restingHR:null,lastCompute:'',bodyAge:0,mentalAge:0,factors:{}};
   // v5.21.1 低频疗愈组冷却
@@ -1078,6 +1221,22 @@ function importSave(file){
     }catch(err){ alert('导入失败：'+err.message); }
   };
   r.readAsText(file);
+}
+
+// 手机访问：复制 GitHub Pages 链接（数据设置页「📱 手机访问」面板用）
+function copyPhoneUrl(){
+  const u = 'https://mochen61517.github.io/rpg/';
+  const el = document.getElementById('phoneUrl'); if(el) el.value = u;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(u).then(()=>alert('📋 已复制手机访问链接')).catch(()=>_fallbackCopy(u));
+  } else { _fallbackCopy(u); }
+}
+function _fallbackCopy(t){
+  const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); alert('📋 已复制手机访问链接'); }
+  catch(e){ alert('复制失败，请手动复制：\n'+t); }
+  document.body.removeChild(ta);
 }
 
 // ---------- GitHub 云备份（防丢 / 跨设备，可选） ----------

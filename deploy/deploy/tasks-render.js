@@ -273,7 +273,7 @@ function pickMain(){
   S.mainQ=pick.id; addHist('锁定每日主线：'+pick.t); save();render();
 }
 function claimAch(i){S.ach[i].un=true;save();render();}
-function checkAch(){ S.ach.forEach((a,i)=>{ if(a.auto && !a.un && a.auto()) a.un=true; }); }
+function checkAch(){ S.ach.forEach(function(a){ if(a.auto && !a.un && a.auto()){ a.un=true; save(); if(a.hidden) celebrateTask('🔍 隐藏成就解锁 · '+a.ic+' '+a.n); } }); }
 // 连击：以「天」为粒度的活跃计数（基于活跃日期集合，支持补录历史日期）
 // 完成任意一项（含年/月/周主线，休眠项不计）即把「记录日期」写入 activeDays；
 // 连续天数 = 从最近活跃日（今天或昨天，链未断）向前连续的活跃天数。
@@ -1500,12 +1500,25 @@ function yearAnalysisCard(c,i){
 }
 function renderLongterm(){
   const dpEl=document.getElementById('decadePlan');
-  if(dpEl) dpEl.innerHTML=DECADE_PLAN.map(p=>`
-    <div class="decade-row">
-      <div class="decade-y">${p.y}</div>
-      <div class="decade-t">${p.t}</div>
-      <span class="decade-tag ${p.open?'open':''}">${p.open?'进行中':'待开启'}</span>
-    </div>`).join('');
+  if(dpEl){
+    const curY=new Date().getFullYear();
+    // 排序：当前/未来年在前（按年升序），已过去的年沉到底部（置灰）
+    const rows=DECADE_PLAN.map(p=>({y:p.y,t:p.t,open:!!p.open,past:p.y<curY}));
+    rows.sort((a,b)=> (a.past===b.past)? (a.y-b.y) : (a.past?1:-1));
+    const openSet=S.yearSummaryOpen||[];
+    dpEl.innerHTML=rows.map(p=>{
+      const open=openSet.indexOf(String(p.y))>=0;
+      return '<div class="decade-row'+(p.past?' past':'')+(p.y===curY?' cur':'')+'">'
+        +'<div class="decade-y">'+p.y+'</div>'
+        +'<div class="decade-main">'
+          +'<div class="decade-t">'+escHtml(p.t)+'</div>'
+          +'<div class="decade-sum"><span class="decade-tag '+(p.open?'open':'')+'">'+(p.open?'进行中':'待开启')+'</span>'
+            +'<span class="ys-toggle" onclick="toggleYearSummary('+p.y+')">📖 年度人生总结 '+(open?'▲':'▼')+'</span></div>'
+          +(open?'<div class="ys-body">'+yearSummaryHtml(p.y)+'</div>':'')
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }
 
   const ylEl=document.getElementById('yearListLong');
   if(ylEl) ylEl.innerHTML=S.year.map((c,i)=>yearAnalysisCard(c,i)).join('')||'<div class="hint">还没有设定今年大道。</div>';
@@ -2335,6 +2348,7 @@ function render(){
   document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
   renderSupps();
   renderWeeklyReview();
+  renderWeeklyHistory();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
   const wAttr=document.getElementById('wAttr'); if(wAttr) wAttr.innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
@@ -2361,13 +2375,13 @@ function render(){
   // achievements - 拆分已解锁 / 待解锁
   const _achCard=(a,i)=>`<div class="ach ${a.un?'un':''} ${((!a.un)&&(a.next||a.lv))?'featured':''}">
       <div class="ic">${a.ic}</div>
-      <div class="an">${a.n}${a.lv?`<span class="lvtag">Lv.${a.lv}</span>`:''}</div>
+      <div class="an">${a.n}${a.lv?`<span class="lvtag">Lv.${a.lv}</span>`:''}${a.hidden?'<span class="htag">🔍隐藏</span>':''}</div>
       <div class="ad">${a.d}</div>
       ${a.next?`<div class="next">↳ 下一阶 ${a.lv?'':'：'}${a.next}</div>`:''}
       ${a.un?'<div class="claim ok">✔ 已解锁</div>':(a.auto?'<div class="claim wait">自动判定中</div>':'<button class="btn ghost sm claim" onclick="claimAch('+i+')">认领解锁</button>')}
     </div>`;
   const _un=S.ach.map((a,i)=>a.un?_achCard(a,i):null).filter(Boolean);
-  const _lk=S.ach.map((a,i)=>!a.un?_achCard(a,i):null).filter(Boolean);
+  const _lk=S.ach.map((a,i)=>(!a.un && !a.hidden)?_achCard(a,i):null).filter(Boolean);
   document.getElementById('achsUnlocked').innerHTML=_un.join('')||'<div class="hint">尚无解锁的印记，开始修行吧。</div>';
   const _al=document.getElementById('achsLocked'); if(_al) _al.innerHTML=_lk.join('')||'<div class="hint">皆已点亮 ✨</div>';
   document.getElementById('pushToken').value=S.pushToken||'';
@@ -2393,9 +2407,13 @@ function render(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); renderDemons(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
+  // v6.0.37 板块显隐（默认隐藏钱庄等）
+  try{ applyPageVisibility(); }catch(e){ console.warn('v6.0.37 page visibility',e); }
+  // v6.0.38 角色设定页三合一 tab：首次渲染把版块移入对应 pane
+  try{ layoutJourney(); }catch(e){ console.warn('v6.0.38 journey layout',e); }
   // v5.20 通知中心
   try{ renderNotifications(); renderNavBadges(); renderBioAge(); }catch(e){ console.warn('v5.20+ render',e); }
   newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
@@ -2468,6 +2486,29 @@ function switchGrowthTab(tab){
   ['gpCompound','gpWishes','gpRewards'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=(id===map[tab])?'block':'none'; });
   save();
 }
+// v6.0.38 角色设定页三合一 tab：角色档案 / 命理与大运 / 时间记忆
+// 版块在 HTML 中带 id（jp*），首次渲染时整体移入对应 pane，之后仅切换 pane 显隐
+let _jrLaidOut=false;
+function layoutJourney(){
+  if(_jrLaidOut) return;
+  const map={
+    profile:['jpProfile','jpPet','jpBirthday','jpDemon'],
+    destiny:['jpLiunian','jpDayun','jpBazi','jpXiuwei'],
+    memory:['jpCapsule','jpCodex','jpWishes']
+  };
+  Object.keys(map).forEach(k=>{
+    const pane=document.getElementById('jr-'+k+'-pane');
+    if(!pane) return;
+    map[k].forEach(id=>{ const el=document.getElementById(id); if(el) pane.appendChild(el); });
+  });
+  _jrLaidOut=true;
+}
+function switchJourneyTab(tab){
+  if(typeof S==='object' && S) S.jrTab=tab;
+  document.querySelectorAll('#jrTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.jr===tab));
+  ['profile','destiny','memory'].forEach(k=>{ const el=document.getElementById('jr-'+k+'-pane'); if(el) el.style.display=(k===tab)?'block':'none'; });
+  if(typeof save==='function') save();
+}
 function renderRewards(){
   const el=document.getElementById('rewardList'); if(!el) return;
   const drops=S.rewards.drops||[];
@@ -2501,7 +2542,29 @@ function floatXP(text, anchorId){
   el.style.left=(r.right+8)+'px'; el.style.top=(r.top+4)+'px';
   fx.appendChild(el); setTimeout(()=>el.remove(),1250);
 }
+let _audioCtx=null;
+(function unlockAudio(){ try{ const AC=window.AudioContext||window.webkitAudioContext; if(AC){ document.addEventListener('pointerdown',function(){ if(!_audioCtx)_audioCtx=new AC(); if(_audioCtx.state==='suspended')_audioCtx.resume(); },{once:true}); } }catch(e){} })();
+function playLevelUpSound(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    if(!_audioCtx) _audioCtx=new AC();
+    if(_audioCtx.state==='suspended') _audioCtx.resume();
+    const ctx=_audioCtx, now=ctx.currentTime;
+    const notes=[523.25,659.25,783.99,1046.50]; // C5-E5-G5-C6 上行琶音，象征突破一层
+    notes.forEach(function(f,i){
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      const t=now+i*0.12;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.18,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.34);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t+0.36);
+    });
+  }catch(e){ /* 音效失败不影响主线流程 */ }
+}
 function celebrate(level){
+  playLevelUpSound();
   const fx=document.getElementById('fxLayer'); if(!fx)return;
   const ov=document.createElement('div'); ov.className='levelup-overlay';
   ov.innerHTML='<div class="lu-card"><div class="big">境界突破！</div><div class="big">Lv.'+level+'</div><div class="sub">修为更进一层</div></div>';
@@ -2580,6 +2643,8 @@ function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=doc
 var _isDeepLink=false;   // notifGo 深层链接期间为 true，期间不强制重置为第一个 tab
 function showPage(p){
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
+  // v6.0.37 默认隐藏的板块不可经导航/深链直接进入
+  if(Array.isArray(S.hiddenPages) && S.hiddenPages.includes(p)) p='dashboard';
   // 江湖榜已合并进短期任务页：统一当作 action，并记住要展示江湖榜 tab
   if(p==='jianghu'){
     p='action';
@@ -2608,11 +2673,39 @@ function showPage(p){
     markSideSeen();
   }
   if(p==='growth'){ try{ if(!_isDeepLink) switchGrowthTab('compound'); }catch(e){} markBondsSeen(); }   // 打开修行页默认第一个 tab
+  if(p==='journey'){ try{ if(!_isDeepLink) switchJourneyTab(S.jrTab||'profile'); }catch(e){} }   // 打开角色设定页默认「角色档案」tab
   if(p==='longterm'){ try{ if(!_isDeepLink) switchLtTab('month'); }catch(e){} }   // 打开长期主线页默认每月主线
   if(p==='dashboard'){ markSideSeen(); }
-  if(p==='data'){ try{ fillProfileInputs(); }catch(e){} }
+  if(p==='data'){ try{ fillProfileInputs(); }catch(e){} try{ syncPageVisibilityUI(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
   try{ renderNotifications(); renderNavBadges(); }catch(e){}
+}
+
+// v6.0.37 板块显隐：默认隐藏的页面（如钱庄）从导航与页面入口移除，设置页可恢复
+function applyPageVisibility(){
+  if(!Array.isArray(S.hiddenPages)) S.hiddenPages=[];
+  document.querySelectorAll('.navitem').forEach(n=>{
+    const p=n.dataset.page;
+    if(p) n.style.display = S.hiddenPages.includes(p) ? 'none' : '';
+  });
+}
+function togglePageVisibility(key){
+  if(!Array.isArray(S.hiddenPages)) S.hiddenPages=[];
+  const i=S.hiddenPages.indexOf(key);
+  if(i>=0) S.hiddenPages.splice(i,1); else S.hiddenPages.push(key);
+  save();
+  applyPageVisibility();
+  // 若当前正停在被隐藏的页面，跳回仪表盘
+  if(S.hiddenPages.includes(currentPage())) showPage('dashboard');
+  syncPageVisibilityUI();
+}
+function syncPageVisibilityUI(){
+  const cb=document.getElementById('togglePage-ledger');
+  if(cb) cb.checked = !(S.hiddenPages||[]).includes('ledger');
+}
+function currentPage(){
+  const cur=document.querySelector('.page.active');
+  return cur ? cur.id.replace(/^page-/, '') : 'dashboard';
 }
 
 // 短期任务页内 tab 切换：今日行动 / 江湖榜 / 本周卷册
@@ -2780,6 +2873,53 @@ function weeklyReviewStats(wk){
   const active=valid.filter(d=>minutesOn(d)>0||doneCountOn(d)>0).length;
   return {wk,end:shiftDate(wk,6),dates:valid,attr,total,done,active,best,energy:valid.length?Math.round(energy/valid.length):100};
 }
+/* ---------- v6.0.28 年度人生总结：按年回算，挂在十年大运对应年份下 ---------- */
+function yearlyStats(yk){
+  yk=yk||String(new Date().getFullYear());
+  const today=todayStr(), end=yk+'-12-31';
+  const attr={BADMINTON:0,CAREER:0,BODY:0,MIND:0};
+  let total=0,done=0,energy=0,days=0,best={d:'',m:-1};
+  const sd=new Date(yk+'-01-01T00:00:00'), ed=new Date(end+'T00:00:00');
+  for(let d=new Date(sd); d<=ed; d.setDate(d.getDate()+1)){
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(ds>today) break;
+    const m=minutesOn(ds), a=attrMinutesOn(ds);
+    total+=m; done+=doneCountOn(ds); energy+=energyStateForDate(ds).v;
+    if(m>best.m) best={d:ds,m};
+    Object.keys(attr).forEach(k=>attr[k]+=a[k]||0); days++;
+  }
+  const trips=(S.trips||[]).filter(t=>t.date&&t.date.slice(0,4)===yk);
+  const wishTrips=trips.filter(t=>t.wish), visTrips=trips.filter(t=>!t.wish);
+  const wishes=(S.wishes||[]), wishesReached=wishes.filter(w=>w.un===true).length;
+  return {yk,start:yk+'-01-01',end,attr,total,done,energy:days?Math.round(energy/days):100,best,trips:trips.length,wishTrips,visTrips,wishesReached,wishesTotal:wishes.length};
+}
+function yearSummaryHtml(yk){
+  const st=yearlyStats(yk), max=Math.max(1,...Object.values(st.attr));
+  const yq=S.year||[], yDone=yq.filter((c,i)=>yearDone(i)).length;
+  const tripNames=st.wishTrips.concat(st.visTrips).slice(0,8).map(t=>escHtml(t.name)+(t.wish?' ✦':'')).join('、')||'—';
+  return '<div class="wr-card ys-card">'
+    +'<div class="wr-head"><div><div class="wr-kicker">YEARLY CHRONICLE · '+yk+' 年度卷册</div><div class="wr-title">这一年，时间去了哪里</div></div>'
+    +'<div class="wr-range">'+st.start+' ～ '+st.end+(st.end>=todayStr()?'（截至今日）':'')+'</div></div>'
+    +'<div class="wr-stats">'
+      +'<div class="wr-stat"><b>'+st.done+'</b><span>完成行动</span></div>'
+      +'<div class="wr-stat"><b>'+h(st.total)+'</b><span>记录投入</span></div>'
+      +'<div class="wr-stat"><b>'+st.energy+'</b><span>平均精力</span></div>'
+      +'<div class="wr-stat"><b>'+st.trips+'</b><span>去过地方</span></div>'
+    +'</div>'
+    +'<div class="wr-bars">'+Object.keys(ATTRS).map(a=>'<div class="wr-bar"><span>'+ATTRS[a].icon+' '+ATTRS[a].name+'</span><span class="wr-track"><i style="width:'+Math.round(st.attr[a]/max*100)+'%;background:'+ATTRS[a].color+'"></i></span><b>'+h(st.attr[a])+'</b></div>').join('')+'</div>'
+    +'<div class="ys-extra">'
+      +'<div class="ys-row">🎯 年度主线完成 <b>'+yDone+'/'+yq.length+'</b></div>'
+      +'<div class="ys-row">🌟 点亮人生愿望 <b>'+st.wishesReached+'/'+st.wishesTotal+'</b></div>'
+      +'<div class="ys-row">🧳 走过：'+tripNames+'</div>'
+    +'</div>'
+    +'</div>';
+}
+function toggleYearSummary(yk){
+  if(!S.yearSummaryOpen) S.yearSummaryOpen=[];
+  const k=String(yk), i=S.yearSummaryOpen.indexOf(k);
+  if(i>=0) S.yearSummaryOpen.splice(i,1); else S.yearSummaryOpen.push(k);
+  save(); renderLongterm();
+}
 function recommendWeekFocus(st){
   if(st.energy<45)return {a:'BODY',why:'本周平均精力偏低，下一周先把恢复和身体放回中心。'};
   const vals=Object.keys(st.attr).map(a=>({a,v:st.attr[a]})).sort((x,y)=>x.v-y.v),top=vals[vals.length-1];
@@ -2807,6 +2947,61 @@ function renderWeeklyReview(){
 /* ---------- ① 精力条：负荷 vs 恢复 ---------- */
 // 设计取向：不催你做更多。过载时系统主动劝休息。
 // 可回算到任意历史日 d 的精力状态（精力页趋势复用）
+/* ---------- 本周回顾 · 历史卷册 ---------- */
+// 已过去的周按周回算投入并归档；每条默认折叠，标题仅含「年+第x周（起-止）」。
+function isoWeekOf(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const dayNum=(d.getDay()+6)%7;            // 周一=0
+  d.setDate(d.getDate()-dayNum+3);          // 取本周四定 ISO 周
+  const thursday=d, year=thursday.getFullYear();
+  const yearStart=new Date(year,0,1);
+  const week=Math.ceil((((thursday-yearStart)/86400000)+1+((yearStart.getDay()+6)%7))/7);
+  return {year, week};
+}
+function toggleWeekHistory(wk){
+  S.weekHistoryOpen=S.weekHistoryOpen||[];
+  const i=S.weekHistoryOpen.indexOf(wk);
+  if(i>=0)S.weekHistoryOpen.splice(i,1); else S.weekHistoryOpen.push(wk);
+  save(); renderWeeklyHistory();
+}
+function renderWeeklyHistory(){
+  const el=document.getElementById('weeklyHistoryBox'); if(!el)return;
+  if(!S.weekHistoryOpen)S.weekHistoryOpen=[];
+  const cur=monday(), MAX=20, items=[];
+  for(let off=7; off<420; off+=7){            // 从上周往前扫，最多 ~60 周防呆
+    const wk=shiftDate(cur,-off), st=weeklyReviewStats(wk), sealed=S.weekReview.sealed[wk];
+    if(st.total<=0 && st.done<=0 && !sealed) continue;
+    const iw=isoWeekOf(wk), sd=new Date(wk+'T00:00:00'), ed=new Date(st.end+'T00:00:00');
+    const title=iw.year+'年第'+iw.week+'周（'+(sd.getMonth()+1)+'月'+sd.getDate()+'日-'
+      +(ed.getMonth()+1)+'月'+ed.getDate()+'日）';
+    const focus=sealed?sealed.focus:recommendWeekFocus(st).a, max=Math.max(1,...Object.values(st.attr));
+    const open=S.weekHistoryOpen.indexOf(wk)>=0;
+    let body='<div class="wr-stats">'
+      +'<div class="wr-stat"><b>'+st.done+'</b><span>完成行动</span></div>'
+      +'<div class="wr-stat"><b>'+h(st.total)+'</b><span>记录投入</span></div>'
+      +'<div class="wr-stat"><b>'+st.active+'/7</b><span>有行动的日子</span></div>'
+      +'<div class="wr-stat"><b>'+st.energy+'</b><span>平均精力</span></div></div>'
+      +'<div class="wr-bars">'+Object.keys(ATTRS).map(a=>'<div class="wr-bar"><span>'+ATTRS[a].icon+' '+ATTRS[a].name+'</span><span class="wr-track"><i style="width:'+Math.round(st.attr[a]/max*100)+'%;background:'+ATTRS[a].color+'"></i></span><b>'+h(st.attr[a])+'</b></div>').join('')+'</div>';
+    if(sealed){
+      body+='<div class="wr-focus"><div class="wr-focus-title">🧭 下周重点 · '+ATTRS[sealed.focus].icon+' '+ATTRS[sealed.focus].name+'</div>'
+        +'<div class="wr-sealed">📖 '+sealed.line+'<br><span class="note">封存于 '+sealed.ts+'</span></div></div>';
+    } else {
+      body+='<div class="wr-focus"><div class="wr-focus-title">🧭 本周重点 · '+ATTRS[focus].icon+' '+ATTRS[focus].name+'</div>'
+        +'<div class="wr-reason">'+weeklyReviewLine(st,focus)+'</div></div>';
+    }
+    items.push('<div class="wh-item" style="border-top:1px solid rgba(128,128,128,.18); margin-top:8px; padding-top:8px;">'
+      +'<div class="wh-head" onclick="toggleWeekHistory(\''+wk+'\')" style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 2px;">'
+      +'<span class="wh-caret" style="color:#9aa; width:14px;">'+(open?'▾':'▸')+'</span>'
+      +'<span class="wh-title" style="font-weight:600; flex:1;">'+title+'</span>'
+      +'<span class="wh-meta" style="color:#9aa; font-size:12px;">完成 '+st.done+' · 投入 '+h(st.total)+'</span></div>'
+      +'<div class="wh-body" style="display:'+(open?'block':'none')+'; padding:8px 2px 4px 22px;">'+body+'</div></div>');
+    if(items.length>=MAX) break;
+  }
+  el.innerHTML = items.length
+    ? items.join('')
+    : '<div class="wr-empty">还没有走过的周。封存「本周复盘」后，这一周会自动归档到这里。</div>';
+}
+
 function energyStateForDate(d){
   // 近 3 日投入分钟 → 负荷（3 日 540 分钟 ≈ 满负荷）
   let m3=0; for(let i=0;i<3;i++) m3+=minutesOn(shiftDate(d,-i));
@@ -2903,6 +3098,214 @@ function energyAdvice(){
   }
   return tips;
 }
+// ===== v6.0.39 灵圃（多项目盲盒栽种 · 时间驱动 · 我的植物）=====
+const GARDEN_SPECIES=[
+  {key:'pine',name:'青松',kind:'tree',bloom:'🌲'},
+  {key:'willow',name:'垂柳',kind:'tree',bloom:'🌳'},
+  {key:'plum',name:'寒梅',kind:'tree',bloom:'🌸'},
+  {key:'peach',name:'桃树',kind:'tree',bloom:'🌸'},
+  {key:'osmanthus',name:'丹桂',kind:'tree',bloom:'🌼'},
+  {key:'lotus',name:'清莲',kind:'flower',bloom:'🌺'},
+  {key:'orchid',name:'幽兰',kind:'flower',bloom:'🌸'},
+  {key:'sunflower',name:'金葵',kind:'flower',bloom:'🌻'},
+  {key:'chrys',name:'秋菊',kind:'flower',bloom:'🌼'}
+];
+// 每个项目的默认栽种周期（小时）：按「约一个月规律投入」估算，可逐株在卡片上改
+const GARDEN_CYCLE_H={
+  badminton:50, strength:60, meditation:20, stretch:15,
+  singing:25, piano:35, reading:25, ai:40, career:50, travel:30
+};
+// 生长阶段按「已投入时长 / 周期」比例划分
+const GARDEN_STAGES=[
+  {min:0,    em:'🌰', name:'种子'},
+  {min:0.2,  em:'🌱', name:'发芽'},
+  {min:0.45, em:'🌿', name:'幼苗'},
+  {min:0.7,  em:'🪴', name:'抽枝'},
+  {min:1.0,  em:'',   name:'盛放'}
+];
+function gardenStageOf(frac){ let s=GARDEN_STAGES[0]; for(const st of GARDEN_STAGES){ if(frac>=st.min) s=st; } return s; }
+// 某项目在 [from,to] 区间内累计的分钟（任务 mins + 复利轨道 logs）
+function gardenProjMinutes(proj, from, to){
+  let m=0;
+  allTaskLists().forEach(function(list){ list.forEach(function(x){
+    if(lifeTrackOfTask(x)!==proj || !x.mins) return;
+    for(const d in x.mins){ if(d>=from && d<=to) m+=(+x.mins[d]||0); }
+  }); });
+  (S.lifeCompound&&S.lifeCompound.logs||[]).forEach(function(x){ if(x.key===proj && x.d>=from && x.d<=to) m+=(+x.min||0); });
+  return m;
+}
+function plantGarden(proj){
+  if(!proj || !LIFE_TRACKS[proj]) return;
+  if((S.garden.growing||[]).some(function(p){return p.proj===proj;})){ alert('「'+LIFE_TRACKS[proj].n+'」的灵圃里已经有一株在长了，先把它养到盛放吧。'); return; }
+  const ch=Math.max(1, Math.round(GARDEN_CYCLE_H[proj]||30));
+  const sp=GARDEN_SPECIES[Math.floor(Math.random()*GARDEN_SPECIES.length)];
+  S.garden.growing.push({id:id(), proj:proj, species:sp.key, plantedAt:todayStr(), cycleH:ch, revealed:false});
+  addHist('🌳 灵圃新栽「'+LIFE_TRACKS[proj].n+'」一株（盲盒·'+sp.name+'）'); save(); render();
+  celebrateTask('🌳 灵圃栽培 · 「'+LIFE_TRACKS[proj].n+'」落下一粒种子');
+}
+function setGardenCycle(gid, val){
+  const g=S.garden.growing.find(function(p){return p.id===gid;}); if(!g) return;
+  g.cycleH=Math.max(1, Math.round(+val||g.cycleH)); save(); render();
+}
+function harvestGarden(gid){
+  const g=S.garden.growing.find(function(p){return p.id===gid;}); if(!g) return;
+  S.garden.growing=S.garden.growing.filter(function(p){return p.id!==gid;});
+  S.garden.harvested.push({proj:g.proj, species:g.species, plantedAt:g.plantedAt, bloomedOn:todayStr(), cycleH:g.cycleH});
+  const t=LIFE_TRACKS[g.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===g.species;})||GARDEN_SPECIES[0];
+  addHist('🌳 「'+(t?t.n:'')+'」一株'+sp.name+'已盛放，收入我的植物'); save(); render();
+  celebrateTask('🌳 一株'+sp.name+'盛放 · 入住我的植物');
+}
+function renderGarden(){
+  const el=document.getElementById('gardenBox'); if(!el) return;
+  const g=S.garden; const today=todayStr();
+  let html='';
+  // 栽种区：可种项目（未在生长的）
+  const growingProjs=(g.growing||[]).map(function(p){return p.proj;});
+  const avail=Object.keys(LIFE_TRACKS).filter(function(k){return !LIFE_TRACKS[k].paused && growingProjs.indexOf(k)<0;});
+  if(avail.length){
+    html+='<div class="garden-plant-row"><div class="garden-plant-label">🌱 栽一株（选个项目，用你在它上面花的时间养它长大）</div><div class="garden-proj-chips">';
+    avail.forEach(function(k){ const t=LIFE_TRACKS[k], def=GARDEN_CYCLE_H[k]||30;
+      html+='<button class="garden-proj" onclick="plantGarden(\''+k+'\')">'+t.ic+' '+t.n+'<span class="garden-proj-h">≈'+def+'h</span></button>';
+    });
+    html+='</div></div>';
+  }
+  // 生长中
+  if(g.growing && g.growing.length){
+    html+='<div class="garden-sec-h">🌿 生长中（'+g.growing.length+'）</div><div class="garden-grid">';
+    g.growing.forEach(function(p){
+      const t=LIFE_TRACKS[p.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===p.species;})||GARDEN_SPECIES[0];
+      const cycleMin=p.cycleH*60;
+      const gained=gardenProjMinutes(p.proj, p.plantedAt, today);
+      const frac=cycleMin>0?Math.min(1, gained/cycleMin):0;
+      const st=gardenStageOf(frac);
+      const bloomed=frac>=1;
+      const em=bloomed?sp.bloom:st.em;
+      if(!p.revealed && frac>=GARDEN_STAGES[1].min){ p.revealed=true; save(); }
+      const label=p.revealed?('「'+sp.name+'」'+(sp.kind==='flower'?'花':'树')):'一粒未名的种子';
+      const pct=Math.round(frac*100);
+      const days7=gardenProjMinutes(p.proj, shiftDate(today,-6), today);
+      const avg=days7/7;
+      let eta=bloomed?'🌟 已盛放，可收入我的植物'
+        : avg>0 ? ('按近 7 天节奏，约还需 '+Math.max(1,Math.round((cycleMin-gained)/avg))+' 天')
+        : '近期这个项目还没记录时间，先去做一会儿吧';
+      html+='<div class="garden-card'+(bloomed?' bloomed':'')+'">'
+        +'<div class="gc-plant">'+em+'</div>'
+        +'<div class="gc-name">'+label+'</div>'
+        +'<div class="gc-proj">'+(t?t.ic+' '+t.n:'灵圃')+'</div>'
+        +'<div class="gc-stage">阶段：'+(bloomed?'盛放':st.name)+'（'+pct+'%）</div>'
+        +'<div class="garden-bar"><i style="width:'+pct+'%"></i></div>'
+        +'<div class="gc-mins">'+Math.round(gained)+' / '+(p.cycleH*60)+' 分钟</div>'
+        +'<div class="gc-eta">'+eta+'</div>'
+        +'<div class="gc-cycle">周期 <input class="gc-cycle-in" type="number" min="1" value="'+p.cycleH+'" onchange="setGardenCycle(\''+p.id+'\',this.value)"> h</div>'
+        +(bloomed?'<button class="btn sm primary" onclick="harvestGarden(\''+p.id+'\')">🌟 收入我的植物</button>'
+                 :'<div class="hint sm">继续在「'+(t?t.n:'')+'」上花时间，它就会长大</div>')
+        +'</div>';
+    });
+    html+='</div>';
+  }
+  // 我的植物
+  if(g.harvested && g.harvested.length){
+    html+='<div class="garden-sec-h">🪴 我的植物（'+g.harvested.length+'）</div><div class="garden-grid mine">';
+    g.harvested.slice().reverse().forEach(function(h){
+      const t=LIFE_TRACKS[h.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===h.species;})||GARDEN_SPECIES[0];
+      html+='<div class="garden-card mine-card">'
+        +'<div class="gc-plant">'+sp.bloom+'</div>'
+        +'<div class="gc-name">'+sp.name+(sp.kind==='flower'?'花':'树')+'</div>'
+        +'<div class="gc-proj">'+(t?t.ic+' '+t.n:(h.proj||'灵圃'))+'</div>'
+        +(h.bloomedOn?'<div class="gc-eta">盛放于 '+h.bloomedOn+'</div>':'')
+        +'</div>';
+    });
+    html+='</div>';
+  } else if(avail.length===0 && !(g.growing&&g.growing.length)){
+    html+='<div class="hint">灵圃暂时没有可种的项目，先把正在长的养到盛放吧。</div>';
+  }
+  el.innerHTML=html;
+}
+
+// ===== v6.0.32 时间胶囊（写给未来的自己）=====
+function capsuleSeal(){
+  const t=document.getElementById('capText'); const d=document.getElementById('capDate');
+  if(!t||!d) return;
+  const text=t.value.trim(); const date=d.value;
+  if(!text){ alert('先写点什么给未来的自己'); return; }
+  if(!date){ alert('选一个解锁日期'); return; }
+  if(date<=todayStr()){ alert('解锁日期要晚于今天'); return; }
+  S.capsules.push({id:id(), text:text, sealedOn:todayStr(), unlockOn:date, opened:false});
+  addHist('⏳ 封存时间胶囊（'+date+' 开启）'); save(); render();
+  celebrateTask('⏳ 时间胶囊已封存 · 给未来的自己留了句话');
+}
+function capsuleOpen(cid){
+  const c=S.capsules.find(x=>x.id===cid); if(!c) return;
+  c.opened=true; save();
+  alert('⏳ 时间胶囊开启\n\n'+c.text+'\n\n—— '+c.sealedOn+' 的你，写给今天');
+  render();
+}
+function renderCapsule(){
+  const el=document.getElementById('capsuleBox'); if(!el) return;
+  const today=todayStr();
+  const sealed=S.capsules.filter(c=>!c.opened && c.unlockOn>today);
+  const ready=S.capsules.filter(c=>!c.opened && c.unlockOn<=today);
+  const opened=S.capsules.filter(c=>c.opened);
+  let html='<div class="cap-write"><textarea id="capText" placeholder="写一句话给未来的自己…"></textarea>'
+    +'<div class="cap-row"><input type="date" id="capDate"><button class="btn sm primary" onclick="capsuleSeal()">⏳ 封存</button></div>'
+    +'<div class="hint">写给未来的自己，设定解锁日期，到时自动出现在收件匣。</div></div>';
+  if(ready.length) html+='<div class="cap-sec"><div class="cap-h">📨 可开启（'+ready.length+'）</div>'+ready.map(c=>'<button class="btn sm" onclick="capsuleOpen(\''+c.id+'\')">开启 '+c.sealedOn+' 的信</button>').join('')+'</div>';
+  if(sealed.length) html+='<div class="cap-sec"><div class="cap-h">🌱 已封存（'+sealed.length+'）</div>'+sealed.map(c=>'<span class="cap-chip">'+c.unlockOn+' 开启</span>').join('')+'</div>';
+  if(opened.length) html+='<div class="cap-sec"><div class="cap-h">📖 已开启（'+opened.length+'）</div>'+opened.map(c=>'<span class="cap-chip done">'+c.sealedOn+'</span>').join('')+'</div>';
+  if(!ready.length && !sealed.length && !opened.length) html+='<div class="hint">还没有时间胶囊。写一句给未来的自己吧。</div>';
+  el.innerHTML=html;
+}
+
+// ===== v6.0.33 人生收集册（从现有数据派生，零新增录入）=====
+function renderCodex(){
+  const el=document.getElementById('codexBox'); if(!el) return;
+  const visited=(S.trips||[]).filter(t=>!t.wish).map(t=>t.name).filter(Boolean);
+  const wishes=(S.wishes||[]).filter(w=>w.un).map(w=>w.t||w.n).filter(Boolean);
+  const badges=(S.ach||[]).filter(a=>a.un).map(a=>(a.ic||'🏅')+' '+(a.n||''));
+  const yr=new Date().getFullYear();
+  const histDates=new Set((S.hist||[]).map(h=>h.d).filter(Boolean));
+  const jqHit=[];
+  if(typeof JIEQI!=='undefined'){ JIEQI.forEach(function(q){ const ds=yr+'-'+String(q[0]).padStart(2,'0')+'-'+String(q[1]).padStart(2,'0'); if(histDates.has(ds)) jqHit.push(q[2]); }); }
+  function sec(title,icon,items,empty){
+    if(!items.length) return '<div class="codex-sec"><div class="codex-h">'+icon+' '+title+'</div><div class="hint">'+empty+'</div></div>';
+    return '<div class="codex-sec"><div class="codex-h">'+icon+' '+title+'（'+items.length+'）</div><div class="codex-chips">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div></div>';
+  }
+  el.innerHTML=sec('走过的地方','🗺️',visited,'还没有记过「去过」的旅行脚印。')
+    +sec('点亮的人生愿望','🌟',wishes,'还没有点亮的人生愿望。')
+    +sec('解锁的徽章','🏅',badges,'还没有解锁徽章。')
+    +sec('走过的节气','🍂',jqHit,'今年还没在节气当天留下记录。');
+}
+
+// ===== v6.0.36 心魔挑战（温和：削弱而非击败）=====
+function demonWeaken(key){
+  const d=S.demons[key]; if(!d) return;
+  if(d.intensity<=0){ alert(d.name+' 已暂退，静好。'); return; }
+  const cut=8+Math.floor(Math.random()*11);
+  d.intensity=Math.max(0, d.intensity-cut);
+  const act=d.acts[Math.floor(Math.random()*d.acts.length)];
+  addHist('👹 运功削弱「'+d.name+'」：'+act+'（-'+cut+'）');
+  if(d.intensity<=0) celebrateTask('👹 「'+d.name+'」暂退 · 这一刻你赢了');
+  save(); render();
+}
+function demonRouse(key){
+  const d=S.demons[key]; if(!d) return;
+  d.intensity=40; save(); render();
+}
+function renderDemons(){
+  const el=document.getElementById('demonBox'); if(!el) return;
+  const keys=Object.keys(S.demons);
+  el.innerHTML=keys.map(function(k){
+    const d=S.demons[k], pct=d.intensity;
+    const state=d.intensity<=0?'暂退 · 静好':(d.intensity<30?'式微':(d.intensity<60?'缠身':'汹涌'));
+    return '<div class="demon'+(d.intensity<=0?' retreated':'')+'">'
+      +'<div class="demon-h">'+d.icon+' '+d.name+' <span class="demon-state">'+state+'</span></div>'
+      +'<div class="demon-bar"><i style="width:'+pct+'%"></i></div>'
+      +'<div class="demon-act"><button class="btn sm '+(d.intensity<=0?'ghost':'primary')+'" onclick="demonWeaken(\''+k+'\')">'+(d.intensity<=0?'🌀 再唤起':'🌀 运功削弱')+'</button>'
+      +(d.intensity<=0?'<button class="btn sm ghost" onclick="demonRouse(\''+k+'\')">唤回重修</button>':'')+'</div>'
+      +'</div>';
+  }).join('')+'<div class="hint">心魔不必击败，运功削弱一分是一分。点到即收，不必强求。</div>';
+}
+
 function renderEnergyPage(){
   const root=document.getElementById('energyPageRoot'); if(!root) return;
   const e=energyState(); const advice=energyAdvice(); const ranges=[7,30,90];

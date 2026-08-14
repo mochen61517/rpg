@@ -1617,3 +1617,25 @@ body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)
 #gardenPanel .garden-bar i{display:block;height:100%;background:linear-gradient(90deg,#7ed3a8,#9ccc65);transition:width .6s}
 #gardenPanel .garden-next,#gardenPanel .garden-bloom{text-align:center;font-size:12px;color:var(--dim);margin-top:8px}
 #gardenPanel .garden-hist{text-align:center;font-size:12px;color:var(--dim);margin-top:10px}
+/* ===== v6.0.39 灵圃（多项目盲盒栽种 · 我的植物） ===== */
+#gardenPanel .garden-plant-row{margin:4px 0 12px}
+#gardenPanel .garden-plant-label{font-size:13px;color:var(--txt);margin-bottom:8px}
+#gardenPanel .garden-proj-chips{display:flex;flex-wrap:wrap;gap:8px}
+#gardenPanel .garden-proj{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:7px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer;transition:.2s}
+#gardenPanel .garden-proj:hover{border-color:var(--gold);transform:translateY(-1px)}
+#gardenPanel .garden-proj-h{font-size:11px;color:var(--dim);background:rgba(125,211,168,.12);padding:1px 6px;border-radius:8px;margin-left:2px}
+#gardenPanel .garden-sec-h{font-size:13px;font-weight:700;color:var(--gold);margin:14px 0 8px}
+#gardenPanel .garden-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+#gardenPanel .garden-card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+#gardenPanel .garden-card.bloomed{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+#gardenPanel .gc-plant{font-size:46px;line-height:1.1;margin:2px 0;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));transition:transform .4s}
+#gardenPanel .gc-name{font-size:14px;font-weight:700;color:var(--gold)}
+#gardenPanel .gc-proj{font-size:12px;color:var(--txt);margin:2px 0}
+#gardenPanel .gc-stage{font-size:12px;color:var(--dim);margin:4px 0 6px}
+#gardenPanel .gc-mins{font-size:11px;color:var(--dim);margin-top:6px}
+#gardenPanel .gc-eta{font-size:11px;color:var(--dim);margin-top:2px;line-height:1.5}
+#gardenPanel .gc-cycle{font-size:11px;color:var(--dim);margin-top:8px}
+#gardenPanel .gc-cycle-in{width:46px;padding:2px 4px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:11px;text-align:center}
+#gardenPanel .garden-card .btn.sm{margin-top:8px}
+#gardenPanel .garden-card .hint.sm{font-size:11px;margin-top:8px}
+#gardenPanel .garden-grid.mine .garden-card{background:rgba(125,211,168,.06)}

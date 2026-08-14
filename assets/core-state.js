@@ -688,7 +688,7 @@ function defaultState(){
     todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
     jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
-    garden: {planted:false, species:null, birthXP:0, revealed:false, history:[]}, // v6.0.31 灵圃（种树养花盲盒）
+    garden: {growing:[], harvested:[]}, // v6.0.39 灵圃（多项目盲盒栽种 · 我的植物）
     capsules: [],                  // v6.0.32 时间胶囊：{id,text,sealedOn,unlockOn,opened}
     demons: {                     // v6.0.36 心魔挑战（温和：削弱而非击败）
       procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},
@@ -1072,9 +1072,15 @@ function migrate(){
   delete S.pet;   // 旧单只字段已并入 S.pets
   // v6.0.36 板块显隐默认：钱庄默认隐藏（仅旧档首次运行生效，用户清空后不覆盖）
   if(!Array.isArray(S.hiddenPages)) S.hiddenPages=['ledger'];
-  // v6.0.31 灵圃兜底
-  if(!S.garden || typeof S.garden!=='object') S.garden={planted:false,species:null,birthXP:0,revealed:false,history:[]};
-  if(!Array.isArray(S.garden.history)) S.garden.history=[];
+  // v6.0.39 灵圃：旧单株结构 → 多项目结构（growing / harvested）
+  if(!S.garden || typeof S.garden!=='object') S.garden={growing:[],harvested:[]};
+  if(!Array.isArray(S.garden.growing)) S.garden.growing=[];
+  if(!Array.isArray(S.garden.harvested)) S.garden.harvested=[];
+  // 旧版 planted/species/history 的数据尽量保留：已收获的转 harvested，正在种的丢弃（结构不兼容）
+  if(S.garden.history && Array.isArray(S.garden.history)){
+    S.garden.history.forEach(function(h){ S.garden.harvested.push({proj:'', species:h.species||'pine', plantedAt:'', bloomedOn:h.bloomedOn||'', cycleH:0}); });
+    delete S.garden.history;
+  }
   if(!Array.isArray(S.capsules)) S.capsules=[]; // v6.0.32 时间胶囊兜底
   if(!S.demons || typeof S.demons!=='object'){ // v6.0.36 心魔兜底
     S.demons={procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},

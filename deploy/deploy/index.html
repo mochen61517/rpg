@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.0.38</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=6.0.26">
+<title>人生修行录 · v6.0.39</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=6.0.39">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic" id="brandAvatar" onclick="document.getElementById('avatarFile').click()" title="点击更换头像">🕯️</div>
-      <div class="brand-t">人生修行录<span>v6.0.38 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.0.39 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -492,10 +492,6 @@
       </div>
       <!-- 🏆 赛季称号已移除（与复利轨道 / 成就重复） -->
       <!-- 📖 修行卷册已移除（与长期复利轨道重复） -->
-      <div class="panel" id="gardenPanel">
-        <h2>🌳 灵圃 <span class="note">修为所化 · 盲盒栽种</span></h2>
-        <div id="gardenBox"></div>
-      </div>
       <div class="panel">
         <h2>✅ 已扬名</h2>
         <div class="achs" id="achsUnlocked"></div>
@@ -512,6 +508,10 @@
           <div id="rewardList" class="reward-list"></div>
           <div class="hint" style="margin-top:8px">按成本分级：微(≤¥60/＜1h) · 小(≤¥200/≈2h) · 中(≈¥600-800) · 大(≥¥1200/数小时~数天)。日常小概率掉落微/小奖（每日上限 3）；点亮愿望掉中奖；境界突破掉中/大奖。</div>
         </div>
+      </div>
+      <div class="panel" id="gardenPanel">
+        <h2>🌳 灵圃 <span class="note">盲盒栽种 · 我的植物</span></h2>
+        <div id="gardenBox"></div>
       </div>
     </div>
 
@@ -755,9 +755,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=6.0.26"></script>
-<script src="assets/tasks-render.js?v=6.0.26"></script>
-<script src="assets/npc-stories.js?v=6.0.26"></script>
-<script src="assets/systems.js?v=6.0.26"></script>
+<script src="assets/core-state.js?v=6.0.39"></script>
+<script src="assets/tasks-render.js?v=6.0.39"></script>
+<script src="assets/npc-stories.js?v=6.0.39"></script>
+<script src="assets/systems.js?v=6.0.39"></script>
 </body>
 </html>
