@@ -2335,6 +2335,7 @@ function render(){
   document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
   renderSupps();
   renderWeeklyReview();
+  renderWeeklyHistory();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
   const wAttr=document.getElementById('wAttr'); if(wAttr) wAttr.innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
@@ -2807,6 +2808,61 @@ function renderWeeklyReview(){
 /* ---------- ① 精力条：负荷 vs 恢复 ---------- */
 // 设计取向：不催你做更多。过载时系统主动劝休息。
 // 可回算到任意历史日 d 的精力状态（精力页趋势复用）
+/* ---------- 本周回顾 · 历史卷册 ---------- */
+// 已过去的周按周回算投入并归档；每条默认折叠，标题仅含「年+第x周（起-止）」。
+function isoWeekOf(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const dayNum=(d.getDay()+6)%7;            // 周一=0
+  d.setDate(d.getDate()-dayNum+3);          // 取本周四定 ISO 周
+  const thursday=d, year=thursday.getFullYear();
+  const yearStart=new Date(year,0,1);
+  const week=Math.ceil((((thursday-yearStart)/86400000)+1+((yearStart.getDay()+6)%7))/7);
+  return {year, week};
+}
+function toggleWeekHistory(wk){
+  S.weekHistoryOpen=S.weekHistoryOpen||[];
+  const i=S.weekHistoryOpen.indexOf(wk);
+  if(i>=0)S.weekHistoryOpen.splice(i,1); else S.weekHistoryOpen.push(wk);
+  save(); renderWeeklyHistory();
+}
+function renderWeeklyHistory(){
+  const el=document.getElementById('weeklyHistoryBox'); if(!el)return;
+  if(!S.weekHistoryOpen)S.weekHistoryOpen=[];
+  const cur=monday(), MAX=20, items=[];
+  for(let off=7; off<420; off+=7){            // 从上周往前扫，最多 ~60 周防呆
+    const wk=shiftDate(cur,-off), st=weeklyReviewStats(wk), sealed=S.weekReview.sealed[wk];
+    if(st.total<=0 && st.done<=0 && !sealed) continue;
+    const iw=isoWeekOf(wk), sd=new Date(wk+'T00:00:00'), ed=new Date(st.end+'T00:00:00');
+    const title=iw.year+'年第'+iw.week+'周（'+(sd.getMonth()+1)+'月'+sd.getDate()+'日-'
+      +(ed.getMonth()+1)+'月'+ed.getDate()+'日）';
+    const focus=sealed?sealed.focus:recommendWeekFocus(st).a, max=Math.max(1,...Object.values(st.attr));
+    const open=S.weekHistoryOpen.indexOf(wk)>=0;
+    let body='<div class="wr-stats">'
+      +'<div class="wr-stat"><b>'+st.done+'</b><span>完成行动</span></div>'
+      +'<div class="wr-stat"><b>'+h(st.total)+'</b><span>记录投入</span></div>'
+      +'<div class="wr-stat"><b>'+st.active+'/7</b><span>有行动的日子</span></div>'
+      +'<div class="wr-stat"><b>'+st.energy+'</b><span>平均精力</span></div></div>'
+      +'<div class="wr-bars">'+Object.keys(ATTRS).map(a=>'<div class="wr-bar"><span>'+ATTRS[a].icon+' '+ATTRS[a].name+'</span><span class="wr-track"><i style="width:'+Math.round(st.attr[a]/max*100)+'%;background:'+ATTRS[a].color+'"></i></span><b>'+h(st.attr[a])+'</b></div>').join('')+'</div>';
+    if(sealed){
+      body+='<div class="wr-focus"><div class="wr-focus-title">🧭 下周重点 · '+ATTRS[sealed.focus].icon+' '+ATTRS[sealed.focus].name+'</div>'
+        +'<div class="wr-sealed">📖 '+sealed.line+'<br><span class="note">封存于 '+sealed.ts+'</span></div></div>';
+    } else {
+      body+='<div class="wr-focus"><div class="wr-focus-title">🧭 本周重点 · '+ATTRS[focus].icon+' '+ATTRS[focus].name+'</div>'
+        +'<div class="wr-reason">'+weeklyReviewLine(st,focus)+'</div></div>';
+    }
+    items.push('<div class="wh-item" style="border-top:1px solid rgba(128,128,128,.18); margin-top:8px; padding-top:8px;">'
+      +'<div class="wh-head" onclick="toggleWeekHistory(\''+wk+'\')" style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 2px;">'
+      +'<span class="wh-caret" style="color:#9aa; width:14px;">'+(open?'▾':'▸')+'</span>'
+      +'<span class="wh-title" style="font-weight:600; flex:1;">'+title+'</span>'
+      +'<span class="wh-meta" style="color:#9aa; font-size:12px;">完成 '+st.done+' · 投入 '+h(st.total)+'</span></div>'
+      +'<div class="wh-body" style="display:'+(open?'block':'none')+'; padding:8px 2px 4px 22px;">'+body+'</div></div>');
+    if(items.length>=MAX) break;
+  }
+  el.innerHTML = items.length
+    ? items.join('')
+    : '<div class="wr-empty">还没有走过的周。封存「本周复盘」后，这一周会自动归档到这里。</div>';
+}
+
 function energyStateForDate(d){
   // 近 3 日投入分钟 → 负荷（3 日 540 分钟 ≈ 满负荷）
   let m3=0; for(let i=0;i<3;i++) m3+=minutesOn(shiftDate(d,-i));

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.0.26</title>
+<title>人生修行录 · v6.0.27</title>
 <link rel="stylesheet" href="assets/life-rpg.css?v=6.0.26">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic" id="brandAvatar" onclick="document.getElementById('avatarFile').click()" title="点击更换头像">🕯️</div>
-      <div class="brand-t">人生修行录<span>v6.0.26 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.0.27 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -393,6 +393,10 @@
       <!-- ===== 本周卷册（WEEKLY CHRONICLE + 周报/月报） ===== -->
       <div id="st-week-pane" style="display:none">
         <div class="panel wr-card"><div id="weeklyReviewBox"></div></div>
+        <div class="panel wr-card">
+          <div class="wr-hk" style="font-weight:700;margin:2px 0 8px;color:var(--gold,#e9c46a)">📚 历史卷册</div>
+          <div id="weeklyHistoryBox"></div>
+        </div>
         <div class="panel">
           <h2>📊 周报 / 月报 <span class="note">周 / 月分开放，互不覆盖，自动留痕</span></h2>
           <div class="rep-actions">
