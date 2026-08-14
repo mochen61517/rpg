@@ -1513,8 +1513,8 @@ function renderLongterm(){
         +'<div class="decade-main">'
           +'<div class="decade-t">'+escHtml(p.t)+'</div>'
           +'<div class="decade-sum"><span class="decade-tag '+(p.open?'open':'')+'">'+(p.open?'进行中':'待开启')+'</span>'
-            +'<span class="ys-toggle" onclick="toggleYearSummary('+p.y+')">📖 年度人生总结 '+(open?'▲':'▼')+'</span></div>'
-          +(open?'<div class="ys-body">'+yearSummaryHtml(p.y)+'</div>':'')
+            +(p.open?'<span class="ys-toggle" onclick="toggleYearSummary('+p.y+')">📖 年度人生总结 '+(open?'▲':'▼')+'</span>':'')+'</div>'
+          +(p.open&&open?'<div class="ys-body">'+yearSummaryHtml(p.y)+'</div>':'')
         +'</div>'
       +'</div>';
     }).join('');
