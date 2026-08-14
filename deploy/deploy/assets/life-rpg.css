@@ -1035,6 +1035,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .npc-t{font-size:14px;margin-top:3px;line-height:1.6}
 .npc-r{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .npc-xp{font-size:12px;color:var(--gold,#e0a94a);font-weight:700}
+.npc-xp.branch-tag{background:rgba(240,178,76,.16);color:var(--gold);border:1px solid rgba(240,178,76,.4);padding:1px 8px;border-radius:10px;font-size:11px}
+.npc-branch-chose{font-size:12px;color:var(--dim);margin-top:4px;line-height:1.55;padding:6px 9px;background:var(--panel2);border-radius:8px;border-left:2px solid var(--gold)}
 /* 江湖委托 · 对话回应 */
 .npc-chat{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
 .npc-chat-msgs{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;margin-bottom:8px}
@@ -1476,6 +1478,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fo-col+.fo-col{border-left:1px solid var(--line)}
 .fo-col-h{font-size:13px;font-weight:800;width:24px;height:24px;line-height:24px;text-align:center;border-radius:6px;margin-bottom:9px}
 .fo-yi .fo-col-h{background:rgba(126,196,143,.16);color:var(--grw);border:1px solid rgba(126,196,143,.4)}
+.fo-yi-travel{margin:10px 16px 0;padding:9px 12px;border-radius:9px;background:rgba(240,178,76,.1);border:1px solid rgba(240,178,76,.35);color:var(--gold);font-size:12px;line-height:1.6}
 .fo-ji .fo-col-h{background:rgba(214,120,106,.14);color:var(--warn);border:1px solid rgba(214,120,106,.36)}
 .fo-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
 .fo-col li{font-size:12px;line-height:1.55;padding-left:13px;position:relative;color:var(--txt)}

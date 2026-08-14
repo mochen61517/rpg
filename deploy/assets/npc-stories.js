@@ -9,6 +9,41 @@ const NPCS=[
   {id:'bailu',n:'白鹭先生',ic:'🎹',d:'旧书铺的琴师，认为人得有一样只为自己做的事。',a:'MIND',
    qs:['弹一首完整的，不求好，求完整。','读三十页，不许查手机。','唱一首你最近总在心里哼的歌。','练一组长音推拉，让气息顶得住、收得回——别让它泄掉。','写点什么，给自己看就行。']},
 ];
+// v6.0.30 分支委托：每周江湖委托有概率变成二选一，不同选择给不同 XP + 评语 + 关系
+const NPC_BRANCH_QUESTS={
+  lin:[
+    {t:'今天练球，你更想怎么练？',choices:[
+      {t:'约一场势均力敌的对抗',d:'把压力当成练手的机会。',xp:35,story:'你选了对抗。球路在拼抢里变快，手比脑子先到了。'},
+      {t:'自己慢练三十分钟基本功',d:'把动作刻进身体。',xp:25,story:'你选了慢练。反手高远一遍遍稳下来，节奏是自己的了。'}]},
+    {t:'这周想往哪个方向走？',choices:[
+      {t:'专攻一个最弱的技术',d:'短板先补，长板自然更稳。',xp:30,story:'你盯住最弱的那一下。它不再拖后腿时，整场都松了。'},
+      {t:'打几场放松的友谊赛',d:'享受球，比练球更重要些。',xp:30,story:'你选了友谊赛。笑着重返球场，比什么都养状态。'}]}
+  ],
+  shen:[
+    {t:'手上这份机会，你打算怎么接？',choices:[
+      {t:'先小范围试做一版',d:'让风险在可控处发生。',xp:35,story:'你先试了一版。错在桌面上，比错在心里便宜得多。'},
+      {t:'直接投出一份完整的',d:'动作比完美重要。',xp:25,story:'你直接投了。落出去的那一刻，路自己亮了一截。'}]},
+    {t:'职业卡住时，你更想？',choices:[
+      {t:'找里面的人聊半小时',d:'信息在人嘴里，不在帖子里。',xp:30,story:'你去找人聊了。一句内行话，顶半天瞎琢磨。'},
+      {t:'先算了再说',d:'有时停比冲更清醒。',xp:25,story:'你先算了。把焦虑放下的那天，方向反而清楚了。'}]}
+  ],
+  yun:[
+    {t:'今晚身体想要什么？',choices:[
+      {t:'十一点前踏实睡一觉',d:'把休息当正事。',xp:30,story:'你选了早睡。第二天醒来，身体记得被好好对待的感觉。'},
+      {t:'拉伸十分钟再睡',d:'让紧了一天的身体松下来。',xp:25,story:'你选了拉伸。肌肉松开时，脑子也跟着松了。'}]},
+    {t:'这周想怎么对自己好一点？',choices:[
+      {t:'安排一次真正的放空',d:'什么都不做，也是进度。',xp:30,story:'你给自己留了空白。那半天没产出，却补回了能继续的力气。'},
+      {t:'认真吃一顿好的',d:'好好吃饭最朴素。',xp:20,story:'你认认真真吃了一顿。胃暖了，人也就安稳了。'}]}
+  ],
+  bailu:[
+    {t:'今晚想怎么练琴？',choices:[
+      {t:'从头弹完一首',d:'完整有时比正确更近真心。',xp:35,story:'你从头弹到尾。错音没毁掉它，曲子终于成了你的。'},
+      {t:'只打磨最喜欢的一段',d:'不必每次都求全。',xp:25,story:'你反复磨那一小段。直到它真正属于你为止。'}]},
+    {t:'心里有段旋律，你想？',choices:[
+      {t:'把它写下来',d:'留下来的，才算自己的。',xp:30,story:'你写下来了。那段总在心里转的调子，终于有了形状。'},
+      {t:'先哼着，不急着记',d:'有些东西留白更好。',xp:25,story:'你没记。让它继续在心里转，也挺好。'}]}
+  ]
+};
 // 故人视角的祝福/鼓励（用于「我们的链接」面板，每日一封；点「换一封」可轮换）。
 // 主题：享受当下、好好对待自己、不必硬撑、慢慢来。
 const NPC_BLESSINGS={
@@ -186,15 +221,19 @@ function npcRoll(force){
   if(!force && S.npc.week===wk && S.npc.active.length) return;
   S.npc.week=wk;
   S.npc.seenWeek='';
-  S.npc.active=NPCS.map(p=>({
-    npc:p.id, id:id(),
-    t:p.qs[Math.floor(Math.random()*p.qs.length)],
-    a:p.a, xp:30, done:false
-  }));
+  S.npc.active=NPCS.map(p=>{
+    const bq=(NPC_BRANCH_QUESTS[p.id]||[]);
+    if(bq.length && Math.random()<0.5){
+      const b=bq[Math.floor(Math.random()*bq.length)];
+      return {npc:p.id, id:id(), t:b.t, a:p.a, branch:true, choices:b.choices, done:false, choice:null};
+    }
+    return {npc:p.id, id:id(), t:p.qs[Math.floor(Math.random()*p.qs.length)], a:p.a, xp:30, done:false};
+  });
   addHist('📜 本周江湖委托已刷新（四位故人各留一言）');
 }
 function npcDone(qid){
   const q=S.npc.active.find(x=>x.id===qid); if(!q) return;
+  if(q.branch && !q.done && q.choice==null){ openBranchQuest(qid); return; }
   const wasTodayFocus=ensureTodayPlan().focusId===qid;
   q.done=!q.done;
   const p=NPCS.find(n=>n.id===q.npc);
@@ -216,5 +255,25 @@ function npcDone(qid){
     if(p){ const rel=npcRel(p.id); rel.xp=Math.max(0,(rel.xp||0)-1); rel.done=Math.max(0,(rel.done||0)-1); }
   }
   save(); checkAch(); render();
+}
+
+// v6.0.30 分支委托二选一
+function openBranchQuest(qid){
+  const q=S.npc.active.find(x=>x.id===qid); if(!q||!q.branch||q.done) return;
+  const p=NPCS.find(n=>n.id===q.npc), body=document.getElementById('npcEventBody'), mask=document.getElementById('npcEventMask');
+  if(!body||!mask) return;
+  body.innerHTML='<div class="st-kicker">'+p.ic+' '+p.n+' · 二选一委托</div><div class="st-title">'+q.t+'</div><div class="ne-choices">'+q.choices.map((c,i)=>'<button class="ne-choice" onclick="resolveBranchQuest(\''+qid+'\','+i+')"><b>'+c.t+'</b><span>'+c.d+'</span></button>').join('')+'</div><div class="st-actions"><button class="btn sm ghost" onclick="closeNpcEvent()">以后再说</button></div>';
+  mask.style.display='flex';
+}
+function resolveBranchQuest(qid,ci){
+  const q=S.npc.active.find(x=>x.id===qid); if(!q||!q.branch||q.done) return;
+  const c=q.choices[ci]; if(!c) return;
+  const p=NPCS.find(n=>n.id===q.npc);
+  q.choice=ci; q.done=true; q.xp=c.xp;
+  S.bonusXP=(S.bonusXP||0)+c.xp; touchActivity(todayStr());
+  addHist('✔【分支委托】'+(p?p.n:'')+'：'+q.t+' · 选「'+c.t+'」 +'+c.xp+' XP', c.xp);
+  if(p){ const before=npcRelInfo(p.id).level, rel=npcRel(p.id); rel.xp=(rel.xp||0)+1; rel.done=(rel.done||0)+1; const after=npcRelInfo(p.id); if(after.level>before) setTimeout(()=>celebrateTask(p.ic+' 与'+p.n+'的关系升为「'+after.name+'」'),420); }
+  celebrateTask((p?p.ic+' '+p.n:'')+'点了点头');
+  closeNpcEvent(); save(); checkAch(); render(); renderNpc();
 }
 
