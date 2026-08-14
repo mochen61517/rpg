@@ -308,6 +308,7 @@ function renderNpc(){
       +'<div class="npc-ic">'+p.ic+'</div>'
       +'<div class="npc-body"><div class="npc-n">'+p.n+' <span class="npc-d">'+p.d+'</span></div>'
       +'<div class="npc-t">「'+q.t+'」</div>'
+      +(q.branch&&q.choice!=null?'<div class="npc-branch-chose">你选了：'+escHtml(q.choices[q.choice].t)+' · '+escHtml(q.choices[q.choice].d)+'</div>':'')
       +'<div class="npc-rel"><span class="npc-rel-lv">'+ri.name+' · '+ri.xp+(ri.know?' · 聊'+ri.know:'')+'</span><span class="npc-rel-bar"><i style="width:'+ri.pct+'%"></i></span></div>'
       +'<div class="npc-memory">'+npcMemory(p,ri)+'</div>'
       +(S.npcEvents[p.id]?'<span class="npc-event-done">🧿 '+NPC_EVENTS[p.id].relic.name+(marks.length?' · '+marks.join(' · '):'')+'</span>':(ri.xp>=3?'<div><button class="btn sm ghost npc-event-btn" onclick="openNpcEvent(\''+p.id+'\')">📜 专属事件 · 熟识</button></div>':''))
@@ -317,8 +318,10 @@ function renderNpc(){
       +'<div class="npc-chat-compose"><textarea id="npcChat_'+q.id+'" rows="2" placeholder="比如：今天把《平沙落雁》第一段顺下来了，左手按弦还是疼…"></textarea><button class="btn sm primary" onclick="npcSend(\''+q.id+'\')">发送</button></div>'
       +'</div>'
       +'</div>'
-      +'<div class="npc-r"><span class="npc-xp">+'+q.xp+'</span>'
-      +'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="npcDone(\''+q.id+'\')">'+(q.done?'撤销':'交差')+'</button>'
+      +'<div class="npc-r">'
+      +(q.branch
+          ? '<span class="npc-xp branch-tag">二选一</span>'+(q.choice!=null?'<button class="btn sm ghost" onclick="npcDone(\''+q.id+'\')">撤销</button>':'<button class="btn sm primary" onclick="npcDone(\''+q.id+'\')">选一下</button>')
+          : '<span class="npc-xp">+'+q.xp+'</span>'+'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="npcDone(\''+q.id+'\')">'+(q.done?'撤销':'交差')+'</button>')
       +'<button class="btn sm ghost" onclick="npcToggleChat(\''+q.id+'\')">💬 聊聊'+(mc?' '+mc:'')+'</button>'
       +'</div>'
       +'</div>';
@@ -1219,6 +1222,7 @@ function tripSubmit(id){
   tripSave();
   try{ touchActivity(todayStr()); }catch(_){}
   try{ addHist((wish?'✈️':'📍')+' 旅行脚印'+(wish?'想去':'去过')+' · '+name, 0, todayStr()); }catch(_){}
+  try{ if(!wish&&yiTravelActive()){ S.bonusXP=(S.bonusXP||0)+20; addHist('✈️ 宜出行·承气运：旅行脚印「'+name+'」 +20 XP',20,todayStr()); } }catch(_){}
   try{ celebrateTask((wish?'想把远方写下来 — ':'一城一帧 — ')+name); }catch(_){}
   renderTripsPage(); render();
 }
@@ -1886,7 +1890,10 @@ const LIFE_TRACKS={
     variants:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。']},
   ai:{ic:'🤖',n:'AI提效',a:'CAREER',base:0,unit:'累计',rec:20,paused:false,
     realms:[[0,'初出茅庐'],[100,'工具上手'],[300,'流程打通'],[600,'半自动'],[1000,'人机协同'],[1500,'AI 原生']],
-    variants:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。']}
+    variants:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。']},
+  travel:{ic:'🧭',n:'旅行·探索',a:'BODY',base:0,unit:'累计',rec:30,paused:false,
+    realms:[[0,'初出茅庐'],[50,'初探四方'],[150,'行脚渐广'],[400,'走南闯北'],[800,'见多识广'],[1500,'行走的智者']],
+    variants:['今天去了一个新地方，留意和平时不一样的空气。','不赶行程，只认真看一处。','把路上遇见的某个小细节记下来。']}
 };
 const LIFE_PROMPTS=['今天哪个普通瞬间值得被保存？','今天有什么声音、气味或光线让你停了一下？','哪一刻你感觉自己不是在赶路，而是在生活？','今天身体给了你什么细小反馈？','今天有什么东西比预想中更好？','如果只留下一帧，你想留下什么？'];
 function ensureLifeCompound(){
@@ -1904,6 +1911,12 @@ function ensureLifeCompound(){
       if(S.lifeCompound.bases[k]===OLD5[k]) S.lifeCompound.bases[k]=NEW51[k];
     });
     S.lifeCompound._v5451_migrated=true;
+  }
+  // v6.0.30 一次性迁移：把已走过的旅行脚印折算进「旅行·探索」轨道历史基数（每处去过的地方≈30 分钟）
+  if(!S.lifeCompound._v630_travel_base){
+    var _gone=(S.trips||[]).filter(function(x){return !x.wish;}).length;
+    S.lifeCompound.bases.travel=Math.round(_gone*30);
+    S.lifeCompound._v630_travel_base=true;
   }
   Object.keys(LIFE_TRACKS).forEach(function(k){
     if(typeof S.lifeCompound.bases[k]!=='number') S.lifeCompound.bases[k]=LIFE_TRACKS[k].base;
@@ -1939,6 +1952,7 @@ function lifeTrackOfTask(item){
   if(/冥想|呼吸|正念|打坐|静坐/.test(t)) return 'meditation';
   if(/AI提效|AI 提效|用 ?AI|AI 工具|AI 学习|提示词|prompt|自动化工作流|coze|扣子/.test(t)) return 'ai';
   if(/职业|求职|事业编|央企|文职|简历|面试/.test(t)) return 'career';
+  if(/出行|旅行|出游|远游|游玩|逛展|看展|采风|闲逛|远足|徒步|户外|探索|散心/.test(t)) return 'travel';
   const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|弹琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);
   return mind.length===1?mind[0]:'';
 }
@@ -2028,8 +2042,10 @@ function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
 function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(recordDateStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
   const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=recordDateStr(),lc=ensureLifeCompound();
+  const yiBonus=(key==='travel'&&yiTravelActive());
+  const effMin=yiBonus?Math.round(min*1.2):min;
   // v5.44.1 同步存属性，便于 weeklyReviewStats 直接归类（不必再反查 LIFE_TRACKS）
-  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min,src:'quick',a:t.a});grant(t.a,min,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(min*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+min+' 分钟',min,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+min+' 分钟 · +'+xpGain+' XP');
+  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min:effMin,src:'quick',a:t.a});grant(t.a,effMin,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(effMin*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+effMin+' 分钟'+(yiBonus?'（宜出行·气运+20%）':''),effMin,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+effMin+' 分钟 · +'+xpGain+' XP'+(yiBonus?' · 宜出行':''));
 }
 function syncLifePracticeFromTask(item,d,min,remove){
   const key=lifeTrackOfTask(item);if(!key)return;const lc=ensureLifeCompound(),lid='task:'+(item.id||item.t)+':'+d,idx=lc.logs.findIndex(x=>x.id===lid);
@@ -2201,6 +2217,14 @@ function fortuneToday(){
   return {g, raw, tone, main, yi:yi.slice(0,4), ji:ji.slice(0,3)};
 }
 
+// 今日是否「宜出行」：宜忌（命理+真实记录）命中出行/探索类关键词 → 旅行·探索轨道经验 +20%
+function yiTravelActive(){
+  try{
+    const yi=fortuneToday().yi||[];
+    return yi.some(function(s){ return /出行|远行|出游|远游|游[玩历]|探索|旅行|出门|采风|看展|逛展|闲逛|远足|徒步|户外|散心/.test(s); });
+  }catch(e){ return false; }
+}
+
 // ===== 天气（Open-Meteo · 免 key · 支持 CORS）=====
 const WX_CITIES={
   beijing:{n:'北京',lat:39.9042,lon:116.4074},
@@ -2252,9 +2276,18 @@ function weatherAdvice(w){
   return {yi:yi,ji:ji};
 }
 
+function seasonAct(el){
+  const M={木:['春生之机，宜舒展生发、定新计划','户外散步 20 分钟 / 拉伸一组'],
+           火:['丁火忌燥，宜静守、补水、避烈阳','早睡半小时 / 闭眼静坐 10 分钟'],
+           土:['长夏主运化，宜沉淀、整理、复盘','大扫除一处 / 记一笔账'],
+           金:['秋金主收敛，宜决断、断舍离','复盘本周 / 读完手边一书'],
+           水:['冬水主藏养，宜蓄力、内观','写一句话给未来的自己 / 早睡']};
+  return M[el]||['顺时而为','按自己的节奏来'];
+}
 function renderFortune(){
   const el=document.getElementById('fortuneBox'); if(!el) return;
-  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w);
+  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w), jq=dingHuoNow();
+  document.body.dataset.season=jq.el;
   const city=WX_CITIES[wxCityKey()];
   const stars='★'.repeat(f.tone.lv)+'☆'.repeat(5-f.tone.lv);
   let wxHtml;
@@ -2278,6 +2311,8 @@ function renderFortune(){
       +'<div class="fo-col fo-yi"><div class="fo-col-h">宜</div><ul>'+yiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
       +'<div class="fo-col fo-ji"><div class="fo-col-h">忌</div><ul>'+jiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
     +'</div>'
+    +(yiTravelActive()?'<div class="fo-yi-travel">✈️ 今日宜出行：在「旅行·探索」复利轨道记录，或记旅行脚印，经验 +20%（气运加持）</div>':'')
+    +'<div class="fo-season">🌿 当令 · '+jq.jieqi+'（'+jq.el+'行）：'+seasonAct(jq.el)[0]+' <span class="fo-season-act">今日小行动 · '+seasonAct(jq.el)[1]+'</span></div>'
     +'<div class="fo-note">依你的命格「丁火 · 身强偏旺 · 喜金水清凉」判定，非通用黄历。带「·」的条目来自你自己的记录与'+city.n+'实时天气。</div>';
 }
 

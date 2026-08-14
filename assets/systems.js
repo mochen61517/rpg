@@ -2286,7 +2286,7 @@ function seasonAct(el){
 }
 function renderFortune(){
   const el=document.getElementById('fortuneBox'); if(!el) return;
-  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w), jq=jieqiSuggest();
+  const f=fortuneToday(), w=_wxCache, wa=weatherAdvice(w), jq=dingHuoNow();
   document.body.dataset.season=jq.el;
   const city=WX_CITIES[wxCityKey()];
   const stars='★'.repeat(f.tone.lv)+'☆'.repeat(5-f.tone.lv);
