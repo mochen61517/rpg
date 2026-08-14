@@ -273,7 +273,7 @@ function pickMain(){
   S.mainQ=pick.id; addHist('锁定每日主线：'+pick.t); save();render();
 }
 function claimAch(i){S.ach[i].un=true;save();render();}
-function checkAch(){ S.ach.forEach((a,i)=>{ if(a.auto && !a.un && a.auto()) a.un=true; }); }
+function checkAch(){ S.ach.forEach(function(a){ if(a.auto && !a.un && a.auto()){ a.un=true; save(); if(a.hidden) celebrateTask('🔍 隐藏成就解锁 · '+a.ic+' '+a.n); } }); }
 // 连击：以「天」为粒度的活跃计数（基于活跃日期集合，支持补录历史日期）
 // 完成任意一项（含年/月/周主线，休眠项不计）即把「记录日期」写入 activeDays；
 // 连续天数 = 从最近活跃日（今天或昨天，链未断）向前连续的活跃天数。
@@ -2375,13 +2375,13 @@ function render(){
   // achievements - 拆分已解锁 / 待解锁
   const _achCard=(a,i)=>`<div class="ach ${a.un?'un':''} ${((!a.un)&&(a.next||a.lv))?'featured':''}">
       <div class="ic">${a.ic}</div>
-      <div class="an">${a.n}${a.lv?`<span class="lvtag">Lv.${a.lv}</span>`:''}</div>
+      <div class="an">${a.n}${a.lv?`<span class="lvtag">Lv.${a.lv}</span>`:''}${a.hidden?'<span class="htag">🔍隐藏</span>':''}</div>
       <div class="ad">${a.d}</div>
       ${a.next?`<div class="next">↳ 下一阶 ${a.lv?'':'：'}${a.next}</div>`:''}
       ${a.un?'<div class="claim ok">✔ 已解锁</div>':(a.auto?'<div class="claim wait">自动判定中</div>':'<button class="btn ghost sm claim" onclick="claimAch('+i+')">认领解锁</button>')}
     </div>`;
   const _un=S.ach.map((a,i)=>a.un?_achCard(a,i):null).filter(Boolean);
-  const _lk=S.ach.map((a,i)=>!a.un?_achCard(a,i):null).filter(Boolean);
+  const _lk=S.ach.map((a,i)=>(!a.un && !a.hidden)?_achCard(a,i):null).filter(Boolean);
   document.getElementById('achsUnlocked').innerHTML=_un.join('')||'<div class="hint">尚无解锁的印记，开始修行吧。</div>';
   const _al=document.getElementById('achsLocked'); if(_al) _al.innerHTML=_lk.join('')||'<div class="hint">皆已点亮 ✨</div>';
   document.getElementById('pushToken').value=S.pushToken||'';

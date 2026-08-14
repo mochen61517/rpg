@@ -914,6 +914,19 @@ function migrate(){
     }
     S.yearSingGoal_v1=true;
   }
+  // v6.0.35 隐藏成就注入（旧档兼容；解锁前不显示在待解锁列表）
+  if(S.ach && !S.ach.some(function(a){ return a.id==='h_known'; })){
+    var _yr=new Date().getFullYear();
+    var _hd=new Set((S.hist||[]).map(function(h){return h.d;}).filter(Boolean));
+    var _jq=[]; if(typeof JIEQI!=='undefined'){ JIEQI.forEach(function(q){ var ds=_yr+'-'+String(q[0]).padStart(2,'0')+'-'+String(q[1]).padStart(2,'0'); if(_hd.has(ds)) _jq.push(q[2]); }); }
+    S.ach.push(
+      {id:'h_known', ic:'🔍', n:'自知者明', d:'记录精力满 30 天 · 看清自己的节律', hidden:true, un:false, auto:function(){ return Object.keys(S.energy||{}).length>=30; }},
+      {id:'h_travel',ic:'🔍', n:'行走山河', d:'记过 5 处「去过」的旅行脚印', hidden:true, un:false, auto:function(){ return (S.trips||[]).filter(function(t){return !t.wish;}).length>=5; }},
+      {id:'h_wish', ic:'🔍', n:'愿力可观', d:'点亮 8 枚人生愿望', hidden:true, un:false, auto:function(){ return (S.wishes||[]).filter(function(w){return w.un;}).length>=8; }},
+      {id:'h_season',ic:'🔍', n:'与时偕行', d:'当年在 8 个节气当天留下记录', hidden:true, un:false, auto:function(){ return _jq.length>=8; }},
+      {id:'h_xp',    ic:'🔍', n:'修为初成', d:'累计加权经验突破 8000', hidden:true, un:false, auto:function(){ return overallXP()>=8000; }}
+    );
+  }
   // v5.51.17 清理重复的歌唱年主线：保留 makeSingYear() 生成的「声乐精进：K歌从 80+ 冲击 90+」，删掉用户误新增的类似目标（如「纯K有6首歌可以达到90分+」）。
   if(!S.yearSingDupClean_v1){
     const singIdx=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';});
