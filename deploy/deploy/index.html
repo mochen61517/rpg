@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.0.43</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=6.0.43">
+<title>人生修行录 · v6.0.44</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=6.0.44">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic" id="brandAvatar" onclick="document.getElementById('avatarFile').click()" title="点击更换头像">🕯️</div>
-      <div class="brand-t">人生修行录<span>v6.0.43 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.0.44 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -44,8 +44,14 @@
     <div class="panel lvl-bar" data-dash-id="level" onclick="showPage('growth')" style="cursor:pointer">
         <div class="lvl-main"><span>总等级</span><span class="lvlnum" id="lvlNum">Lv.1</span></div>
         <div class="xpbar"><div class="xpfill" id="xpFill"></div></div>
-        <div class="lvl-xp" id="xpText">0 / 50 加权经验</div>
-        <div class="streak"><span class="flame">🔥</span><span>灯火不熄 <b id="streakNum" style="color:var(--txt)">0</b> 日</span><span class="today" id="todayDate"></span><span id="nextPerk" class="note" style="margin-left:auto"></span></div>
+        <div class="lvl-xp-row">
+          <span class="lvl-xp" id="xpText">0 / 50 加权经验</span>
+          <span class="next-perk" id="nextPerk"></span>
+        </div>
+        <div class="streak">
+          <span class="streak-text"><span class="flame">🔥</span> 灯火不熄 <b id="streakNum" style="color:var(--txt)">0</b> 日</span>
+          <span class="today" id="todayDate"></span>
+        </div>
       </div>
   </div>
 <div class="panel quote-postcard" id="quoteBanner"></div>
@@ -755,9 +761,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=6.0.43"></script>
-<script src="assets/tasks-render.js?v=6.0.43"></script>
-<script src="assets/npc-stories.js?v=6.0.43"></script>
-<script src="assets/systems.js?v=6.0.43"></script>
+<script src="assets/core-state.js?v=6.0.44"></script>
+<script src="assets/tasks-render.js?v=6.0.44"></script>
+<script src="assets/npc-stories.js?v=6.0.44"></script>
+<script src="assets/systems.js?v=6.0.44"></script>
 </body>
 </html>

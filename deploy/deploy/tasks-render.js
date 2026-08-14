@@ -2237,8 +2237,8 @@ function render(){
   const _y=new Date(Date.now()-86400000).toISOString().slice(0,10);
   document.getElementById('streakNum').textContent=computeStreak();
   const recLabel = REC_DATE ? `<span class="recbadge">补录 ${fmtMD(REC_DATE)}</span>` : '';
-  document.getElementById('todayDate').innerHTML=`<div class="d">${fmtFull(new Date())}</div><div class="w">${_td}</div>${recLabel}`;
-  document.getElementById('nextPerk').textContent=`升级特权：Lv.${gL+1}`;
+  document.getElementById('todayDate').innerHTML=`<div class="d">${fmtFull(new Date())}</div>${recLabel}`;
+  document.getElementById('nextPerk').innerHTML=`升级特权 <b>Lv.${gL+1}</b>`;
   if(!SAVE_OK) document.getElementById('saveWarn').style.display='block';
   const inh=inheritedXP();
   const _hi=document.getElementById('histInherit'); if(_hi) _hi.innerHTML='含历史继承底分 ≈ <b style="color:var(--gold)">'+inh.toFixed(0)+'</b> 加权XP（iHour 终身 4234h 折算 · 羽毛球 '+HISTORY_HOURS.BADMINTON+'h / 职业 '+HISTORY_HOURS.CAREER+'h / 身体健康 '+HISTORY_HOURS.BODY+'h / 精神享受 '+HISTORY_HOURS.MIND+'h）。每日打卡在此基础上继续累加。';
