@@ -2407,7 +2407,7 @@ function render(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v5.20 通知中心
@@ -3103,6 +3103,40 @@ function renderGarden(){
     +'<div class="garden-stage">阶段：'+stageName+'（'+pct+'%）</div>'
     +'<div class="garden-bar"><i style="width:'+pct+'%"></i></div>'
     +extra;
+}
+
+// ===== v6.0.32 时间胶囊（写给未来的自己）=====
+function capsuleSeal(){
+  const t=document.getElementById('capText'); const d=document.getElementById('capDate');
+  if(!t||!d) return;
+  const text=t.value.trim(); const date=d.value;
+  if(!text){ alert('先写点什么给未来的自己'); return; }
+  if(!date){ alert('选一个解锁日期'); return; }
+  if(date<=todayStr()){ alert('解锁日期要晚于今天'); return; }
+  S.capsules.push({id:id(), text:text, sealedOn:todayStr(), unlockOn:date, opened:false});
+  addHist('⏳ 封存时间胶囊（'+date+' 开启）'); save(); render();
+  celebrateTask('⏳ 时间胶囊已封存 · 给未来的自己留了句话');
+}
+function capsuleOpen(cid){
+  const c=S.capsules.find(x=>x.id===cid); if(!c) return;
+  c.opened=true; save();
+  alert('⏳ 时间胶囊开启\n\n'+c.text+'\n\n—— '+c.sealedOn+' 的你，写给今天');
+  render();
+}
+function renderCapsule(){
+  const el=document.getElementById('capsuleBox'); if(!el) return;
+  const today=todayStr();
+  const sealed=S.capsules.filter(c=>!c.opened && c.unlockOn>today);
+  const ready=S.capsules.filter(c=>!c.opened && c.unlockOn<=today);
+  const opened=S.capsules.filter(c=>c.opened);
+  let html='<div class="cap-write"><textarea id="capText" placeholder="写一句话给未来的自己…"></textarea>'
+    +'<div class="cap-row"><input type="date" id="capDate"><button class="btn sm primary" onclick="capsuleSeal()">⏳ 封存</button></div>'
+    +'<div class="hint">写给未来的自己，设定解锁日期，到时自动出现在收件匣。</div></div>';
+  if(ready.length) html+='<div class="cap-sec"><div class="cap-h">📨 可开启（'+ready.length+'）</div>'+ready.map(c=>'<button class="btn sm" onclick="capsuleOpen(\''+c.id+'\')">开启 '+c.sealedOn+' 的信</button>').join('')+'</div>';
+  if(sealed.length) html+='<div class="cap-sec"><div class="cap-h">🌱 已封存（'+sealed.length+'）</div>'+sealed.map(c=>'<span class="cap-chip">'+c.unlockOn+' 开启</span>').join('')+'</div>';
+  if(opened.length) html+='<div class="cap-sec"><div class="cap-h">📖 已开启（'+opened.length+'）</div>'+opened.map(c=>'<span class="cap-chip done">'+c.sealedOn+'</span>').join('')+'</div>';
+  if(!ready.length && !sealed.length && !opened.length) html+='<div class="hint">还没有时间胶囊。写一句给未来的自己吧。</div>';
+  el.innerHTML=html;
 }
 
 function renderEnergyPage(){
