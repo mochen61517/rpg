@@ -2921,14 +2921,25 @@ function toggleYearSummary(yk){
   save(); renderLongterm();
 }
 function recommendWeekFocus(st){
-  if(st.energy<45)return {a:'BODY',why:'本周平均精力偏低，下一周先把恢复和身体放回中心。'};
+  if(st.energy<45)return {a:'BODY',why:'这一周你的平均精力只有 '+st.energy+'，像一盏将将够亮的灯。下周先把「好好休息、好好照顾身体」放回中心，把自己先养亮起来。'};
   const vals=Object.keys(st.attr).map(a=>({a,v:st.attr[a]})).sort((x,y)=>x.v-y.v),top=vals[vals.length-1];
-  if(st.total>0&&top.v/st.total>.58){const x=vals[0];return {a:x.a,why:'本周投入明显集中在'+ATTRS[top.a].name+'，下一周用一个重点为'+ATTRS[x.a].name+'补回平衡。'};}
-  if(st.total===0)return {a:'BODY',why:'本周记录较少，下一周从最容易启动的身体照顾开始。'};
-  return {a:top.a,why:'本周在'+ATTRS[top.a].name+'最有行动势能，下一周只沿着这条线再推进一步。'};
+  if(st.total>0&&top.v/st.total>.58){const x=vals[0];return {a:x.a,why:'这一周的心力几乎都流去了'+ATTRS[top.a].name+'，'+ATTRS[x.a].name+' 被悄悄冷落了。下周留一个小小的角落给它，让生活重新找回平衡。'};}
+  if(st.total===0)return {a:'BODY',why:'这一周记下的不多——也许你正需要这样松一松。下周从最不费力的事开始：先照顾好身体，其余的，慢慢来。'};
+  return {a:top.a,why:'这一周，你在'+ATTRS[top.a].name+'里攒下了最好的势头。下周不必另起炉灶，只顺着这条线，再往前走一小步。'};
 }
 function chooseWeekFocus(a){if(!ATTRS[a])return;const wk=monday();S.weekReview.focus[wk]=a;save();renderWeeklyReview();}
-function weeklyReviewLine(st,a){const best=st.best.m>0?(st.best.d.slice(5)+' 是投入最深的一天。'):'这一周还没有记录明确投入。';return '这一周完成 '+st.done+' 项行动，留下 '+h(st.total)+' 的真实投入；'+best+' 下周不铺开战线，只守住「'+ATTRS[a].name+'」。';}
+function weeklyReviewLine(st,a){
+  const best = st.best.m>0
+    ? (st.best.d.slice(5)+'，是你把心安放得最满的一天')
+    : '这一周还没留下清楚的刻度，可时间仍在指缝里悄悄流过';
+  let cadence;
+  if(st.active>=6) cadence='几乎每天都和自己打了照面';
+  else if(st.active>=4) cadence='大半的日子里，都还陪着自己';
+  else if(st.active>=2) cadence='在忙碌的缝隙里，也惦记着回头看一眼';
+  else cadence='在零碎的日常里，仍没舍得彻底放下';
+  return '这一周，你'+cadence+'——'+st.done+' 件小事落了地，'+h(st.total)+' 真实地交给了自己。'
+    + best + '。下周不急着铺开战线，只把心力轻轻收拢到「'+ATTRS[a].name+'」。';
+}
 function sealWeeklyReview(){
   const wk=monday();if(S.weekReview.sealed[wk])return;const st=weeklyReviewStats(wk),rec=recommendWeekFocus(st),a=S.weekReview.focus[wk]||rec.a;
   S.weekReview.focus[wk]=a;S.weekReview.sealed[wk]={ts:new Date().toISOString().slice(0,16).replace('T',' '),focus:a,total:st.total,done:st.done,active:st.active,energy:st.energy,line:weeklyReviewLine(st,a)};
@@ -2939,7 +2950,7 @@ function renderWeeklyReview(){
   el.innerHTML='<div class="wr-head"><div><div class="wr-kicker">WEEKLY CHRONICLE · 本周卷册</div><div class="wr-title">这一周，时间去了哪里</div></div><div class="wr-range">'+wk+' ～ '+st.end+'</div></div>'
     +'<div class="wr-stats"><div class="wr-stat"><b>'+st.done+'</b><span>完成行动</span></div><div class="wr-stat"><b>'+h(st.total)+'</b><span>记录投入</span></div><div class="wr-stat"><b>'+st.active+'/7</b><span>有行动的日子</span></div><div class="wr-stat"><b>'+st.energy+'</b><span>平均精力</span></div></div>'
     +'<div class="wr-bars">'+Object.keys(ATTRS).map(a=>'<div class="wr-bar"><span>'+ATTRS[a].icon+' '+ATTRS[a].name+'</span><span class="wr-track"><i style="width:'+Math.round(st.attr[a]/max*100)+'%;background:'+ATTRS[a].color+'"></i></span><b>'+h(st.attr[a])+'</b></div>').join('')+'</div>'
-    +'<div class="wr-focus"><div class="wr-focus-title">🧭 下周唯一重点 · '+ATTRS[focus].icon+' '+ATTRS[focus].name+'</div><div class="wr-reason">'+(focus===rec.a?rec.why:'这是你手动选择的重点。系统建议为 '+ATTRS[rec.a].name+'：'+rec.why)+'</div>'
+    +'<div class="wr-focus"><div class="wr-focus-title">🧭 下周唯一重点 · '+ATTRS[focus].icon+' '+ATTRS[focus].name+'</div><div class="wr-reason">'+(focus===rec.a?rec.why:'这是你亲自圈下的重点，我为你高兴。若换个角度，系统更偏向 '+ATTRS[rec.a].name+'：'+rec.why)+'</div>'
     +(sealed?'':'<div class="wr-choices">'+Object.keys(ATTRS).map(a=>'<button class="btn xs ghost '+(focus===a?'on':'')+'" onclick="chooseWeekFocus(\''+a+'\')">'+ATTRS[a].icon+' '+ATTRS[a].name+'</button>').join('')+'</div>')+'</div>'
     +(sealed?'<div class="wr-sealed">📖 '+sealed.line+'<br><span class="note">封存于 '+sealed.ts+' · 重点一经封存，本周不再改动</span></div>':'<div class="wr-actions"><button class="btn sm primary" onclick="sealWeeklyReview()">封存本周复盘 · +15 XP</button></div><div class="wr-empty">可以随时预览；建议周日或周一封存。封存只记录总结，不会修改任务。</div>');
 }
