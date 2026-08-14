@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.0.37</title>
+<title>人生修行录 · v6.0.38</title>
 <link rel="stylesheet" href="assets/life-rpg.css?v=6.0.26">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic" id="brandAvatar" onclick="document.getElementById('avatarFile').click()" title="点击更换头像">🕯️</div>
-      <div class="brand-t">人生修行录<span>v6.0.37 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.0.38 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -225,19 +225,33 @@
 
     <!-- ===== 角色设定 ===== -->
     <div class="page" id="page-journey">
-      <div class="phead">角色设定<span class="psub">初始设置 · 成长历程 · 成长方向 · 灵宠 · 丁火流年</span></div>
+      <div class="phead">角色设定<span class="psub">角色档案 · 命理与大运 · 时间记忆</span></div>
+      <div class="tabbar jr-tabs" id="jrTabs">
+        <button class="tab on" data-jr="profile" onclick="switchJourneyTab('profile')">🪪 角色档案</button>
+        <button class="tab" data-jr="destiny" onclick="switchJourneyTab('destiny')">🔮 命理与大运</button>
+        <button class="tab" data-jr="memory" onclick="switchJourneyTab('memory')">⏳ 时间记忆</button>
+      </div>
+      <div id="jr-profile-pane"></div>
+      <div id="jr-destiny-pane" style="display:none"></div>
+      <div id="jr-memory-pane" style="display:none">
+        <div class="panel" id="jpWishes">
+          <h2>🌟 人生愿望 · 人生副本</h2>
+          <div class="wishgroups" id="wishGroups"></div>
+          <div class="hint">每条都是一枚可点亮的人生徽章：点一下即「点亮 ✔」，再点取消。已点亮的会同步出现在首页徽章版块。把它当作长线支线，逐条点亮。</div>
+        </div>
+      </div>
 
-      <div class="panel">
+      <div class="panel" id="jpLiunian">
         <h2>🕯 丁火流年 <span class="note">节气当令 · 宜忌与建议</span></h2>
         <div id="liunianBox"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpDayun">
         <h2>🔮 人生大运时间轴 <span class="note">十年一步 · 高亮当前运 · 宜忌</span></h2>
         <div id="dayunBox" class="dayun-axis"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpProfile">
         <h2>🪪 角色档案</h2>
         <div class="profile">
           <div class="pf-row"><span class="pf-k">头像</span><span class="pf-v"><input type="file" id="avatarFile" accept="image/*" onchange="uploadAvatar(this)" hidden><button class="btn sm" onclick="document.getElementById('avatarFile').click()">上传新头像</button><button class="btn xs ghost" onclick="resetAvatar()">恢复默认</button></span></div>
@@ -256,38 +270,38 @@
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpPet">
         <h2>🐱 灵宠 <span class="note">会偶尔冒出来蹭你的猫</span></h2>
         <div id="petBox"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpBirthday">
         <h2>💌 生日来信 · 重要日子 <span class="note">来临前自动寄信 + 安排江湖委托</span></h2>
         <div id="birthdayBox"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpXiuwei">
         <h2>📊 修为说明</h2>
         <div class="hint" id="histInherit"></div>
         <div class="hint" id="weightHint"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpCapsule">
         <h2>⏳ 时间胶囊 <span class="note">写给未来的自己</span></h2>
         <div id="capsuleBox"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpCodex">
         <h2>📖 人生收集册 <span class="note">走过 / 点亮 / 解锁的痕迹</span></h2>
         <div id="codexBox"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpDemon">
         <h2>👹 心魔挑战 <span class="note">温和 · 削弱而非击败</span></h2>
         <div id="demonBox"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="jpBazi">
         <h2>🔮 命格 · 丁火流年</h2>
         <div class="bazi">
           <div class="pf-row"><span class="pf-k">八字</span><span class="pf-v">乙亥 · 壬午 · <b>丁丑</b> · 乙巳（日主 <b>丁火</b>）</span></div>
@@ -490,17 +504,9 @@
       <!-- v5.51.21 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
       <div class="gp-tabs" id="gpTabs">
         <button class="gp-tab on" data-tab="compound" onclick="switchGrowthTab('compound')">🌳 长期复利轨道</button>
-        <button class="gp-tab" data-tab="wishes" onclick="switchGrowthTab('wishes')">🌟 人生愿望</button>
         <button class="gp-tab" data-tab="rewards" onclick="switchGrowthTab('rewards')">🎁 嘉奖箱</button>
       </div>
       <div class="gp-pane on" id="gpCompound"><div id="longPracticeBox"></div></div>
-      <div class="gp-pane" id="gpWishes" style="display:none">
-        <div class="panel">
-          <h2>🌟 人生愿望 · 人生副本</h2>
-          <div class="wishgroups" id="wishGroups"></div>
-          <div class="hint">每条都是一枚可点亮的人生徽章：点一下即「点亮 ✔」，再点取消。已点亮的会同步出现在首页徽章版块。把它当作长线支线，逐条点亮。</div>
-        </div>
-      </div>
       <div class="gp-pane" id="gpRewards" style="display:none">
         <div class="panel">
           <div id="rewardList" class="reward-list"></div>

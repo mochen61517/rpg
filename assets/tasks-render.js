@@ -2412,6 +2412,8 @@ function render(){
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v6.0.37 板块显隐（默认隐藏钱庄等）
   try{ applyPageVisibility(); }catch(e){ console.warn('v6.0.37 page visibility',e); }
+  // v6.0.38 角色设定页三合一 tab：首次渲染把版块移入对应 pane
+  try{ layoutJourney(); }catch(e){ console.warn('v6.0.38 journey layout',e); }
   // v5.20 通知中心
   try{ renderNotifications(); renderNavBadges(); renderBioAge(); }catch(e){ console.warn('v5.20+ render',e); }
   newlyDone.forEach(idv=>{ const el=document.getElementById('qi_'+idv); if(el) el.classList.add('flash'); });
@@ -2483,6 +2485,29 @@ function switchGrowthTab(tab){
   const map={compound:'gpCompound',wishes:'gpWishes',rewards:'gpRewards'};
   ['gpCompound','gpWishes','gpRewards'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=(id===map[tab])?'block':'none'; });
   save();
+}
+// v6.0.38 角色设定页三合一 tab：角色档案 / 命理与大运 / 时间记忆
+// 版块在 HTML 中带 id（jp*），首次渲染时整体移入对应 pane，之后仅切换 pane 显隐
+let _jrLaidOut=false;
+function layoutJourney(){
+  if(_jrLaidOut) return;
+  const map={
+    profile:['jpProfile','jpPet','jpBirthday','jpDemon'],
+    destiny:['jpLiunian','jpDayun','jpBazi','jpXiuwei'],
+    memory:['jpCapsule','jpCodex','jpWishes']
+  };
+  Object.keys(map).forEach(k=>{
+    const pane=document.getElementById('jr-'+k+'-pane');
+    if(!pane) return;
+    map[k].forEach(id=>{ const el=document.getElementById(id); if(el) pane.appendChild(el); });
+  });
+  _jrLaidOut=true;
+}
+function switchJourneyTab(tab){
+  if(typeof S==='object' && S) S.jrTab=tab;
+  document.querySelectorAll('#jrTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.jr===tab));
+  ['profile','destiny','memory'].forEach(k=>{ const el=document.getElementById('jr-'+k+'-pane'); if(el) el.style.display=(k===tab)?'block':'none'; });
+  if(typeof save==='function') save();
 }
 function renderRewards(){
   const el=document.getElementById('rewardList'); if(!el) return;
@@ -2648,6 +2673,7 @@ function showPage(p){
     markSideSeen();
   }
   if(p==='growth'){ try{ if(!_isDeepLink) switchGrowthTab('compound'); }catch(e){} markBondsSeen(); }   // 打开修行页默认第一个 tab
+  if(p==='journey'){ try{ if(!_isDeepLink) switchJourneyTab(S.jrTab||'profile'); }catch(e){} }   // 打开角色设定页默认「角色档案」tab
   if(p==='longterm'){ try{ if(!_isDeepLink) switchLtTab('month'); }catch(e){} }   // 打开长期主线页默认每月主线
   if(p==='dashboard'){ markSideSeen(); }
   if(p==='data'){ try{ fillProfileInputs(); }catch(e){} try{ syncPageVisibilityUI(); }catch(e){} }
