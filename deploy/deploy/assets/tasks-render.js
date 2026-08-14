@@ -1784,6 +1784,7 @@ const JIANGHU_WEEK_POOL=[
   {id:'jh_w_singtrain',t:'本周 2 次 30 分钟声乐训练（哼鸣+长音强弱推拉+舒适区曲目）',a:'MIND',diff:3,xp:25},
   {id:'jh_w_ai',t:'本周学 1 个 AI 新用法并实际用上',a:'CAREER',diff:3,xp:20},
   {id:'jh_w_tidy',t:'本周整理 2 次（桌面/文件/衣柜任选）',a:'BODY',diff:3,xp:20},
+  {id:'jh_w_family',t:'本周陪父母 / 家人吃一顿饭',a:'MIND',diff:3,xp:20},
   {id:'jh_w_walk',t:'本周 3 次出门走 30 分钟（不戴耳机）',a:'BODY',diff:3,xp:20},
   {id:'jh_w_bmhit',t:'本周打球 / 挥拍 3 次（合计 90 分钟）',a:'BADMINTON',diff:3,xp:20},
   {id:'jh_w_sing15',t:'本周认真唱 3 次（每次 15 分钟+）',a:'MIND',diff:3,xp:20},
@@ -1795,6 +1796,7 @@ const JIANGHU_WEEK_POOL=[
   {id:'jh_w_note',t:'本周记 4 条真实观察（不评判）',a:'MIND',diff:2,xp:12},
   {id:'jh_w_shadow',t:'本周空挥累计 300 拍',a:'BADMINTON',diff:2,xp:12},
   {id:'jh_w_movie',t:'本周认真看完 1 部电影（不刷手机）',a:'MIND',diff:2,xp:12},
+  {id:'jh_w_call',t:'本周给爸妈 / 家人打一次电话（10 分钟+）',a:'MIND',diff:2,xp:12},
   // ★ 几乎不费力
   {id:'jh_w_sun',t:'本周 3 天晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
   {id:'jh_w_cook',t:'本周给自己认真做 2 顿饭',a:'BODY',diff:1,xp:6},
@@ -1827,12 +1829,14 @@ const JIANGHU_MONTH_POOL=[
   {id:'jh_m_walk',t:'本月 12 次出门走 30 分钟',a:'BODY',diff:3,xp:20},
   {id:'jh_m_bmhit',t:'本月打球 / 挥拍累计 12 小时',a:'BADMINTON',diff:3,xp:20},
   {id:'jh_m_sing15',t:'本月认真唱 12 次（每次 15 分钟+）',a:'MIND',diff:3,xp:20},
+  {id:'jh_m_family',t:'本月陪父母 / 家人吃饭 2 次',a:'MIND',diff:3,xp:20},
   // ★★ 顺手能做
   {id:'jh_m_stretch',t:'本月拉伸 12 次',a:'BODY',diff:2,xp:12},
   {id:'jh_m_water',t:'本月 25 天喝够 1.5L 水',a:'BODY',diff:2,xp:12},
   {id:'jh_m_note',t:'本月记 15 条真实观察（不评判）',a:'MIND',diff:2,xp:12},
   {id:'jh_m_shadow',t:'本月空挥累计 1200 拍',a:'BADMINTON',diff:2,xp:12},
   {id:'jh_m_movie',t:'本月完整看完 2 部电影（不刷手机）',a:'MIND',diff:2,xp:12},
+  {id:'jh_m_call',t:'本月给爸妈 / 家人打 4 次电话',a:'MIND',diff:2,xp:12},
   {id:'jh_m_next1',t:'本月 22 天睡前写下明天的第一件事',a:'CAREER',diff:2,xp:12},
   // ★ 几乎不费力
   {id:'jh_m_sun',t:'本月 12 天晒 10 分钟太阳',a:'BODY',diff:1,xp:6},
@@ -1938,7 +1942,13 @@ function jianghuPeriodKey(kind){
   return thisMonth()+'-01';
 }
 /* 周/月榜任务池版本：升级后旧榜单（含进行中的本周/本月）立即换新池任务 */
-const JIANGHU_PERIOD_POOL_VER=2;
+const JIANGHU_PERIOD_POOL_VER=3;
+/* 周/月榜常驻榜首：关系类任务每期必见（复用日榜 pin 机制，diff3 居中但不参与随机） */
+function jianghuPeriodPin(kind){
+  return kind==='week'
+    ? {id:'jh_w_family',t:'本周陪父母 / 家人吃一顿饭',a:'MIND',diff:3,xp:20}
+    : {id:'jh_m_family',t:'本月陪父母 / 家人吃饭 2 次',a:'MIND',diff:3,xp:20};
+}
 function ensureJianghuPeriod(kind, force){
   const key=jianghuPeriodKey(kind);
   const st = kind==='week' ? (S.jianghuWeek=S.jianghuWeek||{key:'',seed:0,list:[]}) : (S.jianghuMonth=S.jianghuMonth||{key:'',seed:0,list:[]});
@@ -1947,23 +1957,25 @@ function ensureJianghuPeriod(kind, force){
   // 硬上限：存量超过 6 条直接截断保留前 6 条（含已完成），不再整榜重摇
   if(Array.isArray(st.list) && st.list.length>6) st.list=st.list.slice(0,6);
   const pool = kind==='week' ? JIANGHU_WEEK_POOL : JIANGHU_MONTH_POOL;
+  const pin = jianghuPeriodPin(kind);
   const stale = st.key!==key || st.poolVer!==JIANGHU_PERIOD_POOL_VER || !Array.isArray(st.list) || !st.list.length;
   if(stale || force){
     const old=(st.key===key && Array.isArray(st.list))?st.list:[];
-    const list=[];
+    const list=[Object.assign({},pin,{done:false,pin:true})];
     [5,4,3,2,1].forEach(function(lv){
       const pl=pool.filter(function(x){ return x.diff===lv && !list.some(function(y){return y.id===x.id;}); });
       if(!pl.length) return;
       const x=pl[seededIndex(key+'|'+kind+'|'+lv+'|'+st.seed, pl.length)];
       list.push(Object.assign({},x,{done:false}));
     });
-    // 上限 6 条：再从不重复的池子里补 1 条
-    const extraPool=pool.filter(function(x){ return !list.some(function(y){return y.id===x.id;}); });
-    if(extraPool.length){
+    // 上限 6 条：若仍有空位，从不重复的池子里补到 6 条
+    while(list.length<6){
+      const extraPool=pool.filter(function(x){ return !list.some(function(y){return y.id===x.id;}); });
+      if(!extraPool.length) break;
       const ex=extraPool[seededIndex(key+'|'+kind+'|extra|'+st.seed, extraPool.length)];
       list.push(Object.assign({},ex,{done:false}));
     }
-    list.sort(function(a,b){ return (b.diff-a.diff) || (b.xp-a.xp) || (a.id<b.id?-1:1); });
+    list.sort(function(a,b){ return (a.pin?-1:0)-(b.pin?-1:0) || (b.diff-a.diff) || (b.xp-a.xp) || (a.id<b.id?-1:1); });
     list.forEach(function(x){ const o=old.filter(function(y){return y.id===x.id;})[0]; if(o&&o.done) x.done=true; });
     st.key=key; st.poolVer=JIANGHU_PERIOD_POOL_VER; st.list=list;
   }
@@ -1987,12 +1999,13 @@ function renderJianghuPeriod(kind){
         +'<div class="jh-rank">'+(i+1)+'</div>'
         +'<div class="jh-body"><div class="jh-t">'+escHtml(jianghuDisplayText(x.id,kind)||x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
-        +'<span class="jh-attr">'+a.icon+' '+a.name+'</span></div></div>'
+        +'<span class="jh-attr">'+a.icon+' '+a.name+'</span>'
+        +(x.pin?'<span class="jh-pin">榜首常驻</span>':'')+'</div></div>'
         +'<div class="jh-xp">+'+x.xp+'</div>'
         +'<button class="btn xs '+(x.done?'ghost':'primary')+'" onclick="jianghuPeriodToggle(\''+kind+'\',\''+x.id+'\')">'+(x.done?'撤销':'完成')+'</button>'+(x.done?'':(accepted?'<span class="jh-accepted">🔒 已揭榜</span>':'<button class="btn xs ghost" data-src="'+kind+'" data-id="'+x.id+'" onclick="jianghuAccept(this.dataset.src,this.dataset.id)">🗡️ 揭榜</button>'))
         +'</div>';
     }).join('')+'</div>'
-    +'<div class="hint">'+(isWeek?'周榜从「周度任务池」抽 6 条，越靠上难度越大、积分越高，本周内完成都算数。':'月榜从「月度目标池」抽 6 条，全是按月累计的口径（次数/小时/天数），月底前完成都算数。')+'做不到就跳过，榜是给你挑的，不是逼你的。</div>';
+    +'<div class="hint">'+(isWeek?'周榜从「周度任务池」抽 6 条，越靠上难度越大、积分越高，本周内完成都算数。':'月榜从「月度目标池」抽 6 条，全是按月累计的口径（次数/小时/天数），月底前完成都算数。')+'榜首常驻一条关系任务，其余随机。做不到就跳过，榜是给你挑的，不是逼你的。</div>';
 }
 function jianghuPeriodToggle(kind, idv){
   const st=ensureJianghuPeriod(kind), arr=(st.list||[]).filter(function(q){return q.id===idv;});
