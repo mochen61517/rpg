@@ -2494,7 +2494,7 @@ function layoutJourney(){
   const map={
     profile:['jpProfile','jpPet','jpBirthday','jpDemon'],
     destiny:['jpLiunian','jpDayun','jpBazi','jpXiuwei'],
-    memory:['jpCapsule','jpCodex','jpWishes']
+    memory:['jpCapsule','jpCodex','jpWishes','jpLoot']
   };
   Object.keys(map).forEach(k=>{
     const pane=document.getElementById('jr-'+k+'-pane');
@@ -3116,10 +3116,16 @@ const GARDEN_SPECIES=[
   {key:'plum',name:'寒梅',kind:'tree',bloom:'🌸'},
   {key:'peach',name:'桃树',kind:'tree',bloom:'🌸'},
   {key:'osmanthus',name:'丹桂',kind:'tree',bloom:'🌼'},
-  {key:'lotus',name:'清莲',kind:'flower',bloom:'🌺'},
+  {key:'lotus',name:'清莲',kind:'water',bloom:'🌺'},
+  {key:'waterlily',name:'睡莲',kind:'water',bloom:'🌸'},
   {key:'orchid',name:'幽兰',kind:'flower',bloom:'🌸'},
   {key:'sunflower',name:'金葵',kind:'flower',bloom:'🌻'},
-  {key:'chrys',name:'秋菊',kind:'flower',bloom:'🌼'}
+  {key:'chrys',name:'秋菊',kind:'flower',bloom:'🌼'},
+  {key:'gardenia',name:'栀子花',kind:'flower',bloom:'🌼'},
+  {key:'lily',name:'百合',kind:'flower',bloom:'🌸'},
+  {key:'peony',name:'牡丹',kind:'flower',bloom:'🌸'},
+  {key:'rose',name:'玫瑰',kind:'flower',bloom:'🌹'},
+  {key:'tulip',name:'郁金香',kind:'flower',bloom:'🌷'}
 ];
 // 每个项目的默认栽种周期（小时）：按「约一个月规律投入」估算，可逐株在卡片上改
 const GARDEN_CYCLE_H={
@@ -3134,6 +3140,176 @@ const GARDEN_STAGES=[
   {min:0.7,  em:'🪴', name:'抽枝'},
   {min:1.0,  em:'',   name:'盛放'}
 ];
+// v6.0.45 同时生长上限（可被 S.garden.maxGrowing 覆盖）
+const GARDEN_MAX_GROWING=3;
+// ===== v6.0.47 灵圃植物改手绘风 SVG（非 emoji）=====
+let _gpid=0;
+function _petal(cx,cy,len,w,fill,rot){
+  const tipY=cy-len;
+  const d='M'+cx+' '+cy+' C '+(cx-w)+' '+(cy-len*0.45)+' '+(cx-w*0.55)+' '+tipY+' '+cx+' '+tipY+' C '+(cx+w*0.55)+' '+tipY+' '+(cx+w)+' '+(cy-len*0.45)+' '+cx+' '+cy+' Z';
+  return '<g transform="rotate('+rot.toFixed(1)+' '+cx+' '+cy+')"><path d="'+d+'" fill="'+fill+'"/></g>';
+}
+function _ring(cx,cy,n,len,w,fill,rot0){let s='';for(let i=0;i<n;i++)s+=_petal(cx,cy,len,w,fill,rot0+i*360/n);return s;}
+function _center(cx,cy,r,c,seeds){
+  let s='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+c+'"/>';
+  if(seeds){for(let i=0;i<10;i++){const a=i*36;const rr=r*0.62;const x=cx+rr*Math.sin(a*Math.PI/180);const y=cy-rr*Math.cos(a*Math.PI/180);s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.4" fill="#4a2f1a"/>';}}
+  return s;
+}
+// 径向花瓣花卉配置（rings: [瓣数, 长, 宽, 色, 起始角]；c: [中心半径, 色]）
+const GFX={
+  rose:{rings:[[8,26,9,'#e0689a',0],[7,18,7,'#d44f86',22],[6,11,5,'#c23e74',11]],c:[5,'#a82f60']},
+  peony:{rings:[[10,30,11,'#f2a6c4',0],[9,21,8,'#ec84ac',18],[7,13,6,'#e26f9c',9]],c:[6,'#d65c8e']},
+  gardenia:{rings:[[7,22,9,'#ffffff',0],[6,13,6,'#eaf1ff',20]],c:[5,'#ffd866']},
+  sunflower:{rings:[[14,30,7,'#ffc62e',0]],c:[13,'#6b4423'],seeds:true},
+  chrys:{rings:[[16,28,4,'#ffd24d',0],[12,18,3,'#ffe89a',11]],c:[7,'#c98a2b']},
+  lotus:{rings:[[9,30,8,'#f7a8c4',0],[8,20,6,'#ef7fae',18]],c:[6,'#f6d65b']},
+  waterlily:{rings:[[11,24,7,'#f4b8d6',0],[8,15,5,'#ef9ac4',16]],c:[6,'#ffe08a']},
+  orchid:{rings:[[5,22,6,'#c9a3e6',0],[3,12,5,'#b07fd6',40]],c:[4,'#ffd24d']}
+};
+function headRadial(key,cx,cy,sc){
+  const g=GFX[key]; if(!g) return '';
+  let s=''; g.rings.forEach(function(r){ s+=_ring(cx,cy,r[0],r[1]*sc,r[2]*sc,r[3],r[4]); });
+  s+=_center(cx,cy,g.c[0]*sc,g.c[1],g.seeds);
+  return s;
+}
+function headLily(cx,cy,sc){
+  let s='';
+  for(let i=0;i<6;i++){ s+=_petal(cx,cy,30*sc,7*sc, i%2?'#ffe3ec':'#fff4f7', i*60); }
+  for(let i=0;i<6;i++){ const a=i*60+30; const x=cx+14*sc*Math.sin(a*Math.PI/180); const y=cy-14*sc*Math.cos(a*Math.PI/180); s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.6" fill="#e58aa8"/>'; }
+  for(let i=0;i<6;i++){ const a=i*60; const x=cx+10*sc*Math.sin(a*Math.PI/180); const y=cy-10*sc*Math.cos(a*Math.PI/180); s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#caa23a" stroke-width="1.3"/><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.2" fill="#ffd24d"/>'; }
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="2.4" fill="#e9b84a"/>';
+  return s;
+}
+function headTulip(cx,cy,sc){
+  const w=16*sc,h=26*sc;
+  let s='<path d="M'+(cx-w)+' '+cy+' Q '+(cx-w)+' '+(cy-h)+' '+cx+' '+(cy-h)+' Q '+(cx+w)+' '+(cy-h)+' '+(cx+w)+' '+cy+' Q '+cx+' '+(cy-h*0.4)+' '+(cx-w)+' '+cy+' Z" fill="#e0556f"/>';
+  s+='<path d="M'+cx+' '+cy+' Q '+(cx-6*sc)+' '+(cy-h*0.7)+' '+cx+' '+(cy-h)+' Q '+(cx+6*sc)+' '+(cy-h*0.7)+' '+cx+' '+cy+' Z" fill="#d23b5b"/>';
+  return s;
+}
+function headTree(key,cx,cy,sc){
+  if(key==='pine'){
+    // 多层针叶塔，层与层错落，更自然
+    let s=''; const tiers=[[0,30],[-3,22],[4,15],[-1,8]];
+    tiers.forEach(function(t){ const w=t[1]*sc, top=cy-(t[2]*sc)-(8*sc), base=cy-(t[2]*sc)+(6*sc);
+      s+='<path d="M'+cx+' '+top.toFixed(1)+' L'+(cx-w).toFixed(1)+' '+base.toFixed(1)+' L'+(cx+w).toFixed(1)+' '+base.toFixed(1)+' Z" fill="#2f7d4f"/>';
+      s+='<path d="M'+cx+' '+top.toFixed(1)+' L'+(cx-w*0.55).toFixed(1)+' '+(base-5*sc).toFixed(1)+' L'+(cx+w*0.55).toFixed(1)+' '+(base-5*sc).toFixed(1)+' Z" fill="#3a9160"/>'; });
+    return s;
+  }
+  if(key==='willow'){
+    // 垂下的柳枝 + 细柳叶（带旋转）；落地后垂得更长更自然
+    let s=''; const branches=[[-22,28],[-8,38],[10,32],[22,26],[0,34]];
+    branches.forEach(function(b){ const x=cx+b[0]*sc, len=b[1]*sc;
+      s+='<path d="M'+cx+' '+cy+' Q '+x.toFixed(1)+' '+(cy+len*0.35).toFixed(1)+' '+x.toFixed(1)+' '+(cy+len).toFixed(1)+'" stroke="#6fae6a" stroke-width="'+(2.3*sc).toFixed(1)+'" fill="none" stroke-linecap="round"/>';
+      for(let i=1;i<=4;i++){ const yy=cy+len*i/5, xx=x+(i%2?3:-3)*sc;
+        s+='<ellipse cx="'+xx.toFixed(1)+'" cy="'+yy.toFixed(1)+'" rx="'+(2.6*sc).toFixed(1)+'" ry="'+(1.2*sc).toFixed(1)+'" fill="#8ccb86" transform="rotate('+(i%2?35:-35)+' '+xx.toFixed(1)+' '+yy.toFixed(1)+')"/>'; } });
+    return s;
+  }
+  // 花树：寒梅 / 桃树 / 丹桂 —— 枝干骨架 + 花
+  let s=''; const twig=[[-15,-3,-24,-16],[13,-1,22,-14],[-6,7,-15,-3],[9,5,19,1],[0,-11,1,-24]];
+  twig.forEach(function(t){ s+='<path d="M'+cx+' '+cy+' L'+(cx+t[0]*sc).toFixed(1)+' '+(cy+t[1]*sc).toFixed(1)+' Q '+(cx+t[2]*0.6*sc).toFixed(1)+' '+(cy+t[3]*0.6*sc).toFixed(1)+' '+(cx+t[2]*sc).toFixed(1)+' '+(cy+t[3]*sc).toFixed(1)+'" stroke="#5b3a28" stroke-width="'+(1.6*sc).toFixed(1)+'" fill="none" stroke-linecap="round"/>'; });
+  if(key==='osmanthus'){
+    const gx=[[0,-15],[7,-13],[-8,-12],[13,-8],[-14,-5],[4,-4],[-4,0],[10,1],[-10,3],[15,4],[-16,6],[6,7],[-6,10],[12,9],[-12,12],[1,12],[8,13],[-8,15],[3,16],[-2,-17],[16,-11],[-17,-14],[18,-3],[-18,0],[11,-15],[-11,17]];
+    gx.forEach(function(p){ s+='<circle cx="'+(cx+p[0]*sc).toFixed(1)+'" cy="'+(cy+p[1]*sc).toFixed(1)+'" r="'+(1.6*sc).toFixed(1)+'" fill="#ffba4d"/>'; });
+  } else {
+    const bc=key==='peach'?'#ffc2d6':'#f7a8c4';
+    const pts=[[0,-14],[-13,-2],[13,-4],[-8,9],[9,7],[-18,-12],[18,-10],[1,3],[-4,-19],[15,-16],[-16,14]];
+    pts.forEach(function(p){ const fx=cx+p[0]*sc, fy=cy+p[1]*sc;
+      for(let i=0;i<5;i++){ const a=i*72-90, px=fx+4.3*sc*Math.cos(a*Math.PI/180), py=fy+4.3*sc*Math.sin(a*Math.PI/180);
+        s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(2.5*sc).toFixed(1)+'" fill="'+bc+'" opacity="0.92"/>'; }
+      s+='<circle cx="'+fx.toFixed(1)+'" cy="'+fy.toFixed(1)+'" r="'+(1.7*sc).toFixed(1)+'" fill="#ffe08a"/>'; });
+  }
+  return s;
+}
+function buildHead(key,cx,cy,sc){
+  if(GFX[key]) return headRadial(key,cx,cy,sc);
+  if(key==='lily') return headLily(cx,cy,sc);
+  if(key==='tulip') return headTulip(cx,cy,sc);
+  if(key==='pine'||key==='willow'||key==='plum'||key==='peach'||key==='osmanthus') return headTree(key,cx,cy,sc);
+  return headRadial('rose',cx,cy,sc);
+}
+function _bud(cx,cy,fill,sc){ const r=5.5*sc; return '<path d="M'+cx+' '+(cy+r)+' C '+(cx-r)+' '+cy+' '+(cx-r*0.5)+' '+(cy-r*1.6)+' '+cx+' '+(cy-r*1.6)+' C '+(cx+r*0.5)+' '+(cy-r*1.6)+' '+(cx+r)+' '+cy+' '+cx+' '+(cy+r)+' Z" fill="'+fill+'"/>'; }
+function _tint(key){ const m={rose:'#e0689a',peony:'#ec84ac',gardenia:'#cfe0ff',sunflower:'#ffc62e',chrys:'#ffd24d',lotus:'#ef7fae',waterlily:'#ef9ac4',orchid:'#c9a3e6',lily:'#ffe3ec',tulip:'#e0556f'}; return m[key]||'#6aa86a'; }
+// 组合一株植物：盆/水钵 + 茎 + 叶 + 生长阶段（种子→茎→叶→花苞→盛放）
+function gardenPlantSVG(sp, frac){
+  _gpid++; const W=120,H=165, cx=60; let inner='';
+  const water = (sp.key==='lotus'||sp.key==='waterlily');
+  const isTree = (sp.kind==='tree');
+  let baseY; // 茎/干从这里冒出
+  if(water){
+    // 浅口水钵 + 水面
+    inner+='<path d="M14 118 Q60 130 106 118 L98 142 Q60 152 22 142 Z" fill="#356b80"/>';
+    inner+='<ellipse cx="60" cy="118" rx="46" ry="9" fill="#2f5d72"/>';
+    inner+='<ellipse cx="60" cy="117" rx="46" ry="7" fill="#3f7d96"/>';
+    baseY=117;
+  } else if(isTree){
+    // 地面：土堆 + 草皮 + 几丛草，树直接种在地上（不进花盆）
+    inner+='<path d="M8 140 Q60 153 112 140 L106 156 Q60 164 14 156 Z" fill="#7a5a3a"/>';
+    inner+='<ellipse cx="60" cy="140" rx="52" ry="9" fill="#6f9a52"/>';
+    inner+='<ellipse cx="60" cy="139" rx="52" ry="6" fill="#7fae60"/>';
+    for(let gi=-2; gi<=2; gi++){ const gx=cx+gi*15;
+      inner+='<path d="M'+gx+' 140 Q '+(gx-3)+' 132 '+gx+' 128" stroke="#5f8f48" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
+      inner+='<path d="M'+(gx+2)+' 140 Q '+(gx+5)+' 133 '+(gx+2)+' 129" stroke="#6fa056" stroke-width="1.5" fill="none" stroke-linecap="round"/>'; }
+    baseY=139;
+  } else {
+    // 陶盆（盆沿 + 盆身，带暗部与高光，偏真实）
+    inner+='<path d="M24 112 L96 112 L88 150 L32 150 Z" fill="#c46a44"/>';
+    inner+='<path d="M24 112 L96 112 L93 124 L27 124 Z" fill="#a8542f" opacity="0.5"/>';
+    inner+='<path d="M19 102 L101 102 L96 114 L24 114 Z" fill="#b5623f"/>';
+    inner+='<ellipse cx="60" cy="106" rx="41" ry="5.5" fill="#3a2a1e"/>';
+    inner+='<path d="M32 117 L36 147" stroke="#e6a981" stroke-width="3" opacity="0.3" fill="none" stroke-linecap="round"/>';
+    baseY=105;
+  }
+  if(isTree){
+    const trunkTop=baseY-(20+60*frac);
+    // 主干（略弯、下粗上细）+ 暗部，比光杆梯形更真实
+    inner+='<path d="M'+(cx-4)+' '+baseY+' Q '+(cx-2)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx-2)+' '+trunkTop+' L'+(cx+2)+' '+trunkTop+' Q '+(cx+2)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx+4)+' '+baseY+' Z" fill="#6b4a32"/>';
+    inner+='<path d="M'+(cx+0.5)+' '+baseY+' Q '+(cx+1)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx+1.5)+' '+trunkTop+' L'+(cx+3)+' '+trunkTop+' Q '+(cx+3)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx+4)+' '+baseY+' Z" fill="#543620" opacity="0.55"/>';
+    if(frac>=1) inner+=buildHead(sp.key,cx,trunkTop-6,0.95);
+    else if(frac>=0.7){ const rr=10+10*(frac-0.7)/0.3; inner+='<ellipse cx="'+cx+'" cy="'+(trunkTop-8).toFixed(1)+'" rx="'+(rr*1.15).toFixed(1)+'" ry="'+rr.toFixed(1)+'" fill="#5f9a5f" opacity="0.85"/><ellipse cx="'+(cx-rr*0.55).toFixed(1)+'" cy="'+(trunkTop-3).toFixed(1)+'" rx="'+(rr*0.7).toFixed(1)+'" ry="'+(rr*0.6).toFixed(1)+'" fill="#6fae6a" opacity="0.8"/>'; }
+    else if(frac>=0.2) inner+='<circle cx="'+cx+'" cy="'+(trunkTop-5)+'" r="6" fill="#6aa86a"/>';
+  } else if(water){
+    if(frac>=0.2){
+      if(sp.key==='waterlily') inner+='<ellipse cx="'+(cx-16)+'" cy="120" rx="28" ry="8" fill="#3f8a5a" opacity="0.9"/><ellipse cx="'+(cx+18)+'" cy="123" rx="22" ry="6" fill="#357a4e" opacity="0.85"/>';
+      if(sp.key==='lotus') inner+='<ellipse cx="'+(cx-20)+'" cy="121" rx="17" ry="5" fill="#3f8a5a" opacity="0.85"/><ellipse cx="'+(cx+18)+'" cy="123" rx="15" ry="4" fill="#357a4e" opacity="0.85"/>';
+    }
+    if(frac>=1){ inner+=buildHead(sp.key, cx-12, 108, 0.82); inner+=buildHead(sp.key, cx+16, 111, 0.6); }
+    else if(frac>=0.7){ inner+=_bud(cx-12,108,_tint(sp.key),0.82); inner+=_bud(cx+16,111,_tint(sp.key),0.6); }
+    else if(frac>=0.2){ inner+=_bud(cx,116,'#6aa86a',0.6); }
+  } else {
+    // 多枝盆栽：7 根错落茎，高度/大小/出茎点都拉开，形成明显层次
+    const reach=60;
+    const stems=[
+      {dx:0,   tf:1.0,  sc:1.06, thr:0.18, lean:0},
+      {dx:-13, tf:0.85, sc:0.82, thr:0.30, lean:-1.3},
+      {dx:13,  tf:0.85, sc:0.82, thr:0.30, lean:1.3},
+      {dx:-22, tf:0.68, sc:0.64, thr:0.46, lean:-2.0},
+      {dx:22,  tf:0.68, sc:0.64, thr:0.46, lean:2.0},
+      {dx:-29, tf:0.52, sc:0.54, thr:0.60, lean:-1.5},
+      {dx:29,  tf:0.52, sc:0.54, thr:0.60, lean:1.5}
+    ];
+    function leafAt(x,y,side,sc){
+      const dir=side?1:-1;
+      const d='M'+x+' '+y+' Q '+(x+dir*14*sc)+' '+(y-3*sc)+' '+(x+dir*16*sc)+' '+(y-13*sc)+' Q '+(x+dir*6*sc)+' '+(y-9*sc)+' '+x+' '+y+' Z';
+      return '<path d="'+d+'" fill="'+(side?'#57a85a':'#4f9a52')+'"/>';
+    }
+    let drew=false;
+    stems.forEach(function(st){
+      if(frac<st.thr) return; drew=true;
+      const topX=cx+st.dx+st.lean*8;
+      const topY=baseY-(reach*st.tf*frac);
+      const midX=cx+st.dx*0.5+st.lean*4;
+      inner+='<path d="M'+(cx+st.dx)+' '+baseY+' Q '+midX.toFixed(1)+' '+((baseY+topY)/2).toFixed(1)+' '+topX.toFixed(1)+' '+topY.toFixed(1)+'" stroke="#4f8a4f" stroke-width="'+(2.2+1.6*frac*st.sc).toFixed(1)+'" fill="none" stroke-linecap="round"/>';
+      const ly1=baseY-(reach*st.tf*frac)*0.45, ly2=baseY-(reach*st.tf*frac)*0.7;
+      if(frac>=0.4){ inner+=leafAt(cx+st.dx*0.6, ly1, -1, 0.9*st.sc); inner+=leafAt(cx+st.dx*0.6, ly1+3, 1, 0.9*st.sc); }
+      if(frac>=0.6){ inner+=leafAt(midX, ly2, st.lean<0?-1:1, 0.75*st.sc); }
+      if(frac>=1) inner+=buildHead(sp.key, topX, topY, st.sc);
+      else if(frac>=0.7) inner+=_bud(topX, topY, _tint(sp.key), 0.9*st.sc);
+      else if(frac>=0.2) inner+=_bud(topX, topY, '#6aa86a', 0.6*st.sc);
+    });
+    if(!drew) inner+='<ellipse cx="'+cx+'" cy="'+(baseY-3)+'" rx="6" ry="4" fill="#7a5a3a"/>';
+  }
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="96" height="132" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+}
 function gardenStageOf(frac){ let s=GARDEN_STAGES[0]; for(const st of GARDEN_STAGES){ if(frac>=st.min) s=st; } return s; }
 // 某项目在 [from,to] 区间内累计的分钟（任务 mins + 复利轨道 logs）
 function gardenProjMinutes(proj, from, to){
@@ -3148,15 +3324,12 @@ function gardenProjMinutes(proj, from, to){
 function plantGarden(proj){
   if(!proj || !LIFE_TRACKS[proj]) return;
   if((S.garden.growing||[]).some(function(p){return p.proj===proj;})){ alert('「'+LIFE_TRACKS[proj].n+'」的灵圃里已经有一株在长了，先把它养到盛放吧。'); return; }
+  if((S.garden.growing||[]).length >= (S.garden.maxGrowing||GARDEN_MAX_GROWING)){ alert('灵圃最多同时养 '+(S.garden.maxGrowing||GARDEN_MAX_GROWING)+' 株，先把现有的养到盛放吧。'); return; }
   const ch=Math.max(1, Math.round(GARDEN_CYCLE_H[proj]||30));
   const sp=GARDEN_SPECIES[Math.floor(Math.random()*GARDEN_SPECIES.length)];
   S.garden.growing.push({id:id(), proj:proj, species:sp.key, plantedAt:todayStr(), cycleH:ch, revealed:false});
   addHist('🌳 灵圃新栽「'+LIFE_TRACKS[proj].n+'」一株（盲盒·'+sp.name+'）'); save(); render();
   celebrateTask('🌳 灵圃栽培 · 「'+LIFE_TRACKS[proj].n+'」落下一粒种子');
-}
-function setGardenCycle(gid, val){
-  const g=S.garden.growing.find(function(p){return p.id===gid;}); if(!g) return;
-  g.cycleH=Math.max(1, Math.round(+val||g.cycleH)); save(); render();
 }
 function harvestGarden(gid){
   const g=S.garden.growing.find(function(p){return p.id===gid;}); if(!g) return;
@@ -3170,15 +3343,18 @@ function renderGarden(){
   const el=document.getElementById('gardenBox'); if(!el) return;
   const g=S.garden; const today=todayStr();
   let html='';
-  // 栽种区：可种项目（未在生长的）
+  // 栽种区：可种项目（未在生长 + 未达同时上限）
   const growingProjs=(g.growing||[]).map(function(p){return p.proj;});
+  const atMax=(g.growing||[]).length >= (S.garden.maxGrowing||GARDEN_MAX_GROWING);
   const avail=Object.keys(LIFE_TRACKS).filter(function(k){return !LIFE_TRACKS[k].paused && growingProjs.indexOf(k)<0;});
-  if(avail.length){
-    html+='<div class="garden-plant-row"><div class="garden-plant-label">🌱 栽一株（选个项目，用你在它上面花的时间养它长大）</div><div class="garden-proj-chips">';
-    avail.forEach(function(k){ const t=LIFE_TRACKS[k], def=GARDEN_CYCLE_H[k]||30;
-      html+='<button class="garden-proj" onclick="plantGarden(\''+k+'\')">'+t.ic+' '+t.n+'<span class="garden-proj-h">≈'+def+'h</span></button>';
+  if(avail.length && !atMax){
+    html+='<div class="garden-plant-row"><div class="garden-plant-label">🌱 栽一株（选个项目，用你在它上面花的时间养它长大 · 最多同时养 '+(S.garden.maxGrowing||GARDEN_MAX_GROWING)+' 株）</div><div class="garden-proj-chips">';
+    avail.forEach(function(k){ const t=LIFE_TRACKS[k];
+      html+='<button class="garden-proj" onclick="plantGarden(\''+k+'\')">'+t.ic+' '+t.n+'</button>';
     });
     html+='</div></div>';
+  } else if(atMax){
+    html+='<div class="hint">灵圃最多同时养 '+(S.garden.maxGrowing||GARDEN_MAX_GROWING)+' 株，先把现有的养到盛放吧。</div>';
   }
   // 生长中
   if(g.growing && g.growing.length){
@@ -3190,7 +3366,7 @@ function renderGarden(){
       const frac=cycleMin>0?Math.min(1, gained/cycleMin):0;
       const st=gardenStageOf(frac);
       const bloomed=frac>=1;
-      const em=bloomed?sp.bloom:st.em;
+      const em=gardenPlantSVG(sp, frac);
       if(!p.revealed && frac>=GARDEN_STAGES[1].min){ p.revealed=true; save(); }
       const label=p.revealed?('「'+sp.name+'」'+(sp.kind==='flower'?'花':'树')):'一粒未名的种子';
       const pct=Math.round(frac*100);
@@ -3207,7 +3383,7 @@ function renderGarden(){
         +'<div class="garden-bar"><i style="width:'+pct+'%"></i></div>'
         +'<div class="gc-mins">'+Math.round(gained)+' / '+(p.cycleH*60)+' 分钟</div>'
         +'<div class="gc-eta">'+eta+'</div>'
-        +'<div class="gc-cycle">周期 <input class="gc-cycle-in" type="number" min="1" value="'+p.cycleH+'" onchange="setGardenCycle(\''+p.id+'\',this.value)"> h</div>'
+        +'<div class="gc-cycle">周期 '+p.cycleH+' h</div>'
         +(bloomed?'<button class="btn sm primary" onclick="harvestGarden(\''+p.id+'\')">🌟 收入我的植物</button>'
                  :'<div class="hint sm">继续在「'+(t?t.n:'')+'」上花时间，它就会长大</div>')
         +'</div>';
@@ -3220,7 +3396,7 @@ function renderGarden(){
     g.harvested.slice().reverse().forEach(function(h){
       const t=LIFE_TRACKS[h.proj], sp=GARDEN_SPECIES.find(function(x){return x.key===h.species;})||GARDEN_SPECIES[0];
       html+='<div class="garden-card mine-card">'
-        +'<div class="gc-plant">'+sp.bloom+'</div>'
+        +'<div class="gc-plant">'+gardenPlantSVG(sp,1)+'</div>'
         +'<div class="gc-name">'+sp.name+(sp.kind==='flower'?'花':'树')+'</div>'
         +'<div class="gc-proj">'+(t?t.ic+' '+t.n:(h.proj||'灵圃'))+'</div>'
         +(h.bloomedOn?'<div class="gc-eta">盛放于 '+h.bloomedOn+'</div>':'')

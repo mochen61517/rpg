@@ -1839,16 +1839,7 @@ function reorganizeDetailPages(){
     document.querySelector('#page-map > .lifemap')
   ]);
 
-  const fate=byTitle('journey','丁火流年');
-  const fortune=byTitle('journey','人生大运时间轴');
-  if(fate || fortune){
-    const profile=byTitle('journey','角色档案');
-    const marker=document.createElement('div');
-    profile?.insertAdjacentElement('afterend',marker);
-    detailGroup('journey','🔮 命理与大运','默认收起 · 需要参考时展开',[fate,fortune]);
-    const group=page('journey')?.lastElementChild;
-    if(marker.parentNode && group) marker.replaceWith(group);
-  }
+  // v6.0.38 后「命理与大运」已作为独立 tab pane 默认展示，不再需要在角色档案下额外生成折叠色块
 
   setupUsageTracking();
   setupLifeCompoundUI();
