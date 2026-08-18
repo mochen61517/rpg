@@ -3502,6 +3502,7 @@ function renderEnergyPage(){
     +'<div class="ea-body"><div class="ea-tip-top">'+e.tip+'</div>'
     +'<ul class="ea-list">'+advice.map(a=>'<li>'+a+'</li>').join('')+'</ul></div></div>';
   h+='<div class="energy-cards">';
+  h+=subjectivityCard();
   h+=energyCard('⚡ 精力值', '负荷 vs 恢复的综合分', e.v+' / 100 · '+e.label,
       (d)=>energyStateForDate(d).v, {max:100, colorFn:(v)=>v>=75?'#3fae74':(v>=50?'#5b8fd6':(v>=30?'#e0a94a':'#d9534f')), fmtVal:(v)=>v}, ranges);
   h+=energyCard('💤 睡眠', '每晚睡眠时长（小时）', (S.bioAge.sleepHours!=null?S.bioAge.sleepHours+'h':'未录入'),
@@ -3509,7 +3510,6 @@ function renderEnergyPage(){
   h+=energyCard('🤸 身体恢复', '拉伸 / 疗愈完成标记', '',
       (d)=>(isStretchOn(d)?1:0)+(isHealedOn(d)?1:0), {max:2, colorFn:(v)=>v>=2?'#3fae74':(v>=1?'#5b8fd6':'#888'), fmtVal:(v)=>['无','部分','完成'][v]||v}, ranges);
   h+=energyCardBio();
-  h+=subjectivityCard();
   h+='</div>';
   root.innerHTML=h;
 }
