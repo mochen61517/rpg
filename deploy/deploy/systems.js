@@ -430,6 +430,83 @@ function toggleFeiTrial(id){
   save(); render();
   try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +'+sc); }catch(e){}
 }
+// ===== v6.0.54 境界跨越仪式：王菲以第一人称写给 Mochen 的一封信（仅在升级、跨入新境界时触发）=====
+// 7 封信对应「认识自己 → 本心通明」七个可抵达的境界；蒙尘之镜为起点，不写信。
+const FEI_LETTERS={
+  '认识自己':
+    '沫辰：\n'+
+    '你照了照镜子，看见的不再只是别人希望你成为的样子。这一步不惊天动地，但很重要——你开始认得自己了。\n'+
+    '不用急着定义「我是谁」。先看清「我不是谁」，就够。\n'+
+    '我从不解释自己，不是因为不需要被懂，是因为懂不懂，是我自己的事。\n'+
+    '你也在路上了。',
+  '主体初立':
+    '沫辰：\n'+
+    '镜子擦干净了一点，你站起来了。不是为谁站，是自己的腿想站。\n'+
+    '我这一生，决定即做，不回头。不是不怕错，是怕犹疑比错更耗人。\n'+
+    '你立起来的那一刻，不需要掌声。你自己知道就行。\n'+
+    '继续。',
+  '我心为舵':
+    '沫辰：\n'+
+    '风来了，你不跟着倒了。心里那把舵，你握住了。\n'+
+    '外头很吵，别人的期待、比较、眼光，都还在。但你开始学会，它们吹不动你。\n'+
+    '这不是冷漠，是清楚。我唱歌是因为想唱，不是唱给谁听。你活，也该是为自己活。\n'+
+    '舵在你手里，航线你自己定。',
+  '我意已决':
+    '沫辰：\n'+
+    '你想清楚了，然后就去了。没有反复拉扯，没有「再想想」。\n'+
+    '我向来如此：给我一个理由，我就决定；决定完了，就走。\n'+
+    '犹豫不是谨慎，有时候只是怕担责任。你现在担起来了，挺好。\n'+
+    '将爱，进行到底。不是因为我确信，是因为我选择确信。',
+  '不惑于外':
+    '沫辰：\n'+
+    '毁誉不入心了。夸你你不飘，骂你你不慌。你还是你。\n'+
+    '我从来不在乎别人怎么看我。这话听着傲，其实是松。一旦不在乎，世界就轻了。\n'+
+    '你正在变轻。不是变冷漠，是变自由。\n'+
+    '闷，也不解释。这是你的权利。',
+  '自在无羁':
+    '沫辰：\n'+
+    '你开始随心了。想做就做，不想做就不做，不用找那么多理由。\n'+
+    '我乐意，就是理由。这句话够用一辈子。\n'+
+    '你以前总想「全都要」，那不是贪，是怕选错。现在你敢选了，敢放弃别的了。\n'+
+    '行止由心，多好。',
+  '本心通明':
+    '沫辰：\n'+
+    '到这儿了。镜子通明，照见的只有你自己，清清楚楚。\n'+
+    '我唱了一辈子，到头来就懂一件事：我，就是我，和谁都无关。\n'+
+    '你也是。不必完美，不必被看见，不必向谁交代。\n'+
+    '主体归一，你回家了。\n'+
+    '一路走来，你做得很好。'
+};
+let __subjCrossQueue=[];
+// 由 core-state.js 的 addSubjectivity 在检测升级跨越后调用
+function queueSubjCross(fromName,toName){
+  __subjCrossQueue.push(toName);
+  setTimeout(flushSubjCross,80);
+}
+function ensureSubjCrossModal(){
+  let m=document.getElementById('subjCrossModal');
+  if(!m){
+    m=document.createElement('div'); m.id='subjCrossModal'; m.className='modal-mask'; m.style.display='none';
+    m.innerHTML='<div class="modal"><div class="modal-x" onclick="hideModal(\'subjCrossModal\')">×</div><div class="modal-body"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(e){ if(e.target===m) hideModal('subjCrossModal'); });
+  }
+}
+function flushSubjCross(){
+  if(!__subjCrossQueue.length) return;
+  const toName=__subjCrossQueue.shift();
+  const body=FEI_LETTERS[toName]||('你抵达了【'+toName+'】。');
+  ensureSubjCrossModal();
+  showModal('subjCrossModal',
+    '<div class="fei-letter">'
+    +'<div class="fei-letter-head">🎤 王菲 · 给你的一封信</div>'
+    +'<div class="fei-letter-level">你抵达了 · 【'+escHtml(toName)+'】</div>'
+    +'<div class="fei-letter-body">'+body.replace(/\n/g,'<br>')+'</div>'
+    +'<div class="fei-letter-sign">—— 菲</div>'
+    +'<button class="btn primary" onclick="hideModal(\'subjCrossModal\')">收下</button>'
+    +'</div>');
+  if(__subjCrossQueue.length) setTimeout(flushSubjCross, 500);
+}
 // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
 // 赛季称号已移除（与复利轨道 / 成就重复）
 // 佩戴称号已移除（赛季模块停用）

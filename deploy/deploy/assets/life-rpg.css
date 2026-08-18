@@ -1032,6 +1032,13 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fei-diff.d1{color:#3fae74;background:rgba(63,174,116,.14)}
 .fei-diff.d2{color:#e0a93f;background:rgba(224,169,63,.16)}
 .fei-diff.d3{color:#e0625a;background:rgba(224,98,90,.16)}
+/* v6.0.54 境界跨越仪式 · 王菲信件 */
+.fei-letter{max-width:540px;line-height:1.95;color:var(--txt);padding:8px 4px}
+.fei-letter-head{font-size:12px;letter-spacing:2px;color:var(--dim);margin-bottom:14px}
+.fei-letter-level{font-size:19px;font-weight:700;color:var(--gold);margin-bottom:18px}
+.fei-letter-body{font-size:15px;white-space:normal}
+.fei-letter-sign{margin-top:20px;text-align:right;color:var(--dim);font-style:italic}
+.fei-letter .btn{margin-top:20px}
 .lb-mode{margin-left:10px;padding:2px 10px;font-size:12px;border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:999px;cursor:pointer;opacity:.7;vertical-align:middle}
 .lb-mode:hover{opacity:1;background:rgba(212,168,75,.15)}
 .ba-chip.up{color:#3fae74}.ba-chip.down{color:#d9534f}

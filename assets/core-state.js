@@ -1408,12 +1408,20 @@ function addSubjectivity(delta, reason){
   if(typeof S.subjectivity!=='number' || isNaN(S.subjectivity)) S.subjectivity=0;
   if(!Array.isArray(S.subjectivityLog)) S.subjectivityLog=[];
   const before=S.subjectivity;
+  const beforeName=subjLevel(before);
   let v=before+delta; if(v<0)v=0; if(v>100)v=100;
   S.subjectivity=v;
   const real=Math.round(v-before);
   if(real!==0){
     S.subjectivityLog.push({d:todayStr(), delta:real, reason:reason||'', score:v});
     if(S.subjectivityLog.length>200) S.subjectivityLog=S.subjectivityLog.slice(-200);
+  }
+  // v6.0.54 境界跨越仪式：仅在「升级」且跨入新境界时触发王菲信件（降级不触发）
+  if(v>before){
+    const afterName=subjLevel(v);
+    if(afterName!==beforeName){
+      try{ if(typeof queueSubjCross==='function') queueSubjCross(beforeName, afterName); }catch(e){}
+    }
   }
   try{ save(); }catch(e){}
 }
