@@ -3540,7 +3540,7 @@ function subjectivityCard(){
     +'</div>';
 }
 // 立心：填一句「今天我为主做的一件事」→ 主体性 +1（不验证、不分类、不解释，王菲式）
-function lixinSubjectivity(){
+function ensureLixinModal(){
   let m=document.getElementById('lixinModal');
   if(!m){
     m=document.createElement('div'); m.id='lixinModal'; m.className='modal-mask'; m.style.display='none';
@@ -3548,6 +3548,10 @@ function lixinSubjectivity(){
     document.body.appendChild(m);
     m.addEventListener('click', function(e){ if(e.target===m) hideModal('lixinModal'); });
   }
+  return m;
+}
+function lixinSubjectivity(){
+  ensureLixinModal();
   showModal('lixinModal',
     '<div class="st-kicker">🪞 立心</div>'
     +'<div class="st-title">今天，为我自己做的一件事</div>'
@@ -3564,6 +3568,7 @@ function commitLixin(){
   try{ celebrateTask('🪞 立心 · 主体性 +1'); }catch(e){}
 }
 function openSubjectivityHelp(){
+  ensureLixinModal();
   showModal('lixinModal',
     '<div class="st-kicker">🜂 主体性 · 武侠境界</div>'
     +'<div class="st-title">你有多大程度，为自己而活</div>'
