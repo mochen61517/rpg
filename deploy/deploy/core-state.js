@@ -598,8 +598,13 @@ function defaultState(){
     attrs:{BADMINTON:0,CAREER:0,BODY:0,MIND:0},
     // v5.39 计时型日课全部搬进「复利轨道」（羽毛球/力量/拉伸/精神充电/职业行动），
     // 那边可直接填分钟并标记完成，此处只留没有时长、纯打勾的小习惯，避免同一件事记两遍。
+    // v6.0.53+ 生活健康/心理健康小习惯：早睡早起、面部操、不久坐、开心视频、喝水
     daily:[
       {id:id(),t:'今天喝够水',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'早睡早起',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'做面部操',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'不要久坐',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'看点让自己开心的视频',a:'MIND',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
     ],
     supps: defaultSupps(),
     // 固定周常不再自动生成：周任务 = 随机周游（江湖掉落）+ 手动周目标（你明确要做的）。
@@ -817,6 +822,27 @@ function migrate(){
         x.t='精神充电（唱歌/钢琴/阅读任选，不强制钢琴）'; x.a='MIND'; x.min=15; x.mode='time'; x.rec=15; x.xp=0;
       }
     });
+  }
+  // v6.0.54 移除 daily 里的「呼吸」（与冥想呼吸复利轨道重复），补生活/心理健康小习惯
+  if(!S.dailyHabitsRefreshed_v1 && Array.isArray(S.daily)){
+    // 1) 删除呼吸相关旧项（含计时型和纯打勾型）
+    const before = S.daily.length;
+    S.daily = S.daily.filter(x=>!/呼吸|冥想/.test(x.t||''));
+    // 2) 补齐新的小习惯（按标题去重）
+    const addDaily=(t,a)=>{
+      if(!S.daily.some(x=>(x.t||'').includes(t))){
+        S.daily.push({id:id(),t,a,xp:5,min:0,mode:'fixed',done:false,rec:'每日'});
+      }
+    };
+    addDaily('今天喝够水','BODY');
+    addDaily('早睡早起','BODY');
+    addDaily('做面部操','BODY');
+    addDaily('不要久坐','BODY');
+    addDaily('看点让自己开心的视频','MIND');
+    if(S.daily.length!==before || !S.daily.some(x=>/今天喝够水|早睡早起|做面部操|不要久坐|看点让自己开心的/.test(x.t||''))){
+      if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'今日小习惯更新：移除「呼吸」等计时型重复项，新增生活/心理健康小习惯',xp:0});
+    }
+    S.dailyHabitsRefreshed_v1 = true;
   }
   // 兼容旧存档：周常里的羽毛球视频学习应归羽毛球领域
   if(Array.isArray(S.weekly)){
