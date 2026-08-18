@@ -3528,6 +3528,27 @@ function subjectivityCard(){
           +'</div>';
       }).join('')
     : '<div class="hint">还没有主体性记录。点「立心」记下今天为自己做的一件事，或好好完成一次揭榜。</div>';
+  // 来源构成：只统计正向贡献（delta>0），撤销(-)不计入，避免抵消造成混乱；纯呈现、不评判
+  const _src={jh:0,lx:0,fe:0,gv:0};
+  (S.subjectivityLog||[]).forEach(function(e){
+    const d=e.delta||0; if(d<=0) return;
+    const r=e.reason||'';
+    if(r.indexOf('微小服务')>=0) _src.gv+=d;
+    else if(r.indexOf('菲式历练')>=0) _src.fe+=d;
+    else if(r.indexOf('立心')>=0) _src.lx+=d;
+    else if(r.indexOf('揭榜')>=0) _src.jh+=d;
+  });
+  let _srcHtml='';
+  if(_src.jh||_src.lx||_src.fe||_src.gv){
+    const _si=function(k,label,val){return '<span class="subj-src-item"><i class="subj-dot dot-'+k+'"></i>'+label+' <b>+'+val+'</b></span>';};
+    let _items='';
+    if(_src.jh) _items+=_si('jh','🗡️ 揭榜',_src.jh);
+    if(_src.lx) _items+=_si('lx','🪞 立心',_src.lx);
+    if(_src.fe) _items+=_si('fe','🎤 菲式历练',_src.fe);
+    if(_src.gv) _items+=_si('gv','🌱 微小服务',_src.gv);
+    _srcHtml='<div class="subj-src"><div class="subj-src-title">来源构成 · 你练的是哪一种主权</div>'
+      +'<div class="subj-src-row">'+_items+'</div></div>';
+  }
   return '<div class="panel energy-card subj-card">'
     +'<div class="enk-head"><div><div class="enk-title">🜂 主体性</div>'
     +'<div class="enk-sub">境界：'+name+'</div></div>'
@@ -3535,6 +3556,7 @@ function subjectivityCard(){
     +'<div class="subj-bar"><i style="width:'+v+'%"></i></div>'
     +'<div class="subj-actions"><button class="btn sm primary" onclick="lixinSubjectivity()">🪞 立心 +1</button>'
     +'<button class="btn sm ghost" onclick="openSubjectivityHelp()">何为「立心」</button></div>'
+    +_srcHtml
     +'<div class="subj-log-title">分值变化记录</div>'
     +'<div class="subj-log">'+logHtml+'</div>'
     +'</div>';
