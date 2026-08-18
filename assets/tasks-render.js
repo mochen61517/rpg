@@ -2151,17 +2151,18 @@ function jianghuMyToggle(uid){
   const st=jianghuPeriodOfSrc(e.src), arr=(st.list||[]).filter(function(q){return q.id===e.id;});
   const a=safeAttr(e.a), overdue=e.deadline<Date.now();
   if(!arr.length){
-    if(!e.done){ e.done=true; grant(a,e.xp); addHist('✔【揭榜】'+e.t+' +'+e.xp+' XP',e.xp); }
-    else { e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); }
+    if(!e.done){ e.done=true; grant(a,e.xp); addHist('✔【揭榜】'+e.t+' +'+e.xp+' XP',e.xp); addSubjectivity(2,'揭榜完成'); }
+    else { e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); addSubjectivity(-2,'揭榜撤销'); }
     save(); render(); return;
   }
   const x=arr[0];
   if(!x.done){
     x.done=true; e.done=true; const award=overdue?e.xp:Math.round(e.xp*1.2);
     grant(a,award); addHist('✔【揭榜·'+(overdue?'逾期':'准时')+'】'+e.t+' +'+award+' XP'+(overdue?'':'（准时 +'+(award-e.xp)+'）'),award);
+    addSubjectivity(overdue?2:3, '揭榜完成·'+(overdue?'逾期':'准时'));
     save(); render(); try{ celebrateTask('🗡️ '+e.t+' · +'+award+' XP'); }catch(err){}
   }else{
-    x.done=false; e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); save(); render();
+    x.done=false; e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); addSubjectivity(-(overdue?2:3),'揭榜撤销'); save(); render();
   }
 }
 function renderMyJianghu(){
@@ -3508,8 +3509,72 @@ function renderEnergyPage(){
   h+=energyCard('🤸 身体恢复', '拉伸 / 疗愈完成标记', '',
       (d)=>(isStretchOn(d)?1:0)+(isHealedOn(d)?1:0), {max:2, colorFn:(v)=>v>=2?'#3fae74':(v>=1?'#5b8fd6':'#888'), fmtVal:(v)=>['无','部分','完成'][v]||v}, ranges);
   h+=energyCardBio();
+  h+=subjectivityCard();
   h+='</div>';
   root.innerHTML=h;
+}
+// v6.0.53 主体性卡片（精力页 · 武侠境界 + 立心入口 + 变化记录）
+function subjectivityCard(){
+  const v=Math.max(0,Math.min(100,Math.round(S.subjectivity||0)));
+  const name=subjLevel(v);
+  const log=(S.subjectivityLog||[]).slice(-6).reverse();
+  const logHtml = log.length
+    ? log.map(function(e){
+        const up=(e.delta>=0);
+        return '<div class="subj-log-row">'
+          +'<span class="subj-log-d">'+escHtml(e.d||'')+'</span>'
+          +'<span class="subj-log-delta '+(up?'up':'down')+'">'+(up?'+':'')+(e.delta||0)+'</span>'
+          +'<span class="subj-log-reason">'+escHtml(e.reason||'')+'</span>'
+          +'</div>';
+      }).join('')
+    : '<div class="hint">还没有主体性记录。点「立心」记下今天为自己做的一件事，或好好完成一次揭榜。</div>';
+  return '<div class="panel energy-card subj-card">'
+    +'<div class="enk-head"><div><div class="enk-title">🜂 主体性</div>'
+    +'<div class="enk-sub">境界：'+name+'</div></div>'
+    +'<div class="enk-cur">'+v+'<span class="ea-unit">/100</span></div></div>'
+    +'<div class="subj-bar"><i style="width:'+v+'%"></i></div>'
+    +'<div class="subj-actions"><button class="btn sm primary" onclick="lixinSubjectivity()">🪞 立心 +1</button>'
+    +'<button class="btn sm ghost" onclick="openSubjectivityHelp()">何为「立心」</button></div>'
+    +'<div class="subj-log-title">分值变化记录</div>'
+    +'<div class="subj-log">'+logHtml+'</div>'
+    +'</div>';
+}
+// 立心：填一句「今天我为主做的一件事」→ 主体性 +1（不验证、不分类、不解释，王菲式）
+function lixinSubjectivity(){
+  let m=document.getElementById('lixinModal');
+  if(!m){
+    m=document.createElement('div'); m.id='lixinModal'; m.className='modal-mask'; m.style.display='none';
+    m.innerHTML='<div class="modal"><div class="modal-x" onclick="hideModal(\'lixinModal\')">×</div><div class="modal-body"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click', function(e){ if(e.target===m) hideModal('lixinModal'); });
+  }
+  showModal('lixinModal',
+    '<div class="st-kicker">🪞 立心</div>'
+    +'<div class="st-title">今天，为我自己做的一件事</div>'
+    +'<div class="ne-scene">不解释、不分类。写下它，主体性 +1。王菲式：我乐意，便是理由。</div>'
+    +'<textarea id="lixinText" rows="3" style="width:100%;margin:10px 0;background:var(--panel2);color:var(--txt);border:1px solid rgba(240,178,76,.3);border-radius:10px;padding:8px;font:inherit" placeholder="例如：推掉了一个不想去的局 / 现在就去弹了那段总在哼的调子"></textarea>'
+    +'<div class="st-actions"><button class="btn sm ghost" onclick="hideModal(\'lixinModal\')">取消</button>'
+    +'<button class="btn sm primary" onclick="commitLixin()">立心 +1</button></div>');
+}
+function commitLixin(){
+  const t=((document.getElementById('lixinText')||{}).value||'').trim();
+  hideModal('lixinModal');
+  addSubjectivity(1, '立心'+(t?'：'+t:''));
+  render();
+  try{ celebrateTask('🪞 立心 · 主体性 +1'); }catch(e){}
+}
+function openSubjectivityHelp(){
+  showModal('lixinModal',
+    '<div class="st-kicker">🜂 主体性 · 武侠境界</div>'
+    +'<div class="st-title">你有多大程度，为自己而活</div>'
+    +'<div class="ne-scene" style="line-height:1.9">'
+    +'不量动机，只量<b>你行使主权的瞬间</b>：<br>'
+    +'· 揭榜守诺（好好完成）→ 增；放弃/撤销 → 减<br>'
+    +'· 立心：每天为自己做一件小事 → +1<br>'
+    +'· 菲式历练（王菲发布的主体性任务）达成 → +2<br><br>'
+    +'境界：蒙尘之镜(0) → 认识自己(10) → 主体初立(25) → 我心为舵(45) → 我意已决(65) → 不惑于外(80) → 自在无羁(90) → 本心通明(100)'
+    +'</div>'
+    +'<div class="st-actions"><button class="btn sm primary" onclick="hideModal(\'lixinModal\')">知道了</button></div>');
 }
 
 /* ---------- ③ 丁火流年：节气 + 五行当令 ---------- */

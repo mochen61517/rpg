@@ -328,31 +328,43 @@ function equipBonusFor(attr){
 
 /* ---------- 随机掉落 · 自助嘉奖 ---------- */
 // 按成本分级：micro(微) < small(小) < medium(中) < big(大)。小成就小奖励，大成就大奖励。
+// cd = 冷却天数（控制每月掉落频率）：纯K唱歌≈2次/月、电影≈2-3次/月、短途≈1次/月、其余错开
 const REWARDS = [
-  {id:'r_cake',    name:'一块蛋糕',        icon:'🍰', tier:'micro',  money:30,   time:0.5, desc:'小确幸'},
-  {id:'r_milktea', name:'一杯奶茶',        icon:'🧋', tier:'micro',  money:25,   time:0.3, desc:'小确幸'},
-  {id:'r_book',    name:'一本想要的书',    icon:'📚', tier:'micro',  money:60,   time:0.5, desc:'精神食粮'},
-  {id:'r_meal',    name:'一顿喜欢的大餐',  icon:'🍲', tier:'small',  money:200,  time:2,   desc:'犒劳胃'},
-  {id:'r_movie',   name:'一场电影',        icon:'🎬', tier:'small',  money:80,   time:3,   desc:'放松一下'},
-  {id:'r_spa',     name:'一次按摩SPA',     icon:'💆', tier:'medium', money:600,  time:2,   desc:'身体回血'},
-  {id:'r_gear',    name:'一件心仪的数码',  icon:'🎧', tier:'medium', money:800,  time:2,   desc:'心动物件'},
-  {id:'r_sneaker', name:'一双喜欢的球鞋',  icon:'👟', tier:'big',    money:1200, time:3,   desc:'运动装备升级'},
-  {id:'r_concert', name:'一场演唱会',      icon:'🎤', tier:'big',    money:1500, time:5,   desc:'现场快乐'},
-  {id:'r_trip',    name:'一次周末短途旅行',icon:'🚆', tier:'big',    money:1500, time:48,  desc:'换个环境充能'},
+  {id:'r_cake',    name:'一块蛋糕',        icon:'🍰', tier:'micro',  money:30,   time:0.5, desc:'小确幸',       cd:21},
+  {id:'r_milktea', name:'一杯奶茶',        icon:'🧋', tier:'micro',  money:25,   time:0.3, desc:'小确幸',       cd:21},
+  {id:'r_book',    name:'一本想要的书',    icon:'📚', tier:'micro',  money:60,   time:0.5, desc:'精神食粮',     cd:21},
+  {id:'r_meal',    name:'一顿喜欢的大餐',  icon:'🍲', tier:'small',  money:200,  time:2,   desc:'犒劳胃',       cd:20},
+  {id:'r_movie',   name:'一场电影',        icon:'🎬', tier:'small',  money:80,   time:3,   desc:'放松一下',     cd:12},
+  {id:'r_spa',     name:'一次按摩SPA',     icon:'💆', tier:'medium', money:600,  time:2,   desc:'身体回血',     cd:25},
+  {id:'r_gear',    name:'一件心仪的数码',  icon:'🎧', tier:'medium', money:800,  time:2,   desc:'心动物件',     cd:25},
+  {id:'r_sneaker', name:'一双喜欢的球鞋',  icon:'👟', tier:'big',    money:1200, time:3,   desc:'运动装备升级', cd:30},
+  {id:'r_ktv',     name:'一次纯K唱歌',     icon:'🎤', tier:'medium', money:300,  time:3,   desc:'开嗓放松',     cd:15},
+  {id:'r_trip',    name:'一次周末短途旅行',icon:'🚆', tier:'big',    money:1500, time:48,  desc:'换个环境充能', cd:30},
 ];
 function findReward(rid){ return REWARDS.find(r=>r.id===rid) || (S.customRewards||[]).find(r=>r.id===rid); }
-// 掉落一个指定分级的奖励到嘉奖箱；所有 tier 共享每日上限（默认 5 次），避免刷屏
+// 全球每周冷却：保持「一周一个嘉奖」的新鲜感（太多就没意思了）
+const REWARD_GLOBAL_CD_DAYS = 7;
 function dropReward(tier, reason){
-  const pool=REWARDS.filter(r=>r.tier===tier);
+  const pool0=REWARDS.filter(r=>r.tier===tier);
+  if(!pool0.length) return null;
+  const DAY=86400000, now=Date.now();
+  // 全球每周最多 1 个：一周内已有掉落则跳过
+  const lastAny=S.rewards.lastDropTs ? new Date(S.rewards.lastDropTs.replace(' ','T')).getTime() : 0;
+  if(now-lastAny < REWARD_GLOBAL_CD_DAYS*DAY) return null;
+  // 单奖励冷却：实现「电影≈2-3次/月、纯K≈2次/月、短途≈1次/月」的错落频率
+  const lb=S.rewards.lastByReward||{};
+  const pool=pool0.filter(function(r){
+    const ld=lb[r.id]; if(!ld) return true;
+    const cd=r.cd||0; if(!cd) return true;
+    return (now - new Date(ld.replace(' ','T')).getTime()) >= cd*DAY;
+  });
   if(!pool.length) return null;
-  // v5.45 全 tier 每日上限统一改为 5 次，micro/small 也走这条
-  const k=todayStr();
-  if(S.rewards.dailyDate!==k){ S.rewards.dailyDate=k; S.rewards.dailyCount=0; }
-  if(S.rewards.dailyCount>=3) return null;
-  S.rewards.dailyCount++;
   const r=pool[Math.floor(Math.random()*pool.length)];
   const drop={rewardId:r.id, ts:new Date().toISOString().slice(0,16).replace('T',' '), tier, reason:reason||''};
   S.rewards.drops.push(drop);
+  S.rewards.lastDropTs=drop.ts;
+  S.rewards.lastByReward=S.rewards.lastByReward||{};
+  S.rewards.lastByReward[r.id]=drop.ts;
   return drop;
 }
 function claimReward(idx){
@@ -688,7 +700,7 @@ function defaultState(){
     todayPlan: {date:'', focusId:'', mode:'normal', main:[], settled:[]}, // v5.44 今日主线：main=当天手动选中的复利轨道 key
     jianghu: {date:'', seed:0, list:[]},                                   // v5.44 江湖任务日榜：每日按难度分层抽取，越靠上越难
     reports: [],                    // 周报/月报历史：{kind,ts,title,html,text}
-    garden: {growing:[], harvested:[]}, // v6.0.39 灵圃（多项目盲盒栽种 · 我的植物）
+    garden: {growing:[], harvested:[], maxGrowing:3}, // v6.0.39 灵圃（多项目盲盒栽种 · 我的植物）；v6.0.45 同时生长上限默认 3
     capsules: [],                  // v6.0.32 时间胶囊：{id,text,sealedOn,unlockOn,opened}
     demons: {                     // v6.0.36 心魔挑战（温和：削弱而非击败）
       procrast:{name:'拖延',icon:'🐌',intensity:60,acts:['列今日三件要事','先啃最硬的那块','关掉干扰 25 分钟']},
@@ -713,6 +725,11 @@ function defaultState(){
     ],
     birthdayReminders: [],        // 生日来信：临近时生成的提醒信 {id,forName,rel,type,solarDate,daysLeft,body,year,read,questId}
     birthdayQuests: [],           // 生日江湖委托：{id,icon,forName,rel,type,title,a,xp,due,done,year,bdayLabel}
+    // v6.0.53 主体性（武侠境界 · 心理主权）：量「代理行为」而非「动机」——揭榜守诺、立心、菲式历练皆喂养之；不解释、不分类、不衰减惩罚。
+    subjectivity: 0,               // 0–100，当前主体性强弱
+    subjectivityLog: [],           // 分值变化记录：{d,delta,reason,score}
+    openerMode: 'mindful',         // 今日一句风格：mindful(正念) | faye(菲式)
+    feiTrials: {},                 // 王菲·菲式历练完成标记：trialId -> true
   };
 }
 
@@ -730,6 +747,11 @@ function makeSingYear(){
 }
 
 function migrate(){
+  // v6.0.53 主体性 / 今日一句风格 / 菲式历练：兼容旧存档
+  if(typeof S.subjectivity!=='number' || isNaN(S.subjectivity)) S.subjectivity=0;
+  if(!Array.isArray(S.subjectivityLog)) S.subjectivityLog=[];
+  if(typeof S.openerMode!=='string' || (S.openerMode!=='mindful'&&S.openerMode!=='faye')) S.openerMode='mindful';
+  if(typeof S.feiTrials!=='object' || !S.feiTrials) S.feiTrials={};
   // v5.21 曾误把长期投入 goals 的默认值写成旅行目标对象；旅行目标已有独立 travelGoals 字段。
   if(!Array.isArray(S.goals)) S.goals=defaultGoals();
   // 兼容旧存档：五维 → 四大领域（v4.7 及以前）
@@ -1009,6 +1031,16 @@ function migrate(){
   if(!Array.isArray(S.customEquips)) S.customEquips=[];
   if(!S.rewards || typeof S.rewards!=='object') S.rewards={drops:[],dailyCount:0,dailyDate:''};
   if(!Array.isArray(S.rewards.drops)) S.rewards.drops=[];
+  if(typeof S.rewards.lastDropTs!=='string') S.rewards.lastDropTs='';
+  if(!S.rewards.lastByReward || typeof S.rewards.lastByReward!=='object') S.rewards.lastByReward={};
+  // v6.0.46 嘉奖箱未兑换清理：只保留最新 3 个未享用，其余移除（太多没新鲜感）；claimed 历史全留
+  if(Array.isArray(S.rewards.drops)){
+    const claimed=S.rewards.drops.filter(function(d){return d.claimed;});
+    let unclaimed=S.rewards.drops.filter(function(d){return !d.claimed;});
+    unclaimed.sort(function(a,b){return (a.ts||'').localeCompare(b.ts||'');});
+    const keep=unclaimed.slice(-3);
+    S.rewards.drops=claimed.concat(keep);
+  }
   if(!Array.isArray(S.customRewards)) S.customRewards=[];
   if(!S.lootTab) S.lootTab='equips';
   // v5.17 新字段兜底
@@ -1076,6 +1108,7 @@ function migrate(){
   if(!S.garden || typeof S.garden!=='object') S.garden={growing:[],harvested:[]};
   if(!Array.isArray(S.garden.growing)) S.garden.growing=[];
   if(!Array.isArray(S.garden.harvested)) S.garden.harvested=[];
+  if(typeof S.garden.maxGrowing!=='number' || S.garden.maxGrowing<1) S.garden.maxGrowing=3; // v6.0.45 同时生长上限兜底
   // 旧版 planted/species/history 的数据尽量保留：已收获的转 harvested，正在种的丢弃（结构不兼容）
   if(S.garden.history && Array.isArray(S.garden.history)){
     S.garden.history.forEach(function(h){ S.garden.harvested.push({proj:'', species:h.species||'pine', plantedAt:'', bloomedOn:h.bloomedOn||'', cycleH:0}); });
@@ -1329,5 +1362,33 @@ function addHist(text,xp,dateStr){
   const ts = d+' '+p(now.getHours())+':'+p(now.getMinutes());
   S.history.push({ts,text,xp:xp||0});
   if(S.history.length>500) S.history=S.history.slice(-500);
+}
+// ===== v6.0.53 主体性：武侠境界阶梯（量「代理行为」，不量动机纯度）=====
+// 0–9 蒙尘之镜 / 10–24 认识自己 / 25–44 主体初立 / 45–64 我心为舵
+// 65–79 我意已决 / 80–89 不惑于外 / 90–99 自在无羁 / 100 本心通明
+function subjLevel(x){
+  const t=Math.max(0,Math.min(100,Math.round(x||0)));
+  const L=[
+    {min:0,name:'蒙尘之镜'},{min:10,name:'认识自己'},{min:25,name:'主体初立'},
+    {min:45,name:'我心为舵'},{min:65,name:'我意已决'},{min:80,name:'不惑于外'},
+    {min:90,name:'自在无羁'},{min:100,name:'本心通明'}
+  ];
+  let r=L[0]; for(const s of L) if(t>=s.min) r=s;
+  return r.name;
+}
+// 增减主体性：clamp 0–100，写变化日志（不衰减惩罚，只记录净额）。save() 由调用方决定是否再 render。
+function addSubjectivity(delta, reason){
+  if(typeof delta!=='number' || !isFinite(delta)) return;
+  if(typeof S.subjectivity!=='number' || isNaN(S.subjectivity)) S.subjectivity=0;
+  if(!Array.isArray(S.subjectivityLog)) S.subjectivityLog=[];
+  const before=S.subjectivity;
+  let v=before+delta; if(v<0)v=0; if(v>100)v=100;
+  S.subjectivity=v;
+  const real=Math.round(v-before);
+  if(real!==0){
+    S.subjectivityLog.push({d:todayStr(), delta:real, reason:reason||'', score:v});
+    if(S.subjectivityLog.length>200) S.subjectivityLog=S.subjectivityLog.slice(-200);
+  }
+  try{ save(); }catch(e){}
 }
 

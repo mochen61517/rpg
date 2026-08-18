@@ -270,9 +270,31 @@ function renderLifeBanner(){
     '接受此刻的不完美，它也是真实的一部分。',
     '今天也要记得，你被爱着，也被需要着。',
   ];
+  // 菲式今日一句（王菲歌词/语录池）：与 openers 共用同一按天确定性轮转逻辑
+  const fayeOpeners=[
+    '执迷不悔。',
+    '我愿意。',
+    '将爱，进行到底。',
+    '闷，也不解释。',
+    '不留，并不是不在乎。',
+    '我喜欢你，与我无关。',
+    '给我一个理由，让我决定。',
+    '我从来不在乎别人怎么看我。',
+    '想得到什么，就直接去拿。',
+    '世界很吵，我只听自己的。',
+    '不讨好，不解释，不后悔。',
+    '唱歌是因为想唱，不是唱给谁听。',
+    '我现在就要，不等以后。',
+    '你说你的，我活我的。',
+    '喜怒哀乐，我自己负责。',
+    '爱自己，是一辈子的事。',
+    '想做什么就去做，别等准备好了。',
+    '我的生活，不需要向谁交代。'
+  ];
   // 本地日历日序号（DST 安全：用 UTC 构造本地年月日对应的 0 点），按天 +1、对池长取模 → 连续 N 天不重复。
   const _dn=Math.floor((Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())-Date.UTC(2025,0,1))/86400000);
-  const opener=openers[((_dn%openers.length)+openers.length)%openers.length];
+  const _pool=(S.openerMode==='faye')?fayeOpeners:openers;
+  const opener=_pool[((_dn%_pool.length)+_pool.length)%_pool.length];
   el.innerHTML=
      '<div class="lb-head">☀️ 今日一句</div>'
     +'<div class="lb-poem">'
@@ -283,7 +305,16 @@ function renderLifeBanner(){
     +  '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
     +  '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
     +'</div>'
-    +'<div class="lb-foot">'+opener+'</div>';
+    +'<div class="lb-foot">'+opener
+    +'<button class="lb-mode" onclick="toggleOpenerMode()" title="切换今日一句风格">'
+    +(S.openerMode==='faye'?'🎤 菲式':'🧘 正念')+'</button></div>';
+}
+// v6.0.53 今日一句风格切换：正念 ↔ 菲式（王菲）
+function toggleOpenerMode(){
+  if(typeof S.openerMode!=='string') S.openerMode='mindful';
+  S.openerMode = (S.openerMode==='faye')?'mindful':'faye';
+  try{ save(); }catch(e){}
+  renderLifeBanner();
 }
 // 修行卷册已移除（与长期复利轨道重复）
 function renderDayun(){
@@ -362,8 +393,37 @@ function renderNpc(){
       +'</div>';
   }).join('')
   + birthdayQuestRowsHtml()
+  + feiTrialsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
+}
+// v6.0.53 王菲·菲式历练区块（主体性修行任务）
+function feiTrialsHtml(){
+  if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return '';
+  const done=S.feiTrials||{};
+  const rows=FEI_TRIALS.map(function(t){
+    const isDone=!!done[t.id];
+    return '<div class="fei-trial'+(isDone?' done':'')+'">'
+      +'<div class="fei-trial-body"><div class="fei-trial-t">'+escHtml(t.t)+'</div>'
+      +'<div class="fei-trial-hint">'+escHtml(t.hint)+'</div></div>'
+      +'<button class="btn sm '+(isDone?'ghost':'primary')+'" onclick="toggleFeiTrial(\''+t.id+'\')">'+(isDone?'已立 · 撤销':'立此心志')+'</button>'
+      +'</div>';
+  }).join('');
+  return '<div class="fei-trials">'
+    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">完成一项，主体性 +2</span></div>'
+    +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。</div>'
+    +rows
+    +'</div>';
+}
+function toggleFeiTrial(id){
+  if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return;
+  if(!S.feiTrials) S.feiTrials={};
+  const isDone=!!S.feiTrials[id];
+  const t=FEI_TRIALS.find(function(x){return x.id===id;});
+  if(!isDone){ S.feiTrials[id]=true; addSubjectivity(2,'菲式历练：'+(t?t.t:'')); }
+  else { delete S.feiTrials[id]; addSubjectivity(-2,'菲式历练撤销'); }
+  save(); render();
+  try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +2'); }catch(e){}
 }
 // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
 // 赛季称号已移除（与复利轨道 / 成就重复）

@@ -725,6 +725,11 @@ function defaultState(){
     ],
     birthdayReminders: [],        // 生日来信：临近时生成的提醒信 {id,forName,rel,type,solarDate,daysLeft,body,year,read,questId}
     birthdayQuests: [],           // 生日江湖委托：{id,icon,forName,rel,type,title,a,xp,due,done,year,bdayLabel}
+    // v6.0.53 主体性（武侠境界 · 心理主权）：量「代理行为」而非「动机」——揭榜守诺、立心、菲式历练皆喂养之；不解释、不分类、不衰减惩罚。
+    subjectivity: 0,               // 0–100，当前主体性强弱
+    subjectivityLog: [],           // 分值变化记录：{d,delta,reason,score}
+    openerMode: 'mindful',         // 今日一句风格：mindful(正念) | faye(菲式)
+    feiTrials: {},                 // 王菲·菲式历练完成标记：trialId -> true
   };
 }
 
@@ -742,6 +747,11 @@ function makeSingYear(){
 }
 
 function migrate(){
+  // v6.0.53 主体性 / 今日一句风格 / 菲式历练：兼容旧存档
+  if(typeof S.subjectivity!=='number' || isNaN(S.subjectivity)) S.subjectivity=0;
+  if(!Array.isArray(S.subjectivityLog)) S.subjectivityLog=[];
+  if(typeof S.openerMode!=='string' || (S.openerMode!=='mindful'&&S.openerMode!=='faye')) S.openerMode='mindful';
+  if(typeof S.feiTrials!=='object' || !S.feiTrials) S.feiTrials={};
   // v5.21 曾误把长期投入 goals 的默认值写成旅行目标对象；旅行目标已有独立 travelGoals 字段。
   if(!Array.isArray(S.goals)) S.goals=defaultGoals();
   // 兼容旧存档：五维 → 四大领域（v4.7 及以前）
@@ -1352,5 +1362,33 @@ function addHist(text,xp,dateStr){
   const ts = d+' '+p(now.getHours())+':'+p(now.getMinutes());
   S.history.push({ts,text,xp:xp||0});
   if(S.history.length>500) S.history=S.history.slice(-500);
+}
+// ===== v6.0.53 主体性：武侠境界阶梯（量「代理行为」，不量动机纯度）=====
+// 0–9 蒙尘之镜 / 10–24 认识自己 / 25–44 主体初立 / 45–64 我心为舵
+// 65–79 我意已决 / 80–89 不惑于外 / 90–99 自在无羁 / 100 本心通明
+function subjLevel(x){
+  const t=Math.max(0,Math.min(100,Math.round(x||0)));
+  const L=[
+    {min:0,name:'蒙尘之镜'},{min:10,name:'认识自己'},{min:25,name:'主体初立'},
+    {min:45,name:'我心为舵'},{min:65,name:'我意已决'},{min:80,name:'不惑于外'},
+    {min:90,name:'自在无羁'},{min:100,name:'本心通明'}
+  ];
+  let r=L[0]; for(const s of L) if(t>=s.min) r=s;
+  return r.name;
+}
+// 增减主体性：clamp 0–100，写变化日志（不衰减惩罚，只记录净额）。save() 由调用方决定是否再 render。
+function addSubjectivity(delta, reason){
+  if(typeof delta!=='number' || !isFinite(delta)) return;
+  if(typeof S.subjectivity!=='number' || isNaN(S.subjectivity)) S.subjectivity=0;
+  if(!Array.isArray(S.subjectivityLog)) S.subjectivityLog=[];
+  const before=S.subjectivity;
+  let v=before+delta; if(v<0)v=0; if(v>100)v=100;
+  S.subjectivity=v;
+  const real=Math.round(v-before);
+  if(real!==0){
+    S.subjectivityLog.push({d:todayStr(), delta:real, reason:reason||'', score:v});
+    if(S.subjectivityLog.length>200) S.subjectivityLog=S.subjectivityLog.slice(-200);
+  }
+  try{ save(); }catch(e){}
 }
 

@@ -1004,6 +1004,31 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .enk-bio-prev{font-size:13px;color:var(--txt)}
 .enk-bio-factors{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .ba-chip{font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(127,127,127,.12)}
+/* v6.0.53 主体性卡片 + 菲式历练 */
+.subj-card{border-color:rgba(224,98,90,.4)!important}
+.subj-bar{height:8px;background:rgba(240,178,76,.14);border-radius:6px;overflow:hidden;margin:2px 0}
+.subj-bar i{display:block;height:100%;background:linear-gradient(90deg,#f0b24c,#e0625a);border-radius:6px;transition:width .3s}
+.subj-actions{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0}
+.subj-log-title{font-size:12px;color:var(--dim);margin:6px 0 4px}
+.subj-log{display:flex;flex-direction:column;gap:3px;max-height:148px;overflow:auto}
+.subj-log-row{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5}
+.subj-log-d{color:var(--dim);white-space:nowrap}
+.subj-log-delta{font-weight:700;white-space:nowrap;min-width:28px}
+.subj-log-delta.up{color:#3fae74}
+.subj-log-delta.down{color:#e0625a}
+.subj-log-reason{color:var(--txt)}
+.fei-trials{margin-top:14px;padding:12px;border:1px solid rgba(224,98,90,.35);border-radius:14px;background:rgba(224,98,90,.05)}
+.fei-trials-head{font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.fei-trials-sub{font-size:11px;font-weight:400;color:var(--dim)}
+.fei-trials-tag{font-size:11px;color:var(--dim);margin-bottom:8px;font-style:italic}
+.fei-trial{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px dashed rgba(127,127,127,.18)}
+.fei-trial:first-of-type{border-top:none}
+.fei-trial.done .fei-trial-t{color:var(--dim);text-decoration:line-through}
+.fei-trial-body{display:flex;flex-direction:column;gap:2px}
+.fei-trial-t{font-size:13px;font-weight:600}
+.fei-trial-hint{font-size:11px;color:var(--dim)}
+.lb-mode{margin-left:10px;padding:2px 10px;font-size:12px;border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:999px;cursor:pointer;opacity:.7;vertical-align:middle}
+.lb-mode:hover{opacity:1;background:rgba(212,168,75,.15)}
 .ba-chip.up{color:#3fae74}.ba-chip.down{color:#d9534f}
 .enk-bio-hint{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.6}
 @media(max-width:780px){ .energy-cards{grid-template-columns:1fr} }

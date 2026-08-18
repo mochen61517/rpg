@@ -230,14 +230,71 @@ function renderLifeBanner(){
   if(idx===themeIdxForDate(yest)) idx=(idx+1)%themes.length;
   const feat=themes[idx];
   const remF=Math.max(0, feat.total-feat.past);
+  // 每日开场白：确定性按天轮转（本地日历日，DST 安全）。池 36 条 → 任意连续 36 天不重复，满足「至少一个月不重复」。
+  // 原句「今天，是你余生里最年轻的一天。」保留为第 1 条；其余为正念/冥想风鼓励语。
   const openers=[
     '今天，是你余生里最年轻的一天。',
     '此刻的你，比往后任何一天都更接近清晨。',
     '余生还长，但今天的太阳，只会升起这一次。',
     '世界还在，你也还在，这就够了。',
     '不必追赶时间，你已经是时间本身。',
+    '把今天当作一份礼物，而不是一项任务。',
+    '深呼吸一次，此刻你什么都不缺。',
+    '你不需要先把一切理顺，才配得上安稳。',
+    '允许自己只是慢慢地，往前走一点点。',
+    '今天的努力不必被看见，它已经在你身上留下了痕迹。',
+    '心若慌，就把注意力放回脚下的这一步。',
+    '你已经走得够远了，今晚可以安心地停一下。',
+    '不比较，不催促，今天只做此刻能做的事。',
+    '身体记得你每一次善待它的时刻，今天也别忘了。',
+    '把期待放轻一点，惊喜才有空间落进来。',
+    '你不必完美，只需要真实地在这里。',
+    '烦恼来了就来了，像云，它自己会飘走。',
+    '今天好好吃一顿饭，好好睡一次觉，就是修行。',
+    '你值得被温柔对待，尤其是被你自己。',
+    '慢一点没关系，路是你自己的。',
+    '此刻的风、光与呼吸，都是只属于今天的。',
+    '把昨天交还给昨天，把明天留给明天。',
+    '你已经在很多个难熬的日子里，把自己接住了。',
+    '今天不必证明什么，存在本身就有价值。',
+    '听一听身体的声音，它比脑子更早知道你需要什么。',
+    '一事无成的一天，也是完整活着的一天。',
+    '给自己留一点空白，别把日程填得太满。',
+    '你种下的每一分善意，都会在某个转角回响。',
+    '把注意力轻轻放在现在，过去和未来都先放一放。',
+    '你已经比昨天更懂得如何照顾自己了。',
+    '今天，允许自己只是好好地呼吸。',
+    '不必急着开花，扎根的日子里也藏着力量。',
+    '你不需要赢过谁，只需要不辜负自己。',
+    '安静地做一件小事，也能照亮一整天。',
+    '接受此刻的不完美，它也是真实的一部分。',
+    '今天也要记得，你被爱着，也被需要着。',
   ];
-  const opener=openers[Math.floor(rng()*openers.length)];
+  // 菲式今日一句（王菲歌词/语录池）：与 openers 共用同一按天确定性轮转逻辑
+  const fayeOpeners=[
+    '执迷不悔。',
+    '我愿意。',
+    '将爱，进行到底。',
+    '闷，也不解释。',
+    '不留，并不是不在乎。',
+    '我喜欢你，与我无关。',
+    '给我一个理由，让我决定。',
+    '我从来不在乎别人怎么看我。',
+    '想得到什么，就直接去拿。',
+    '世界很吵，我只听自己的。',
+    '不讨好，不解释，不后悔。',
+    '唱歌是因为想唱，不是唱给谁听。',
+    '我现在就要，不等以后。',
+    '你说你的，我活我的。',
+    '喜怒哀乐，我自己负责。',
+    '爱自己，是一辈子的事。',
+    '想做什么就去做，别等准备好了。',
+    '我的生活，不需要向谁交代。'
+  ];
+  // 本地日历日序号（DST 安全：用 UTC 构造本地年月日对应的 0 点），按天 +1、对池长取模 → 连续 N 天不重复。
+  const _dn=Math.floor((Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())-Date.UTC(2025,0,1))/86400000);
+  const _pool=(S.openerMode==='faye')?fayeOpeners:openers;
+  const opener=_pool[((_dn%_pool.length)+_pool.length)%_pool.length];
   el.innerHTML=
      '<div class="lb-head">☀️ 今日一句</div>'
     +'<div class="lb-poem">'
@@ -248,7 +305,16 @@ function renderLifeBanner(){
     +  '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
     +  '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
     +'</div>'
-    +'<div class="lb-foot">'+opener+'</div>';
+    +'<div class="lb-foot">'+opener
+    +'<button class="lb-mode" onclick="toggleOpenerMode()" title="切换今日一句风格">'
+    +(S.openerMode==='faye'?'🎤 菲式':'🧘 正念')+'</button></div>';
+}
+// v6.0.53 今日一句风格切换：正念 ↔ 菲式（王菲）
+function toggleOpenerMode(){
+  if(typeof S.openerMode!=='string') S.openerMode='mindful';
+  S.openerMode = (S.openerMode==='faye')?'mindful':'faye';
+  try{ save(); }catch(e){}
+  renderLifeBanner();
 }
 // 修行卷册已移除（与长期复利轨道重复）
 function renderDayun(){
@@ -327,8 +393,37 @@ function renderNpc(){
       +'</div>';
   }).join('')
   + birthdayQuestRowsHtml()
+  + feiTrialsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
+}
+// v6.0.53 王菲·菲式历练区块（主体性修行任务）
+function feiTrialsHtml(){
+  if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return '';
+  const done=S.feiTrials||{};
+  const rows=FEI_TRIALS.map(function(t){
+    const isDone=!!done[t.id];
+    return '<div class="fei-trial'+(isDone?' done':'')+'">'
+      +'<div class="fei-trial-body"><div class="fei-trial-t">'+escHtml(t.t)+'</div>'
+      +'<div class="fei-trial-hint">'+escHtml(t.hint)+'</div></div>'
+      +'<button class="btn sm '+(isDone?'ghost':'primary')+'" onclick="toggleFeiTrial(\''+t.id+'\')">'+(isDone?'已立 · 撤销':'立此心志')+'</button>'
+      +'</div>';
+  }).join('');
+  return '<div class="fei-trials">'
+    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">完成一项，主体性 +2</span></div>'
+    +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。</div>'
+    +rows
+    +'</div>';
+}
+function toggleFeiTrial(id){
+  if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return;
+  if(!S.feiTrials) S.feiTrials={};
+  const isDone=!!S.feiTrials[id];
+  const t=FEI_TRIALS.find(function(x){return x.id===id;});
+  if(!isDone){ S.feiTrials[id]=true; addSubjectivity(2,'菲式历练：'+(t?t.t:'')); }
+  else { delete S.feiTrials[id]; addSubjectivity(-2,'菲式历练撤销'); }
+  save(); render();
+  try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +2'); }catch(e){}
 }
 // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
 // 赛季称号已移除（与复利轨道 / 成就重复）
@@ -1839,16 +1934,7 @@ function reorganizeDetailPages(){
     document.querySelector('#page-map > .lifemap')
   ]);
 
-  const fate=byTitle('journey','丁火流年');
-  const fortune=byTitle('journey','人生大运时间轴');
-  if(fate || fortune){
-    const profile=byTitle('journey','角色档案');
-    const marker=document.createElement('div');
-    profile?.insertAdjacentElement('afterend',marker);
-    detailGroup('journey','🔮 命理与大运','默认收起 · 需要参考时展开',[fate,fortune]);
-    const group=page('journey')?.lastElementChild;
-    if(marker.parentNode && group) marker.replaceWith(group);
-  }
+  // v6.0.38 后「命理与大运」已作为独立 tab pane 默认展示，不再需要在角色档案下额外生成折叠色块
 
   setupUsageTracking();
   setupLifeCompoundUI();

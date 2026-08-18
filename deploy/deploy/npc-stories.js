@@ -7,8 +7,53 @@ const NPCS=[
   {id:'yun',n:'云娘',ic:'🌿',d:'药庐的主人，专治「硬撑」这种病。',a:'BODY',
    qs:['今晚十一点前躺下，我明天问你。','拉伸十五分钟，别嫌慢。','喝够水，走一万步，就这两件。','这周给自己安排一次真正的休息，什么都不做。']},
   {id:'bailu',n:'白鹭先生',ic:'🎹',d:'旧书铺的琴师，认为人得有一样只为自己做的事。',a:'MIND',
-   qs:['弹一首完整的，不求好，求完整。','读三十页，不许查手机。','唱一首你最近总在心里哼的歌。','写点什么，给自己看就行。']},
+   qs:['弹一首完整的，不求好，求完整。','读三十页，不许查手机。','唱一首你最近总在心里哼的歌。','练一组长音推拉，让气息顶得住、收得回——别让它泄掉。','写点什么，给自己看就行。']},
 ];
+// v6.0.53 王菲·菲式历练：主体性修行任务（完成 → 主体性 +2；撤销 → −2）。不解释、不分类。
+// 王菲为「灵魂导师」，不进入 NPCS：避免污染每周江湖委托 / 联动事件 / 关系面板；仅通过菲式历练区块出现。
+const FEI_TRIALS=[
+  {id:'fei_refuse', t:'明确拒绝一件你不想做的事', hint:'不必给理由。王菲式：「不，谢谢。」'},
+  {id:'fei_feel',   t:'直接向别人表达你的真实感受', hint:'不绕弯，不修饰。'},
+  {id:'fei_now',    t:'脑子里想做的事，立刻去做', hint:'不等「准备好了」。'},
+  {id:'fei_self',   t:'今天就做一件纯粹为自己、不被期待的事', hint:'没人要求，你乐意。'},
+  {id:'fei_noun',   t:'对一件事说「我乐意」，不解释', hint:'我乐意，就是理由。'},
+  {id:'fei_silence',t:'在喧嚣里，按自己的节奏安静待着', hint:'不赶进度，不解释。'}
+];
+// v6.0.30 分支委托：每周江湖委托有概率变成二选一，不同选择给不同 XP + 评语 + 关系
+const NPC_BRANCH_QUESTS={
+  lin:[
+    {t:'今天练球，你更想怎么练？',choices:[
+      {t:'约一场势均力敌的对抗',d:'把压力当成练手的机会。',xp:35,story:'你选了对抗。球路在拼抢里变快，手比脑子先到了。'},
+      {t:'自己慢练三十分钟基本功',d:'把动作刻进身体。',xp:25,story:'你选了慢练。反手高远一遍遍稳下来，节奏是自己的了。'}]},
+    {t:'这周想往哪个方向走？',choices:[
+      {t:'专攻一个最弱的技术',d:'短板先补，长板自然更稳。',xp:30,story:'你盯住最弱的那一下。它不再拖后腿时，整场都松了。'},
+      {t:'打几场放松的友谊赛',d:'享受球，比练球更重要些。',xp:30,story:'你选了友谊赛。笑着重返球场，比什么都养状态。'}]}
+  ],
+  shen:[
+    {t:'手上这份机会，你打算怎么接？',choices:[
+      {t:'先小范围试做一版',d:'让风险在可控处发生。',xp:35,story:'你先试了一版。错在桌面上，比错在心里便宜得多。'},
+      {t:'直接投出一份完整的',d:'动作比完美重要。',xp:25,story:'你直接投了。落出去的那一刻，路自己亮了一截。'}]},
+    {t:'职业卡住时，你更想？',choices:[
+      {t:'找里面的人聊半小时',d:'信息在人嘴里，不在帖子里。',xp:30,story:'你去找人聊了。一句内行话，顶半天瞎琢磨。'},
+      {t:'先算了再说',d:'有时停比冲更清醒。',xp:25,story:'你先算了。把焦虑放下的那天，方向反而清楚了。'}]}
+  ],
+  yun:[
+    {t:'今晚身体想要什么？',choices:[
+      {t:'十一点前踏实睡一觉',d:'把休息当正事。',xp:30,story:'你选了早睡。第二天醒来，身体记得被好好对待的感觉。'},
+      {t:'拉伸十分钟再睡',d:'让紧了一天的身体松下来。',xp:25,story:'你选了拉伸。肌肉松开时，脑子也跟着松了。'}]},
+    {t:'这周想怎么对自己好一点？',choices:[
+      {t:'安排一次真正的放空',d:'什么都不做，也是进度。',xp:30,story:'你给自己留了空白。那半天没产出，却补回了能继续的力气。'},
+      {t:'认真吃一顿好的',d:'好好吃饭最朴素。',xp:20,story:'你认认真真吃了一顿。胃暖了，人也就安稳了。'}]}
+  ],
+  bailu:[
+    {t:'今晚想怎么练琴？',choices:[
+      {t:'从头弹完一首',d:'完整有时比正确更近真心。',xp:35,story:'你从头弹到尾。错音没毁掉它，曲子终于成了你的。'},
+      {t:'只打磨最喜欢的一段',d:'不必每次都求全。',xp:25,story:'你反复磨那一小段。直到它真正属于你为止。'}]},
+    {t:'心里有段旋律，你想？',choices:[
+      {t:'把它写下来',d:'留下来的，才算自己的。',xp:30,story:'你写下来了。那段总在心里转的调子，终于有了形状。'},
+      {t:'先哼着，不急着记',d:'有些东西留白更好。',xp:25,story:'你没记。让它继续在心里转，也挺好。'}]}
+  ]
+};
 // 故人视角的祝福/鼓励（用于「我们的链接」面板，每日一封；点「换一封」可轮换）。
 // 主题：享受当下、好好对待自己、不必硬撑、慢慢来。
 const NPC_BLESSINGS={
@@ -55,12 +100,12 @@ const NPC_ADV_EVENTS={
   bailu:{6:{title:'旧书铺的第二把椅子',mark:'墨色书签',scene:'白鹭先生在琴旁放了第二把椅子。今晚没有老师和学生，只有两个愿意把沉默留给音乐的人。',choices:[{t:'合奏一首旧曲',d:'熟悉的旋律也能重新相遇。'},{t:'各弹各的',d:'陪伴不必总做同一件事。'}]},10:{title:'留白的最后一页',mark:'无字谱纸',scene:'旧谱只剩最后一页空白。先生说，这页不该由他写。你准备留下些什么？',choices:[{t:'写下自己的旋律',d:'表达终于不再借别人的声音。'},{t:'让它继续空着',d:'留白也是完整的一部分。'}]}}
 };
 const NPC_JOINT_EVENT={title:'四盏灯同桌',scene:'一个雨夜，四位故人竟在旧书铺碰了面。有人谈行动，有人谈休息，有人谈胜负，有人只顾拨弦。他们把最后一个问题留给你：这一程，你最想守住什么？',choices:[{t:'守住继续出发的勇气',d:'路会改变，但行动仍在。'},{t:'守住不必证明的自己',d:'成长不必以失去自己为代价。'}]};
-function npcRel(pid){ if(!S.npcRel) S.npcRel={}; if(!S.npcRel[pid]) S.npcRel[pid]={xp:0,done:0}; return S.npcRel[pid]; }
+function npcRel(pid){ if(!S.npcRel) S.npcRel={}; if(!S.npcRel[pid]) S.npcRel[pid]={xp:0,done:0,know:0}; return S.npcRel[pid]; }
 function npcRelInfo(pid){
   const r=npcRel(pid), xp=Math.max(0,r.xp||0); let i=0; for(let j=0;j<NPC_REL_STEPS.length;j++) if(xp>=NPC_REL_STEPS[j].v)i=j;
   const cur=NPC_REL_STEPS[i], next=NPC_REL_STEPS[Math.min(i+1,NPC_REL_STEPS.length-1)];
   const pct=i===NPC_REL_STEPS.length-1?100:Math.round((xp-cur.v)/(next.v-cur.v)*100);
-  return {xp,level:i,name:cur.n,next:next.n,pct};
+  return {xp,level:i,name:cur.n,next:next.n,pct,know:r.know||0};
 }
 function npcMemory(p,ri){
   const lines={
@@ -69,8 +114,84 @@ function npcMemory(p,ri){
     yun:['她提醒你别总把累藏起来。','她知道你正在学着不再硬撑。','你没说出口的疲惫，她也能看见。','药庐总为你留着一盏灯。'],
     bailu:['先生还不知道你会留下什么声音。','他开始认得你常弹、常唱的调子。','他愿意把压箱底的旧谱拿给你。','有些沉默，你们已经不必解释。'],
   };
-  const a=lines[p.id]||['故人记得你来过。']; return a[Math.min(ri.level,a.length-1)];
+  const a=lines[p.id]||['故人记得你来过。']; let s=a[Math.min(ri.level,a.length-1)]; if(ri.know) s+=' 你们断断续续聊过 '+ri.know+' 回，他记下了你的一些小事。'; return s;
 }
+// ===== v5.48 江湖委托 · 对话回应（故人按性格 + 关键词生成回应）=====
+const NPC_CHAT_TOPICS={
+  music:['琴','曲','谱','指法','音','歌','唱','弹','旋律','调','箫','笛','古筝','练琴','弹琴','哼','曲子','段落'],
+  sport:['球','拍','步法','杀球','高远','羽','比赛','挥拍','发球','接杀','练球'],
+  career:['投','简历','面试','工作','职','offer','岗位','公司','薪','规划','方向','求职'],
+  body:['累','困','睡','休息','身体','拉伸','喝','走','步','作息','肩','腰','舒服'],
+  struggle:['卡','难','不会','挫败','烦','焦虑','迷茫','怕','担心','压力','崩','卡住'],
+  good:['顺','好','进','开心','喜欢','享受','稳','放松','棒','成','顺畅'],
+  calm:['慢','耐心','静','留白','发呆','不赶','节奏']
+};
+function npcChatTopics(text){ const t=text||''; const hit=[]; for(const k in NPC_CHAT_TOPICS){ if(NPC_CHAT_TOPICS[k].some(function(w){return t.indexOf(w)>=0;})) hit.push(k); } return hit; }
+const NPC_CHAT_OPEN={
+  lin:['（林教头把毛巾搭在肩上，看你一眼。）','林教头擦了擦拍子，把旁边的矮凳挪了挪。'],
+  shen:['（沈掌柜从账本里抬起头。）','沈掌柜把算盘往旁边一推。'],
+  yun:['（云娘放下药杵，淡淡看你。）','云娘给你倒了杯温的。'],
+  bailu:['（白鹭先生没抬头，指尖还停在弦上。）','白鹭先生把谱子合上一半。']
+};
+const NPC_CHAT_BYATTR={
+  BADMINTON:{music:['球馆旁边那家琴行我常去。你弹的是哪首？下次带来，我替你数着拍子听。','动作和旋律一样，重复到身体记住就顺了。你这首练到第几遍了？'],
+    sport:['球不骗人。你这周摸了几回拍子，身体比嘴诚实。哪一下最让你来劲？','步法这东西，慢就是快。你今天卡在哪一个动作？'],
+    career:['球和你找工作其实一理：先站上场，比想清楚更重要。投出去没？','你总在我这儿谈球，回去也该给自己投几份。动了吗？'],
+    body:['练球别忘了喝水。你今天喝够没？','别硬撑。累了就歇一场，不丢人。'],
+    struggle:['卡住很正常，我带过的没有一个不卡过。你卡的是手，还是心里？','烦的时候去打两拍，比坐着烦有用。'],
+    good:['顺就好。顺的时候多记几下身体的感觉，以后卡了拿出来想。','你今天这股劲，留着，下周还用得上。'],
+    calm:['慢点好。球路是急不出来的。','你愿意慢，说明开始懂这项运动了。']},
+  CAREER:{music:['你还有这一面。弹琴的时候，是不是反而最不想那些事？','我听人弹过。你弹的那首，是最近总在心里转的调子吗？'],
+    sport:['身体得动。你这周动过没？别光坐着改简历。','球我是外行，但我知道：上场前想太多，反而打不出来。'],
+    career:['你做的每一小步我都记着。别急着要结果，先动。','简历改到第几版了？拿给我，我替你挑刺。','投出去没？投了才算数，改一百版不投等于零。'],
+    body:['忙归忙，别把身体当了代价。你今晚几点睡？','你总替别人操心，自己的作息先顾上。'],
+    struggle:['迷茫我见过太多。先别想清楚「一生」，先把这周那一步落了。','怕是正常的。怕着怕着，事情也就做了。'],
+    good:['顺就趁热打铁，把那一步落了。','你这股劲头，掌柜的认。'],
+    calm:['慢点没关系。够大够稳的地方，值得多花点时间找。','你愿意慢，反而让我放心。']},
+  BODY:{music:['弹琴也算休息的一种。你弹的时候，脑子里那些事是不是轻了点？','我虽不懂琴，但知道让你舒服的事得留着。'],
+    sport:['动一动比躺着想强。你今天走够一万步没？','球我陪不了，但你的身子我管。今天拉伸了没？'],
+    career:['外面的事再急，也先把自己安顿好。你今天睡够没？','你总为先别的事累。今晚十一点前躺下，算我说的。'],
+    body:['听见你照顾自己，比什么都好。今天哪一下让你松了口气？','别硬撑。累了就说累，身体最诚实。'],
+    struggle:['撑不住就说。药庐的门，你随时能进。','你这一阵太紧了。今天能不能只做一件让自己舒服的小事？'],
+    good:['舒服就好。把这种感觉留住，明天还来。','你今天对自己好了一点，我看见了。'],
+    calm:['慢下来不是浪费。你认真过的每一天，最后都是你自己的。','留白也是正经事。']},
+  MIND:{music:['你弹的那首，我猜是最近常在你心里转的调子。下次弹给我听听？','弹得完整就好，错几个音，曲子还是你的。你这周练的是哪首？','旋律这种东西，自己听得进去最重要。你弹的时候，是想起了什么，还是只想让手指动起来？'],
+    sport:['身体是乐器的底色。你这周动过没？','我不太懂球，但我知道重复到顺，和练琴是一个理。'],
+    career:['外面的事放一放，先给自己留点只为自己做的事。','你总在替别人打算。今天能不能只做一件让自己高兴的？'],
+    body:['弦会紧，人也会。你今天松了哪一根弦？','累了就去睡，别等弦崩了才歇。'],
+    struggle:['卡住就先停。错音不毁一曲，卡住也不毁你。你卡的是哪一段？','你愿意说，我就愿意听。慢慢来。'],
+    good:['享受就好。这种时刻不用分给任何人。','你今天这股松快，留着，它会变成你自己的东西。'],
+    calm:['留白最贵。你今天发呆了吗？','慢一点，旋律才会自己长出来。']}
+};
+const NPC_CHAT_GENERIC={
+  music:'你说的是哪一首？下次带来，我替你听着。',
+  sport:'动起来就好。你这周动了几回？',
+  career:'你做的每一步都算数。先动，再谈别的。',
+  body:'照顾好自己，别的才谈得上。',
+  struggle:'卡住很正常。你不是第一个，也不会是最后一个。',
+  good:'顺就趁热。把这一步落了。',
+  calm:'慢点好。急不出来的。'
+};
+const NPC_CHAT_CLOSE=['你接着说，我听着。','下次想聊什么，随时来。','这事你打算怎么接着做？','你心里其实已经有答案了吧？','这周还想跟我念叨点什么？'];
+function npcReply(pid, q, text){
+  const p=NPCS.find(function(n){return n.id===pid;})||{n:'故人',a:'MIND'};
+  const ri=npcRelInfo(pid);
+  const open=(NPC_CHAT_OPEN[pid]||['（故人看了你一眼。）'])[ri.level>=2?1:0];
+  const topics=npcChatTopics(text);
+  let body;
+  if(!topics.length){ body='我在听。你愿意多说两句吗？'; }
+  else {
+    const primary=topics[0];
+    const bank=NPC_CHAT_BYATTR[p.a]&&NPC_CHAT_BYATTR[p.a][primary];
+    const pool=(bank&&bank.length)?bank:[NPC_CHAT_GENERIC[primary]];
+    body=pool[(ri.know+text.length)%pool.length];
+    if(topics.length>1){ const t2=topics[1]; const b2=NPC_CHAT_BYATTR[p.a]&&NPC_CHAT_BYATTR[p.a][t2]; if(b2&&b2.length) body+=' '+b2[(ri.know+1)%b2.length]; }
+  }
+  let close='';
+  if(Math.random()<0.6) close=' '+NPC_CHAT_CLOSE[(ri.know+text.length)%NPC_CHAT_CLOSE.length];
+  return open+' '+body+close;
+}
+
 function openNpcEvent(pid){
   const p=NPCS.find(n=>n.id===pid), e=NPC_EVENTS[pid], mask=document.getElementById('npcEventMask'), body=document.getElementById('npcEventBody');
   if(!p||!e||!mask||!body||npcRelInfo(pid).xp<3||S.npcEvents[pid]) return;
@@ -110,15 +231,19 @@ function npcRoll(force){
   if(!force && S.npc.week===wk && S.npc.active.length) return;
   S.npc.week=wk;
   S.npc.seenWeek='';
-  S.npc.active=NPCS.map(p=>({
-    npc:p.id, id:id(),
-    t:p.qs[Math.floor(Math.random()*p.qs.length)],
-    a:p.a, xp:30, done:false
-  }));
+  S.npc.active=NPCS.map(p=>{
+    const bq=(NPC_BRANCH_QUESTS[p.id]||[]);
+    if(bq.length && Math.random()<0.5){
+      const b=bq[Math.floor(Math.random()*bq.length)];
+      return {npc:p.id, id:id(), t:b.t, a:p.a, branch:true, choices:b.choices, done:false, choice:null};
+    }
+    return {npc:p.id, id:id(), t:p.qs[Math.floor(Math.random()*p.qs.length)], a:p.a, xp:30, done:false};
+  });
   addHist('📜 本周江湖委托已刷新（四位故人各留一言）');
 }
 function npcDone(qid){
   const q=S.npc.active.find(x=>x.id===qid); if(!q) return;
+  if(q.branch && !q.done && q.choice==null){ openBranchQuest(qid); return; }
   const wasTodayFocus=ensureTodayPlan().focusId===qid;
   q.done=!q.done;
   const p=NPCS.find(n=>n.id===q.npc);
@@ -140,5 +265,25 @@ function npcDone(qid){
     if(p){ const rel=npcRel(p.id); rel.xp=Math.max(0,(rel.xp||0)-1); rel.done=Math.max(0,(rel.done||0)-1); }
   }
   save(); checkAch(); render();
+}
+
+// v6.0.30 分支委托二选一
+function openBranchQuest(qid){
+  const q=S.npc.active.find(x=>x.id===qid); if(!q||!q.branch||q.done) return;
+  const p=NPCS.find(n=>n.id===q.npc), body=document.getElementById('npcEventBody'), mask=document.getElementById('npcEventMask');
+  if(!body||!mask) return;
+  body.innerHTML='<div class="st-kicker">'+p.ic+' '+p.n+' · 二选一委托</div><div class="st-title">'+q.t+'</div><div class="ne-choices">'+q.choices.map((c,i)=>'<button class="ne-choice" onclick="resolveBranchQuest(\''+qid+'\','+i+')"><b>'+c.t+'</b><span>'+c.d+'</span></button>').join('')+'</div><div class="st-actions"><button class="btn sm ghost" onclick="closeNpcEvent()">以后再说</button></div>';
+  mask.style.display='flex';
+}
+function resolveBranchQuest(qid,ci){
+  const q=S.npc.active.find(x=>x.id===qid); if(!q||!q.branch||q.done) return;
+  const c=q.choices[ci]; if(!c) return;
+  const p=NPCS.find(n=>n.id===q.npc);
+  q.choice=ci; q.done=true; q.xp=c.xp;
+  S.bonusXP=(S.bonusXP||0)+c.xp; touchActivity(todayStr());
+  addHist('✔【分支委托】'+(p?p.n:'')+'：'+q.t+' · 选「'+c.t+'」 +'+c.xp+' XP', c.xp);
+  if(p){ const before=npcRelInfo(p.id).level, rel=npcRel(p.id); rel.xp=(rel.xp||0)+1; rel.done=(rel.done||0)+1; const after=npcRelInfo(p.id); if(after.level>before) setTimeout(()=>celebrateTask(p.ic+' 与'+p.n+'的关系升为「'+after.name+'」'),420); }
+  celebrateTask((p?p.ic+' '+p.n:'')+'点了点头');
+  closeNpcEvent(); save(); checkAch(); render(); renderNpc();
 }
 
