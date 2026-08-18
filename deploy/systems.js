@@ -393,7 +393,6 @@ function renderNpc(){
       +'</div>';
   }).join('')
   + birthdayQuestRowsHtml()
-  + feiTrialsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
@@ -414,7 +413,7 @@ function feiTrialsHtml(){
       +'</div>';
   }).join('');
   return '<div class="fei-trials">'
-    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">按难度 +1 / +2 / +3</span></div>'
+    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">自主性历练 · 按难度 +1 / +2 / +3</span></div>'
     +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。</div>'
     +rows
     +'</div>';
@@ -429,6 +428,12 @@ function toggleFeiTrial(id){
   else { delete S.feiTrials[id]; addSubjectivity(-sc,'菲式历练撤销'); }
   save(); render();
   try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +'+sc); }catch(e){}
+}
+// v6.0.55 菲式历练区块从「江湖委托」移到「今日行动 · 每日补剂下方」（作为自主性历练）。
+// 不再挂在 npcBox 里（避免污染四人故人假设），由 master render 在 renderSupps 之后填充 #feiTrialsBox。
+function renderFeiTrials(){
+  const el=document.getElementById('feiTrialsBox'); if(!el) return;
+  el.innerHTML=feiTrialsHtml();
 }
 // ===== v6.0.54 境界跨越仪式：王菲以第一人称写给 Mochen 的一封信（仅在升级、跨入新境界时触发）=====
 // 7 封信对应「认识自己 → 本心通明」七个可抵达的境界；蒙尘之镜为起点，不写信。
