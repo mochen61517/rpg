@@ -255,6 +255,31 @@ function addYear(){
 }
 // v5.51.17 基于 E:\唱歌 历史截图 OCR 得到的声乐数据（2026-07-04 / 07-25 / 08-09 三次 K歌）
 const SINGING_SCORE_DATA={updated:'2026-08-11',sessions:3,songs:46,best:86.20,latestAvg:78.67,overallAvg:74.44,trend:[65.82,73.84,78.67]};
+function parseSingingScoresFromRecords(records){
+  if(!records || !records.length) return null;
+  const bySession=[];
+  const allScores=[];
+  for(const rec of records){
+    const text=rec.text || '';
+    // 提取 60-100 之间的数字（支持 88.84 / 86 / 83.0→84.0→85.1 等），
+    // 避开紧贴汉字的数字（如“颤音100”“85+”）以减少噪音。
+    const scores=[...text.matchAll(/(?<![\u4e00-\u9fa5])(\d{2,3}(?:\.\d{1,2})?)(?![\u4e00-\u9fa5])/g)]
+      .map(function(m){ return parseFloat(m[1]); })
+      .filter(function(s){ return s>=60 && s<=100; });
+    if(scores.length){
+      bySession.push(scores);
+      allScores.push.apply(allScores, scores);
+    }
+  }
+  if(!allScores.length) return null;
+  const best=Math.max.apply(Math, allScores);
+  const overallAvg=+(allScores.reduce(function(a,b){return a+b;},0)/allScores.length).toFixed(2);
+  const latest=bySession[bySession.length-1];
+  const latestAvg=+(latest.reduce(function(a,b){return a+b;},0)/latest.length).toFixed(2);
+  // trend 取最近最多 5 次 session 的平均分
+  const trend=bySession.slice(-5).map(function(scores){ return +(scores.reduce(function(a,b){return a+b;},0)/scores.length).toFixed(2); });
+  return {updated:new Date().toISOString().slice(0,10), sessions:bySession.length, songs:allScores.length, best:best, latestAvg:latestAvg, overallAvg:overallAvg, trend:trend};
+}
 function delYearQuest(i){
   const c=S.year[i]; if(!c) return;
   if(!confirm('确定删除年度主线「'+c.t+'」？')) return;
@@ -1428,7 +1453,18 @@ function saveYearRecord(i){
   renderLongterm();
   celebrateTask('📓 已记录进展');
 }
-function reanalyzeYear(i){ renderLongterm(); }
+function reanalyzeYear(i){
+  const c=S.year[i]; if(!c) return;
+  const el=document.getElementById('yr_'+i);
+  if(el && el.value.trim()){
+    if(!Array.isArray(c.records)) c.records=[];
+    c.records.push({ts:new Date().toISOString().slice(0,16).replace('T',' '), text:el.value.trim()});
+    el.value='';
+  }
+  try{ save(); }catch(e){}
+  renderLongterm();
+  celebrateTask('🔄 已基于最新记录重新分析');
+}
 function yearGoalAnalysis(c,i){
   const now=new Date(), y=now.getFullYear();
   const start=new Date(y,0,1), endY=new Date(y,11,31);
@@ -1439,8 +1475,12 @@ function yearGoalAnalysis(c,i){
   const itemPct= total? Math.round(doneEv/total*100):0;
   const trackKey=yearTrackFor(c.t), track=LIFE_TRACKS[trackKey];
   let progressPct=itemPct, progressNote='';
-  if(trackKey==='singing' && SINGING_SCORE_DATA){
-    const sd=SINGING_SCORE_DATA;
+  let singingData = null;
+  if(trackKey==='singing'){
+    singingData = parseSingingScoresFromRecords(c.records) || SINGING_SCORE_DATA || null;
+  }
+  if(trackKey==='singing' && singingData){
+    const sd=singingData;
     progressPct=Math.min(100,Math.round((Math.min(sd.best,90)-80)/10*100));
     progressNote='（按 K歌成绩：单次最高 '+sd.best+'，近一次场均 '+sd.latestAvg+'）';
   } else if(track){
@@ -1461,8 +1501,8 @@ function yearGoalAnalysis(c,i){
     advice.push('近 8 周：羽毛球约 '+avg.toFixed(1)+' h/周（打球+基本功合并统计）。想稳上 3.5，建议每周 ≥1 次对抗 + 基本功练习。');
     advice.push('羽毛球终身已累计 '+Math.round((BM_PLAY_BASE+BM_BASIC_BASE)/60)+' 小时（打球+基本功合并）——节奏不断，水平自然到。');
     if(avg<2) advice.push('当前周均低于 2 小时，想冲 3.5 得把频率提上来：先从「每周固定一场对抗」开始最稳。');
-  } else if(trackKey==='singing' && SINGING_SCORE_DATA){
-    const sd=SINGING_SCORE_DATA;
+  } else if(trackKey==='singing' && singingData){
+    const sd=singingData;
     advice.push('最近 '+sd.sessions+' 次 K歌共 '+sd.songs+' 首，场均走势 '+sd.trend.join(' → ')+'，整体在往上走。');
     advice.push('目标「单首破 90」：当前最高 '+sd.best+'，还差 '+(90-sd.best).toFixed(1)+' 分；近一次场均 '+sd.latestAvg+'，先稳到 85+ 再冲 90。');
     if(sd.best>=85) advice.push('已有 85+ 表现，说明舒适区基本稳定；下一步挑 1–2 首最稳的歌反复打磨，把最高分推到 90。');

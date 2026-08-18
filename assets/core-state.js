@@ -747,7 +747,7 @@ function makeSingYear(){
     {id:id(), t:'锁定舒适区：柔润气声抒情 ballad（梁静茹/刘若英/郁可唯/王菲气声曲），先不碰爆发型', a:'MIND', xp:0, min:30, mode:'time', done:false},
     {id:id(), t:'稳定性雷达拉到 88+（重拍亮起、音量不再「轻到听不见」）', a:'MIND', xp:0, min:0, mode:'fixed', done:false},
     {id:id(), t:'完整跑舒适区曲目，稳定站上 85+（用进度区记每次 K 歌分数）', a:'MIND', xp:0, min:60, mode:'time', done:false},
-    {id:id(), t:'单首突破 90（选 空白格 / 痴心换情深 / 水中花 其一）', a:'MIND', xp:120, min:0, mode:'fixed', done:false},
+    {id:id(), t:'单首突破 90（主攻 滥俗的歌；备选 痴心换情深 / 水中花）', a:'MIND', xp:120, min:0, mode:'fixed', done:false},
   ]};
 }
 
