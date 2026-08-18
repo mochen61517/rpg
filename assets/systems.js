@@ -398,19 +398,23 @@ function renderNpc(){
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
 // v6.0.53 王菲·菲式历练区块（主体性修行任务）
+const FEI_DIFF_LABEL={1:'微',2:'中',3:'重'};
+function feiDiffScore(t){ return (t&&t.diff)||2; }
 function feiTrialsHtml(){
   if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return '';
   const done=S.feiTrials||{};
   const rows=FEI_TRIALS.map(function(t){
     const isDone=!!done[t.id];
+    const d=feiDiffScore(t);
     return '<div class="fei-trial'+(isDone?' done':'')+'">'
       +'<div class="fei-trial-body"><div class="fei-trial-t">'+escHtml(t.t)+'</div>'
       +'<div class="fei-trial-hint">'+escHtml(t.hint)+'</div></div>'
-      +'<button class="btn sm '+(isDone?'ghost':'primary')+'" onclick="toggleFeiTrial(\''+t.id+'\')">'+(isDone?'已立 · 撤销':'立此心志')+'</button>'
+      +'<div class="fei-trial-side"><span class="fei-diff d'+d+'" title="难度">'+FEI_DIFF_LABEL[d]+' · +'+d+'</span>'
+      +'<button class="btn sm '+(isDone?'ghost':'primary')+'" onclick="toggleFeiTrial(\''+t.id+'\')">'+(isDone?'已记 · 撤销':'我乐意')+'</button></div>'
       +'</div>';
   }).join('');
   return '<div class="fei-trials">'
-    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">完成一项，主体性 +2</span></div>'
+    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">按难度 +1 / +2 / +3</span></div>'
     +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。</div>'
     +rows
     +'</div>';
@@ -420,10 +424,11 @@ function toggleFeiTrial(id){
   if(!S.feiTrials) S.feiTrials={};
   const isDone=!!S.feiTrials[id];
   const t=FEI_TRIALS.find(function(x){return x.id===id;});
-  if(!isDone){ S.feiTrials[id]=true; addSubjectivity(2,'菲式历练：'+(t?t.t:'')); }
-  else { delete S.feiTrials[id]; addSubjectivity(-2,'菲式历练撤销'); }
+  const sc=feiDiffScore(t);
+  if(!isDone){ S.feiTrials[id]=true; addSubjectivity(sc,'菲式历练：'+(t?t.t:'')); }
+  else { delete S.feiTrials[id]; addSubjectivity(-sc,'菲式历练撤销'); }
   save(); render();
-  try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +2'); }catch(e){}
+  try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +'+sc); }catch(e){}
 }
 // 技能树已移除：升级打怪改为按复利轨道总时长点亮武侠境界
 // 赛季称号已移除（与复利轨道 / 成就重复）

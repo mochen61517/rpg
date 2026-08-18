@@ -3576,7 +3576,7 @@ function openSubjectivityHelp(){
     +'不量动机，只量<b>你行使主权的瞬间</b>：<br>'
     +'· 揭榜守诺（好好完成）→ 增；放弃/撤销 → 减<br>'
     +'· 立心：每天为自己做一件小事 → +1<br>'
-    +'· 菲式历练（王菲发布的主体性任务）达成 → +2<br><br>'
+    +'· 菲式历练（王菲发布的主体性任务）达成 → 按难度 +1/+2/+3<br><br>'
     +'境界：蒙尘之镜(0) → 认识自己(10) → 主体初立(25) → 我心为舵(45) → 我意已决(65) → 不惑于外(80) → 自在无羁(90) → 本心通明(100)'
     +'</div>'
     +'<div class="st-actions"><button class="btn sm primary" onclick="hideModal(\'lixinModal\')">知道了</button></div>');
