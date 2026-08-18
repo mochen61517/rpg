@@ -17,7 +17,8 @@ const FEI_TRIALS=[
   {id:'fei_now',    t:'脑子里想做的事，立刻去做', hint:'不等「准备好了」。', diff:2},
   {id:'fei_self',   t:'今天就做一件纯粹为自己、不被期待的事', hint:'没人要求，你乐意。', diff:2},
   {id:'fei_noun',   t:'对一件事说「我乐意」，不解释', hint:'我乐意，就是理由。', diff:1},
-  {id:'fei_silence',t:'在喧嚣里，按自己的节奏安静待着', hint:'不赶进度，不解释。', diff:1}
+  {id:'fei_silence',t:'在喧嚣里，按自己的节奏安静待着', hint:'不赶进度，不解释。', diff:1},
+  {id:'fei_give',   t:'做一件微小服务（不费力 / 不求回报 / 不求关注）', hint:'帮朋友递个资料、分享一句读到的启发。只在你有余力时做。', diff:2}
 ];
 // v6.0.30 分支委托：每周江湖委托有概率变成二选一，不同选择给不同 XP + 评语 + 关系
 const NPC_BRANCH_QUESTS={
