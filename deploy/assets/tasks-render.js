@@ -286,6 +286,19 @@ function delYearQuest(i){
   S.year=S.year.filter(function(_,idx){return idx!==i;});
   save();render();
 }
+function editYearGoal(i){
+  const c=S.year[i]; if(!c) return;
+  const used=c.editCount||0, MAX=3;
+  if(used>=MAX){ alert('该年目标已用完 '+MAX+' 次修改机会，不再支持修改。'); return; }
+  const remaining=MAX-used;
+  const nv=prompt('修改年目标（剩余 '+remaining+' 次）：\n注意：修改后所有分析将基于新标题重新生成。', c.t);
+  if(nv===null || !nv.trim() || nv.trim()===c.t) return;
+  c.t=nv.trim();
+  c.editCount=used+1;
+  try{ save(); }catch(e){}
+  renderLongterm();
+  celebrateTask('✏️ 年目标已修改，分析已刷新');
+}
 function renameQuest(kind,idx){
   const o = kind==='year'?S.year[idx]:(kind==='month'?S.month:S.week);
   const nv=prompt('重命名：',o.t);
@@ -1618,13 +1631,17 @@ function yearAnalysisCard(c,i){
     ? '<span class="qt" onclick="toggleYearOpen('+i+')">'+escHtml(c.t)+'<span class="ptag">⏸ 休眠</span></span>'
     : (a.total===0
         ? '<span style="display:inline-flex;align-items:center;cursor:pointer" onclick="toggleYearDone('+i+')"><span style="display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-radius:5px;text-align:center;line-height:15px;margin-right:8px">'+((c.done)?'✔':'')+'</span><span class="qt">'+escHtml(c.t)+'</span></span>'
-        : '<span class="qt" onclick="renameQuest(\'year\','+i+')">'+escHtml(c.t)+'</span>');
+        : '<span class="qt">'+escHtml(c.t)+'</span>');
   if(collapsed){
     return '<div class="qblock paused"><div class="qbtop">'+head+'<span class="qbp">'+trackTag+'</span></div>'
       +'<div class="qbstep"><span class="note" onclick="toggleYearOpen('+i+')">▶ 展开（休眠中 · 不计入进度，随时可复活）</span></div></div>';
   }
+  const editUsed=c.editCount||0, EDIT_MAX=3, editRemaining=EDIT_MAX-editUsed;
+  const editBtn = editRemaining>0
+    ? '<span class="ya-edit" onclick="editYearGoal('+i+')" title="修改年目标（3次限制）">✏️ '+editRemaining+'/'+EDIT_MAX+'</span>'
+    : '<span class="ya-edit done" title="已用完修改机会">✏️ 0/'+EDIT_MAX+'</span>';
   return '<div class="ya-card'+(paused?' paused':'')+'">'
-    +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+'<span class="qdel" onclick="delYearQuest('+i+')" title="删除">×</span></span></div>'
+    +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+editBtn+'<span class="qdel" onclick="delYearQuest('+i+')" title="删除">×</span></span></div>'
     +'<div class="ya-elapsed">📅 今年已过 <b>'+a.elapsedDays+'</b> 天 · 占 <b>'+a.elapsedPct+'%</b></div>'
     +'<div class="ya-prog"><div class="ya-bar"><i class="ya-fill ya-'+a.predClass+'" style="width:'+a.progressPct+'%"></i></div>'
     +'<div class="ya-prog-label">数据进度 <b>'+a.progressPct+'%</b>'+(a.progressNote||'')+' · 预计年末达成度 <b class="ya-'+a.predClass+'">'+a.predLabel+'</b>（'+a.projected+'%）</div></div>'

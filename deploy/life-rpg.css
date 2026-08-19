@@ -71,6 +71,9 @@
   .ya-track{font-size:12px;color:var(--gold);background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:99px;padding:2px 10px;white-space:nowrap}
   .ya-track.muted{color:var(--dim);background:transparent;border-color:var(--line)}
   .ya-done{font-size:12px;color:var(--grw);font-weight:600}
+  .ya-edit{font-size:11px;color:var(--gold);background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:99px;padding:2px 9px;cursor:pointer;white-space:nowrap}
+  .ya-edit:hover{background:rgba(212,168,75,.22)}
+  .ya-edit.done{color:var(--dim);background:transparent;border-color:var(--line);cursor:not-allowed;opacity:.5}
   .ya-elapsed{font-size:13px;color:var(--dim);margin:11px 0 8px}
   .ya-elapsed b{color:var(--txt);font-size:14px}
   .ya-bar{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden}
