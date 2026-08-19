@@ -89,13 +89,36 @@
   .ya-advice li{font-size:13px;line-height:1.7;color:var(--txt);margin:3px 0}
   .ya-advice li.dim{color:var(--dim);list-style:none;margin-left:-18px}
   .ya-rec{margin-top:12px;background:rgba(95,208,160,.05);border:1px solid rgba(95,208,160,.18);border-radius:10px;padding:11px 13px}
-  .ya-rec-h{font-size:12px;color:var(--mint);margin-bottom:6px;letter-spacing:.3px}
+  .ya-rec-h{font-size:12px;color:var(--mint);margin-bottom:6px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  .ya-rec-toggle{font-size:11px;color:var(--dim);cursor:pointer;margin-left:auto}
+  .ya-rec-toggle:hover{color:var(--mint)}
   .ya-rec-ta{width:100%;min-height:54px;margin:4px 0 8px;resize:vertical}
-  .ya-rec-actions{display:flex;gap:8px}
+  .ya-rec-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .ya-rec-actions .btn{cursor:pointer}
+  .ya-rec-file{display:none}
   .ya-rec-last{font-size:12.5px;color:var(--txt);line-height:1.6;margin-top:6px}
   .ya-rec-ts{color:var(--dim);font-size:11px;margin-left:6px}
   .ya-rec-empty{font-size:12.5px;color:var(--dim);margin-top:6px}
   .ya-rec-cnt{color:var(--dim);font-size:11px;margin-left:4px}
+  .ya-rec-list{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+  .ya-rec-row{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .ya-rec-dtline{display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(34,30,26,.55);cursor:pointer;font-size:12px;color:var(--txt)}
+  .ya-rec-dtline:hover{background:rgba(95,208,160,.08)}
+  .ya-rec-dtline.open{border-bottom:1px solid rgba(95,208,160,.15)}
+  .ya-rec-dt{font-weight:600;letter-spacing:.3px}
+  .ya-rec-fcnt{font-size:10px;color:var(--dim);background:rgba(212,168,75,.12);padding:1px 6px;border-radius:10px}
+  .ya-rec-arr{font-size:10px;color:var(--dim);margin-left:auto}
+  .ya-rec-body{font-size:12px;color:var(--txt);line-height:1.6;padding:9px 10px;background:rgba(26,22,18,.35);white-space:pre-wrap;word-break:break-word}
+  .ya-rec-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .ya-rec-fileitem{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 6px 5px 5px}
+  .ya-rec-filelink{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--txt);font-size:11px}
+  .ya-rec-filelink:hover{color:var(--mint)}
+  .ya-rec-thumb{width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--line)}
+  .ya-rec-fileicon{font-size:18px}
+  .ya-rec-fname{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ya-rec-fsize{color:var(--dim);font-size:10px}
+  .ya-rec-fdel{cursor:pointer;color:var(--dim);font-size:15px;line-height:1;padding:0 4px}
+  .ya-rec-fdel:hover{color:var(--accent)}
   .ya-steps{margin-top:10px}
   .ya-steps-h{font-size:13px;color:var(--dim);cursor:pointer;user-select:none;padding:4px 0}
   .ya-steps-h:hover{color:var(--txt)}

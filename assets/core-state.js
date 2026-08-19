@@ -981,6 +981,16 @@ function migrate(){
       {id:'h_xp',    ic:'🔍', n:'修为初成', d:'累计加权经验突破 8000', hidden:true, un:false, auto:function(){ return overallXP()>=8000; }}
     );
   }
+  // v6.0.58 年主线记录支持文件附件：给旧 records 补 files 数组
+  if(!S.yearRecordFiles_v1){
+    if(Array.isArray(S.year)){
+      S.year.forEach(function(c){
+        if(!Array.isArray(c.records)) c.records=[];
+        c.records.forEach(function(r){ if(!Array.isArray(r.files)) r.files=[]; });
+      });
+    }
+    S.yearRecordFiles_v1=true;
+  }
   // v5.51.17 清理重复的歌唱年主线：保留 makeSingYear() 生成的「声乐精进：K歌从 80+ 冲击 90+」，删掉用户误新增的类似目标（如「纯K有6首歌可以达到90分+」）。
   if(!S.yearSingDupClean_v1){
     const singIdx=(S.year||[]).findIndex(function(c){return c.id==='yg_sing90';});

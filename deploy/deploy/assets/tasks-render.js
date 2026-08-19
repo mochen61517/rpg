@@ -1258,6 +1258,8 @@ function closeCustomModal(){ _cmId=null; _cmPreset=null; const m=document.getEle
 
 /* ---------- 通用 checklist 渲染（年/月/周主线共用） ---------- */
 let yearOpen = new Set();
+let yearRecOpen = new Set();
+function toggleYearRecOpen(i){ if(yearRecOpen.has(i)) yearRecOpen.delete(i); else yearRecOpen.add(i); renderLongterm(); }
 const mpOpen = new Set();
 function toggleMpOpen(k){ if(mpOpen.has(k))mpOpen.delete(k); else mpOpen.add(k); renderMonthPlanEdit(); }
 function yearDone(i){ const c=S.year[i]; if(!c) return false; if(Array.isArray(c.items) && c.items.length>0) return c.items.every(x=>isDoneEver(x)); return !!c.done; }
@@ -1431,16 +1433,57 @@ function badmintonAvgHours(key, weeks){
   const min=logs.reduce((n,x)=>n+(+x.min||0),0);
   return min/60/weeks;
 }
+function formatBytes(b){
+  b=b||0; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+function yearFilesHtml(files,i,recIdx){
+  if(!files || !files.length) return '';
+  return '<div class="ya-rec-files">'
+    +files.map(function(f,fi){
+      const isImg=/^image\//.test(f.type||'');
+      const thumb=isImg
+        ? '<img src="'+escHtml(f.data||'')+'" class="ya-rec-thumb" alt="">'
+        : '<span class="ya-rec-fileicon">📄</span>';
+      return '<div class="ya-rec-fileitem">'
+        +'<a class="ya-rec-filelink" href="'+escHtml(f.data||'#')+'" download="'+escHtml(f.name||'file')+'" title="下载 '+escHtml(f.name||'')+'">'
+          +thumb
+          +'<span class="ya-rec-fname">'+escHtml(f.name||'未命名')+'</span>'
+          +'<span class="ya-rec-fsize">'+formatBytes(f.size)+'</span>'
+        +'</a>'
+        +'<span class="ya-rec-fdel" onclick="deleteYearFile('+i+','+recIdx+','+fi+')" title="删除附件">×</span>'
+      +'</div>';
+    }).join('')
+    +'</div>';
+}
 function yearRecordBlock(c,i){
   const recs=(c.records||[]);
-  const last=recs[recs.length-1];
-  const lastLine = last? ('<div class="ya-rec-last">📝 最近：'+escHtml(last.text)+' <span class="ya-rec-ts">'+last.ts+'</span></div>') : '<div class="ya-rec-empty">还没有记录，随时写一笔。</div>';
+  const open=yearRecOpen.has(i);
   const cnt = recs.length? ('<span class="ya-rec-cnt">'+recs.length+' 条</span>') : '';
+  const headToggle = '<span class="ya-rec-toggle" onclick="toggleYearRecOpen('+i+')">'+(open?'▲ 收起':'▼ 展开')+'</span>';
+  const dateRows = recs.length? recs.map(function(r,idx){
+    const fcnt=(r.files||[]).length;
+    const fbadge=fcnt? '<span class="ya-rec-fcnt">'+fcnt+' 个附件</span>' : '';
+    return '<div class="ya-rec-row">'
+      +'<div class="ya-rec-dtline'+(open?' open':'')+'" onclick="toggleYearRecOpen('+i+')">'
+        +'<span class="ya-rec-dt">'+escHtml(r.ts||'无日期')+'</span>'
+        +fbadge
+        +'<span class="ya-rec-arr">'+(open?'▲':'▼')+'</span>'
+      +'</div>'
+      +(open?'<div class="ya-rec-body">'+escHtml(r.text||'')+yearFilesHtml(r.files||[],i,idx)+'</div>':'')
+      +'</div>';
+  }).join('') : '<div class="ya-rec-empty">还没有记录，随时写一笔。</div>';
+
   return '<div class="ya-rec">'
-    +'<div class="ya-rec-h">📓 进展记录 '+cnt+'</div>'
+    +'<div class="ya-rec-h">📓 进展记录 '+cnt+headToggle+'</div>'
     +'<textarea class="lt-ta ya-rec-ta" id="yr_'+i+'" placeholder="随时记一笔：这周推进了什么、卡在哪、下一步…"></textarea>'
-    +'<div class="ya-rec-actions"><button class="btn sm" onclick="saveYearRecord('+i+')">💾 记录</button><button class="btn sm ghost" onclick="reanalyzeYear('+i+')">🔄 重新分析</button></div>'
-    +lastLine
+    +'<div class="ya-rec-actions">'
+      +'<button class="btn sm" onclick="saveYearRecord('+i+')">💾 记录</button>'
+      +'<button class="btn sm ghost" onclick="reanalyzeYear('+i+')">🔄 重新分析</button>'
+      +'<label class="btn sm ghost" for="yrf_'+i+'">📎 附件</label>'
+      +'<input type="file" id="yrf_'+i+'" class="ya-rec-file" multiple onchange="handleYearFiles('+i+',this)">'
+    +'</div>'
+    +'<div class="ya-rec-list">'+dateRows+'</div>'
     +'</div>';
 }
 function saveYearRecord(i){
@@ -1448,7 +1491,8 @@ function saveYearRecord(i){
   const el=document.getElementById('yr_'+i); if(!el) return;
   const text=el.value.trim(); if(!text) return;
   if(!Array.isArray(c.records)) c.records=[];
-  c.records.push({ts:new Date().toISOString().slice(0,16).replace('T',' '), text:text});
+  c.records.push({ts:new Date().toISOString().slice(0,16).replace('T',' '), text:text, files:[]});
+  el.value='';
   try{ save(); }catch(e){}
   renderLongterm();
   celebrateTask('📓 已记录进展');
@@ -1458,12 +1502,62 @@ function reanalyzeYear(i){
   const el=document.getElementById('yr_'+i);
   if(el && el.value.trim()){
     if(!Array.isArray(c.records)) c.records=[];
-    c.records.push({ts:new Date().toISOString().slice(0,16).replace('T',' '), text:el.value.trim()});
+    c.records.push({ts:new Date().toISOString().slice(0,16).replace('T',' '), text:el.value.trim(), files:[]});
     el.value='';
   }
   try{ save(); }catch(e){}
   renderLongterm();
   celebrateTask('🔄 已基于最新记录重新分析');
+}
+function handleYearFiles(i,input){
+  if(!input || !input.files || !input.files.length) return;
+  const c=S.year[i]; if(!c) return;
+  if(!Array.isArray(c.records)) c.records=[];
+  const recIdx=c.records.length-1;
+  if(recIdx<0){
+    alert('请先写一笔记录文字，再附加文件。');
+    input.value='';
+    return;
+  }
+  const rec=c.records[recIdx];
+  if(!Array.isArray(rec.files)) rec.files=[];
+  const MAX_FILES=5, MAX_MB=5;
+  if(rec.files.length + input.files.length > MAX_FILES){
+    alert('每条记录最多 '+MAX_FILES+' 个附件。当前已有 '+rec.files.length+' 个。');
+    input.value='';
+    return;
+  }
+  const files=Array.from(input.files).filter(function(f){ return f.size <= MAX_MB*1048576; });
+  const skipped=input.files.length - files.length;
+  if(skipped) alert(skipped+' 个文件超过 '+MAX_MB+'MB，已跳过。');
+  if(!files.length){ input.value=''; return; }
+  let pending=files.length;
+  files.forEach(function(file){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      rec.files.push({name:file.name, type:file.type||'application/octet-stream', size:file.size||0, data:e.target.result});
+      pending--;
+      if(pending===0){
+        try{ save(); }catch(err){}
+        renderLongterm();
+        celebrateTask('📎 已添加 '+files.length+' 个附件');
+      }
+    };
+    reader.onerror=function(){
+      pending--;
+      console.warn('读取文件失败', file.name);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function deleteYearFile(i,recIdx,fi){
+  const c=S.year[i]; if(!c) return;
+  const rec=(c.records||[])[recIdx]; if(!rec || !rec.files) return;
+  if(!confirm('删除这个附件？')) return;
+  rec.files.splice(fi,1);
+  try{ save(); }catch(e){}
+  renderLongterm();
 }
 function yearGoalAnalysis(c,i){
   const now=new Date(), y=now.getFullYear();
