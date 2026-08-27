@@ -1819,15 +1819,6 @@ const TRACK_LIGHT_HINTS={
   career:['今天哪一步让「安稳平台」更近一点？','记下一件你做得比上次好的事。','给未来的自己留一句职场观察。','整理一份材料，也算往前走了一步。'],
   ai:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。','让 AI 先跑一个草稿，你来定方向。']
 };
-function lightTodayTrack(k){
-  const t=LIFE_TRACKS[k]; if(!t) return;
-  const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
-  if(m>=(t.rec||20)){ try{ celebrateTask(t.ic+' '+t.n+' 今日已点亮'); }catch(e){} return; }
-  try{ addLifePractice(k, t.rec||20); }catch(e){}
-  const hints=TRACK_LIGHT_HINTS[k]||['点亮了 '+t.n+'，今天继续加油。'];
-  const msg=hints[Math.floor(Math.random()*hints.length)];
-  try{ celebrateTask(msg); }catch(e){}
-}
 function focusTrackInput(k){
   try{ if(typeof lcToggle==='function'){ lcToggle(k); } }catch(e){}
   setTimeout(function(){
@@ -1851,14 +1842,6 @@ function renderTodayCockpit(){
       +'<span class="tm-chip-ic">'+t.ic+'</span><span class="tm-chip-n">'+escHtml(t.n)+'</span>'
       +(on?'<span class="tm-chip-tick">✓</span>':'')+'</button>';
   };
-  const rowOf=function(k){
-    const t=LIFE_TRACKS[k], mins=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
-    const tgt=t.rec||20, ok=mins>=tgt;
-    return '<div class="tm-row'+(ok?' ok':'')+'" onclick="lightTodayTrack(\''+k+'\')" style="cursor:pointer" title="点一下直接点亮">'
-      +'<div class="tm-row-ic">'+t.ic+'</div>'
-      +'<div class="tm-row-body"><div class="tm-row-n">'+escHtml(t.n)
-      +'<span class="tm-row-tag">'+(ok?'✨ 已点亮':'💡 待点亮 · 目标 '+tgt+' 分钟')+'</span></div></div></div>';
-  };
   const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return m>=(t.rec||20); }).length;
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
     +'<div class="tm-title">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
@@ -1866,8 +1849,7 @@ function renderTodayCockpit(){
     +'<div class="tm-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +'<div class="tm-pick-label">从长期复利轨道里挑（最多 3 条 · 点一下选中）</div>'
     +'<div class="tm-pick">'+live.map(chip).join('')+'</div>'
-    +(sel.length?('<div class="tm-list">'+sel.map(rowOf).join('')+'</div>')
-      :'<div class="tm-empty">还没选。今天只认 1–3 条就够，其余全算加分。</div>')
+    +(sel.length?'':'<div class="tm-empty">还没选。今天只认 1–3 条就够，其余全算加分。</div>')
     +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
     +(sel.length?' <button class="btn xs ghost" onclick="clearTodayMain()">清空重选</button>':'')+'</div>';
   renderDashboardSummary();
