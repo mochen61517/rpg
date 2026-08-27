@@ -303,7 +303,7 @@ function renderLifeBanner(){
     +'</div>'
     +'<div class="lb-bar-wrap">'
     +  '<div class="lb-bar"><i style="width:'+livedPct+'%"></i></div>'
-    +  '<div class="lb-bar-label">人生这条路，已走过 '+livedPct+'% · 余下 '+Math.round(100-livedPct)+'%</div>'
+    +  '<div class="lb-bar-label">故事渐入佳境——最好的一章，还没写</div>'
     +'</div>'
     +'<div class="lb-foot">'+opener
     +'<button class="lb-mode" onclick="toggleOpenerMode()" title="切换今日一句风格">'
