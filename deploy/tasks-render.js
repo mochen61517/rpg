@@ -2481,7 +2481,6 @@ function render(){
   // lists: 日常 / 补剂 / 手动周目标 / 随机日行 / 随机周游 / 月行 / 账本
   document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
   renderSupps();
-  try{ renderFeiTrials(); }catch(e){ console.warn('fei trials',e); }
   renderWeeklyReview();
   renderWeeklyHistory();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');

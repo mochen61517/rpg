@@ -362,7 +362,7 @@ function npcSend(qid){
 }
 function renderNpc(){
   const el=document.getElementById('npcBox'); if(!el) return;
-  if(!S.npc.active.length){ el.innerHTML='<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
+  if(!S.npc.active.length){ el.innerHTML=feiTrialsHtml()+'<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
   el.innerHTML=S.npc.active.map(q=>{
     const p=NPCS.find(n=>n.id===q.npc)||{n:'?',ic:'❓',d:''};
     const ri=npcRelInfo(p.id);
@@ -393,16 +393,40 @@ function renderNpc(){
       +'</div>';
   }).join('')
   + birthdayQuestRowsHtml()
+  + feiTrialsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
 // v6.0.53 王菲·菲式历练区块（主体性修行任务）
+// v6.0.61 回归「江湖委托」区块；改为每日轮换三则、当日完成当日清零（次日换新三则重新可做）。
 const FEI_DIFF_LABEL={1:'微',2:'中',3:'重'};
 function feiDiffScore(t){ return (t&&t.diff)||2; }
+function feiTodayKey(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function ensureFeiDay(){
+  const k=feiTodayKey();
+  if(!S.feiTrials || S.feiTrials._day!==k || typeof S.feiTrials.done!=='object' || !S.feiTrials.done){
+    S.feiTrials={_day:k, done:{}};
+  }
+}
+function feiDayTrials(){
+  ensureFeiDay();
+  const n=FEI_TRIALS.length, want=Math.min(3,n);
+  const d=new Date();
+  const dn=Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2025,0,1))/86400000);
+  const out=[];
+  for(let i=0;i<want;i++) out.push(FEI_TRIALS[(dn*want+i)%n]);
+  return out;
+}
 function feiTrialsHtml(){
   if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return '';
-  const done=S.feiTrials||{};
-  const rows=FEI_TRIALS.map(function(t){
+  ensureFeiDay();
+  const done=S.feiTrials.done||{};
+  const today=feiDayTrials();
+  const doneN=today.filter(function(t){ return !!done[t.id]; }).length;
+  const rows=today.map(function(t){
     const isDone=!!done[t.id];
     const d=feiDiffScore(t);
     return '<div class="fei-trial'+(isDone?' done':'')+'">'
@@ -413,27 +437,22 @@ function feiTrialsHtml(){
       +'</div>';
   }).join('');
   return '<div class="fei-trials">'
-    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">自主性历练 · 按难度 +1 / +2 / +3</span></div>'
-    +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。</div>'
+    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">每日轮换三则 · 今日 '+doneN+'/'+today.length+'</span></div>'
+    +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。明日换新三则。</div>'
     +rows
     +'</div>';
 }
 function toggleFeiTrial(id){
   if(typeof FEI_TRIALS==='undefined'||!FEI_TRIALS) return;
-  if(!S.feiTrials) S.feiTrials={};
-  const isDone=!!S.feiTrials[id];
+  ensureFeiDay();
   const t=FEI_TRIALS.find(function(x){return x.id===id;});
+  if(!feiDayTrials().some(function(x){return x.id===id;})) return; // 非今日历练，不可操作
+  const isDone=!!S.feiTrials.done[id];
   const sc=feiDiffScore(t);
-  if(!isDone){ S.feiTrials[id]=true; addSubjectivity(sc,'菲式历练：'+(t?t.t:'')); }
-  else { delete S.feiTrials[id]; addSubjectivity(-sc,'菲式历练撤销'); }
+  if(!isDone){ S.feiTrials.done[id]=true; addSubjectivity(sc,'菲式历练：'+(t?t.t:'')); }
+  else { delete S.feiTrials.done[id]; addSubjectivity(-sc,'菲式历练撤销'); }
   save(); render();
   try{ if(!isDone) celebrateTask('🎤 菲式历练达成 · 主体性 +'+sc); }catch(e){}
-}
-// v6.0.55 菲式历练区块从「江湖委托」移到「今日行动 · 每日补剂下方」（作为自主性历练）。
-// 不再挂在 npcBox 里（避免污染四人故人假设），由 master render 在 renderSupps 之后填充 #feiTrialsBox。
-function renderFeiTrials(){
-  const el=document.getElementById('feiTrialsBox'); if(!el) return;
-  el.innerHTML=feiTrialsHtml();
 }
 // ===== v6.0.54 境界跨越仪式：王菲以第一人称写给 Mochen 的一封信（仅在升级、跨入新境界时触发）=====
 // 7 封信对应「认识自己 → 本心通明」七个可抵达的境界；蒙尘之镜为起点，不写信。
