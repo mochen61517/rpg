@@ -893,8 +893,9 @@ function renderLetters(){
   h+='<div class="letter-list">';
   list.forEach((l,i)=>{
     const placeName=letterPlaceName(l);
-    h+='<div class="letter-item'+(l.read?' read':'')+'" onclick="openLetter('+i+')">'
-      +'<span class="lt">'+l.title+'</span><span class="lp">'+placeName+'</span>'
+    const kindTag=l.kind==='visit'?' <span class="ltag">回访</span>':'';
+    h+='<div class="letter-item'+(l.read?' read':'')+(l.kind==='visit'?' visit':'')+'" onclick="openLetter('+i+')">'
+      +'<span class="lt">'+l.title+kindTag+'</span><span class="lp">'+placeName+'</span>'
       +'<span class="ls">'+(l.read?'已读':'未读')+'</span></div>';
   });
   h+='</div>';
@@ -925,6 +926,66 @@ function respondLetter(i){
   try{ touchActivity(todayStr()); }catch(_){}
   celebrateTask('远方回响 ✦ +'+l.task.xp);
   save(); checkAch(); hideModal('letterModal'); render();
+}
+
+// —— ③·a 回访信：去过的地方也能来信，基于你写的反馈，并点出还没好好去的角落 ——
+// 每个地点的「值得去的角落」（你大概率还没逐个踏遍）。命中时，回访信会替你记一笔。
+const SUBREGIONS={
+  xinjiang:['南疆','伊犁','喀纳斯','吐鲁番','帕米尔'],
+  yunnan:['西双版纳','腾冲','建水','弥勒','怒江'],
+  xizang:['纳木错','林芝','珠峰大本营','阿里'],
+  chuanxi:['稻城亚丁','色达','四姑娘山','新都桥'],
+  guizhou:['荔波','肇兴侗寨','梵净山','黔东南'],
+  guangxi:['阳朔','龙脊梯田','涠洲岛','黄姚'],
+  xining:['青海湖','茶卡盐湖','祁连','门源'],
+  dunhuang:['鸣沙山月牙泉','莫高窟','雅丹地貌'],
+  xian:['兵马俑','华山','大唐不夜城','城墙'],
+  harbin:['中央大街','冰雪大世界','索菲亚教堂'],
+  xiamen:['鼓浪屿','曾厝垵','环岛路','土楼'],
+  zhangjiajie:['天门山','袁家界','大峡谷玻璃桥'],
+  beijing:['胡同','颐和园','郊野公园','小众展'],
+  hainan:['三亚','万宁','文昌','呀诺达'],
+  japan:['京都','北海道','濑户内','九州'],
+  sweden:['哥德堡','北极圈','湖区小木屋'],
+  turkey:['卡帕多奇亚','伊斯坦布尔老城','以弗所'],
+  uk:['爱丁堡','湖区','科茨沃尔德'],
+};
+// 基于某次旅行脚印，生成一封「回访信」：引用你写的反馈 + 提示你还没好好去的角落。
+function composeVisitLetter(trip){
+  const name=trip.name||'那里';
+  const refl=(trip.refl||'').trim();
+  const subs=SUBREGIONS[trip.id]||SUBREGIONS[name]||null;
+  let body='';
+  if(refl){
+    body+='你写过关于'+name+'：\n「'+refl+'」\n\n';
+  }
+  body+='我替你记着。有些地方要去第二遍、第三遍，才显出它真正的样子——你不是去过，你只是见过它的一面。';
+  if(subs && subs.length){
+    body+='\n\n'+name+'你还没好好去的，有 '+subs.join('、')+'。不急，脚步在就好。';
+  }
+  return body;
+}
+// 去过 + 写了反馈 → 自动寄一封回访信（每处脚印只寄一次）。
+function maybeSendVisitLetter(trip){
+  if(!trip || trip.wish) return;            // 仅「去过」的脚印
+  if(!trip.refl || !trip.refl.trim()) return; // 必须先写反馈
+  if(trip.letterSent) return;               // 避免重复
+  if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0};
+  if(typeof S.letters.unlocked!=='object') S.letters.unlocked=[];
+  const name=trip.name||'那里';
+  S.letters.unlocked.push({
+    place:name, kind:'visit', read:false, date:todayStr(),
+    title:'回访 · '+name, body:composeVisitLetter(trip), task:null
+  });
+  trip.letterSent=true;
+  addHist('✉️ 远方来信：回访 · '+name);
+  try{ renderLetters(); }catch(_){}
+}
+// 首次运行：为已有「去过且写了反馈」的脚印补寄回访信（每处只寄一次）。
+function backfillVisitLetters(){
+  if(S._visitLettersBackfilled) return;
+  if(Array.isArray(S.trips)) S.trips.forEach(function(t){ if(t && !t.wish && t.refl && t.refl.trim()) maybeSendVisitLetter(t); });
+  S._visitLettersBackfilled=true; save();
 }
 
 // ===== 灵宠（可交互猫角色，可多只） =====
@@ -1421,6 +1482,7 @@ function tripSubmit(id){
   }
   _tripWish=wish;
   tripSave();
+  if(!wish){ const saved=S.trips.find(function(x){return x.name===name && x.sub===sub.trim() && !x.wish;}) || (id?S.trips.find(function(x){return x.id===id;}):null); maybeSendVisitLetter(saved); }
   try{ touchActivity(todayStr()); }catch(_){}
   try{ addHist((wish?'✈️':'📍')+' 旅行脚印'+(wish?'想去':'去过')+' · '+name, 0, todayStr()); }catch(_){}
   try{ if(!wish&&yiTravelActive()){ S.bonusXP=(S.bonusXP||0)+20; addHist('✈️ 宜出行·承气运：旅行脚印「'+name+'」 +20 XP',20,todayStr()); } }catch(_){}
@@ -2565,7 +2627,7 @@ try{
   REC_DATE='';                   // 默认记今天
   const _ri=document.getElementById('recDate'); if(_ri) _ri.value=todayStr();
   lastLevel = lvlOf(overallXP());
-  try{ npcRoll(); letterCheck(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
+  try{ npcRoll(); letterCheck(); backfillVisitLetters(); if(!S.enc.cur) encounterRoll(true); }catch(e){ console.warn('v5.19 init',e); }
   try{ petCheck(); }catch(e){ console.warn('pet init',e); }
   try{ birthdayCheck(); }catch(e){ console.warn('birthday init',e); }
   checkAch();

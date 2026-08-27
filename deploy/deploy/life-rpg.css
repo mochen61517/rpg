@@ -1227,6 +1227,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .letter-item{ display:flex; align-items:center; gap:10px; padding:9px 12px; border:1px solid rgba(255,255,255,.08); border-radius:9px; cursor:pointer; transition:background .15s; }
 .letter-item:hover{ background:rgba(255,255,255,.05); }
 .letter-item.read{ opacity:.55; }
+.letter-item.visit{ border-color:rgba(95,208,160,.32); background:rgba(95,208,160,.04); }
+.letter-item .ltag{ display:inline-block; font-size:10.5px; font-weight:700; color:var(--grw); border:1px solid rgba(95,208,160,.4); border-radius:999px; padding:0 7px; margin-left:2px; vertical-align:middle; }
 .letter-item .lt{ flex:1; font-size:13.5px; }
 .letter-item .lp{ font-size:12px; color:var(--dim); }
 .letter-item .ls{ font-size:12px; color:var(--gold); }
