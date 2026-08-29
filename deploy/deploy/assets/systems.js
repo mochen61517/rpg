@@ -856,12 +856,22 @@ function letterTotal(){ return LETTER_SEQ.length; }
 function letterCheck(force){
   if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0};
   if(typeof S.letters.wellIdx!=='number') S.letters.wellIdx=0;
+  if(!Array.isArray(S.letters.visitQueue)) S.letters.visitQueue=[];
   migrateWishesPre();
   const list=S.letters.unlocked||[];
   // 人生愿望已点亮（非历史预设）→ 远方来信收束，不再寄新信
   if(anyWishReached()){ return; }
   const hasUnread=list.some(l=>!l.read);
   if(hasUnread && !force) return;
+  // v6.0.66 回访信排队：优先一天寄出一封积压的回访信，避免一次性涌出
+  if(S.letters.visitQueue.length){
+    const q=S.letters.visitQueue.shift();
+    const trip=(q.id && S.trips && S.trips.find(function(t){return t.id===q.id;})) || {name:q.name||'那里', refl:''};
+    const body=composeVisitLetter(trip);
+    list.push({place:q.name||'那里', kind:'visit', read:false, date:todayStr(), title:'回访 · '+(q.name||'那里'), body:body, task:null});
+    addHist('✉️ 远方来信：回访 · '+(q.name||'那里')); save(); renderLetters();
+    return;
+  }
   // 先寄信库里的（交错去重，忽略回信池）
   const have=new Set(list.filter(l=>l.place!=='well').map(l=>l.place+'#'+l.idx));
   let idx=-1;
@@ -1002,23 +1012,21 @@ function composeVisitLetter(trip){
   }
   return text;
 }
-// 去过 + 写了反馈 → 自动寄一封回访信（每处脚印只寄一次）。
+// 去过 + 写了反馈 → 排入回访信队列（每天只寄一封，避免一次性涌出）。
 function maybeSendVisitLetter(trip){
   if(!trip || trip.wish) return;            // 仅「去过」的脚印
   if(!trip.refl || !trip.refl.trim()) return; // 必须先写反馈
   if(trip.letterSent) return;               // 避免重复
   if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0};
   if(typeof S.letters.unlocked!=='object') S.letters.unlocked=[];
+  if(!Array.isArray(S.letters.visitQueue)) S.letters.visitQueue=[];
   const name=trip.name||'那里';
-  S.letters.unlocked.push({
-    place:name, kind:'visit', read:false, date:todayStr(),
-    title:'回访 · '+name, body:composeVisitLetter(trip), task:null
-  });
+  const id=trip.id||null;
+  if(S.letters.visitQueue.some(function(q){ return (q.id && q.id===id) || q.name===name; })) return;
+  S.letters.visitQueue.push({id:id, name:name, ts:Date.now()});
   trip.letterSent=true;
-  addHist('✉️ 远方来信：回访 · '+name);
-  try{ renderLetters(); }catch(_){}
 }
-// 首次运行：为已有「去过且写了反馈」的脚印补寄回访信（每处只寄一次）。
+// 首次运行：为已有「去过且写了反馈」的脚印补排回访信队列（每处只排一次，后续由 letterCheck 一天发一封）。
 function backfillVisitLetters(){
   if(S._visitLettersBackfilled) return;
   if(Array.isArray(S.trips)) S.trips.forEach(function(t){ if(t && !t.wish && t.refl && t.refl.trim()) maybeSendVisitLetter(t); });
