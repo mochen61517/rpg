@@ -1677,7 +1677,11 @@ body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)
 /* ===== v6.0.33 人生收集册 ===== */
 #codexBox .codex-sec{margin-bottom:12px}
 #codexBox .codex-h{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px}
-#codexBox .codex-chips{display:flex;flex-wrap:wrap;gap:6px}
+#codexBox .codex-h.codex-fold{cursor:pointer;user-select:none;display:flex;align-items:center;gap:5px;transition:.15s}
+#codexBox .codex-h.codex-fold:hover{color:var(--txt);opacity:.92}
+#codexBox .codex-h.codex-fold::first-letter{font-size:11px;color:var(--dim);width:12px;display:inline-block}
+#codexBox .codex-n{font-size:11px;color:var(--dim);font-weight:400}
+#codexBox .codex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 #codexBox .codex-chip{font-size:12px;padding:3px 10px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
 /* ===== v6.0.32 时间胶囊 ===== */
 #capsuleBox .cap-write{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}

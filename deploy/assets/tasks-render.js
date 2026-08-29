@@ -3580,6 +3580,7 @@ function renderCapsule(){
 // ===== v6.0.33 人生收集册（从现有数据派生，零新增录入）=====
 function renderCodex(){
   const el=document.getElementById('codexBox'); if(!el) return;
+  if(!S._codexFold) S._codexFold={visited:true};   // 默认仅「走过的地方」折叠，其余展开
   const visited=(S.trips||[]).filter(t=>!t.wish).map(t=>t.name).filter(Boolean);
   const wishes=(S.wishes||[]).filter(w=>w.un).map(w=>w.t||w.n).filter(Boolean);
   const badges=(S.ach||[]).filter(a=>a.un).map(a=>(a.ic||'🏅')+' '+(a.n||''));
@@ -3587,14 +3588,25 @@ function renderCodex(){
   const histDates=new Set((S.hist||[]).map(h=>h.d).filter(Boolean));
   const jqHit=[];
   if(typeof JIEQI!=='undefined'){ JIEQI.forEach(function(q){ const ds=yr+'-'+String(q[0]).padStart(2,'0')+'-'+String(q[1]).padStart(2,'0'); if(histDates.has(ds)) jqHit.push(q[2]); }); }
-  function sec(title,icon,items,empty){
-    if(!items.length) return '<div class="codex-sec"><div class="codex-h">'+icon+' '+title+'</div><div class="hint">'+empty+'</div></div>';
-    return '<div class="codex-sec"><div class="codex-h">'+icon+' '+title+'（'+items.length+'）</div><div class="codex-chips">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div></div>';
+  function sec(title,icon,items,empty,key){
+    const fold = !!(S._codexFold && S._codexFold[key]);   // 未设置 → 展开
+    const arrow = fold ? '▸' : '▾';
+    const head = '<div class="codex-h codex-fold" onclick="toggleCodexSec(\''+key+'\')">'+arrow+' '+icon+' '+title+'(<span class="codex-n">'+items.length+'</span>)</div>';
+    if(!items.length) return '<div class="codex-sec">'+head+'<div class="hint">'+empty+'</div></div>';
+    let h='<div class="codex-sec">'+head;
+    if(!fold) h+='<div class="codex-chips">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div>';
+    return h+'</div>';
   }
-  el.innerHTML=sec('走过的地方','🗺️',visited,'还没有记过「去过」的旅行脚印。')
-    +sec('点亮的人生愿望','🌟',wishes,'还没有点亮的人生愿望。')
-    +sec('解锁的徽章','🏅',badges,'还没有解锁徽章。')
-    +sec('走过的节气','🍂',jqHit,'今年还没在节气当天留下记录。');
+  el.innerHTML=sec('走过的地方','🗺️',visited,'还没有记过「去过」的旅行脚印。','visited')
+    +sec('点亮的人生愿望','🌟',wishes,'还没有点亮的人生愿望。','wishes')
+    +sec('解锁的徽章','🏅',badges,'还没有解锁徽章。','badges')
+    +sec('走过的节气','🍂',jqHit,'今年还没在节气当天留下记录。','jq');
+}
+// 收集册子区块折叠/展开（折叠状态持久化到 S._codexFold）
+function toggleCodexSec(key){
+  if(!S._codexFold) S._codexFold={};
+  S._codexFold[key]=!S._codexFold[key];
+  save(); renderCodex();
 }
 
 // ===== v6.0.36 心魔挑战（温和：削弱而非击败）=====
