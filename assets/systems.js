@@ -901,13 +901,14 @@ function renderLetters(){
   h+='</h2>';
   if(!list.length){ h+='<div class="hint">还没有来信。信会按节奏慢慢寄到——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
   h+='<div class="letter-list">';
-  list.forEach((l,i)=>{
+  for(let i=list.length-1;i>=0;i--){
+    const l=list[i];
     const placeName=letterPlaceName(l);
     const kindTag=l.kind==='visit'?' <span class="ltag">回访</span>':'';
     h+='<div class="letter-item'+(l.read?' read':'')+(l.kind==='visit'?' visit':'')+'" onclick="openLetter('+i+')">'
       +'<span class="lt">'+l.title+kindTag+'</span><span class="lp">'+placeName+'</span>'
       +'<span class="ls">'+(l.read?'已读':'未读')+'</span></div>';
-  });
+  }
   h+='</div>';
   if(anyWishReached()){
     const vq=(S.letters.visitQueue||[]).length;
