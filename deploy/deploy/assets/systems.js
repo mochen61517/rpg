@@ -955,15 +955,52 @@ function composeVisitLetter(trip){
   const name=trip.name||'那里';
   const refl=(trip.refl||'').trim();
   const subs=SUBREGIONS[trip.id]||SUBREGIONS[name]||null;
-  let body='';
-  if(refl){
-    body+='你写过关于'+name+'：\n「'+refl+'」\n\n';
-  }
-  body+='我替你记着。有些地方要去第二遍、第三遍，才显出它真正的样子——你不是去过，你只是见过它的一面。';
+  const hash=function(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))&0x7fffffff;return h;};
+  const seed=(hash(name)+(refl?hash(refl):0)+(subs?subs.length:0));
+  const bodies=[
+    '我替你记着。有些地方要去第二遍、第三遍，才显出它真正的样子——你不是去过，你只是见过它的一面。',
+    '照片会褪色，但'+name+'那天的湿度、风声，和迷路时的一点点小慌张，我替你留着。下次回去，试试把相机放下，用身体再记一次。',
+    '像练琴一样，同一首曲子隔一年再弹，指法也许会生疏，但耳朵听见的细节会多很多。'+name+'也一样，再去一次，听见的才是它真正的调子。',
+    '你不必急着回去。有些地方的功课是"等"——等一个对的季节、等一个松下来的心境，等一个愿意慢下来的人同行。',
+    '地图上连过的线只是你画过的形状，不是它的全貌。再走一次旧路，或故意绕一条新路，它才会把另一面的地形交出来。',
+    '一个地方的态度，常常藏在第二次见面里。第一次去你是客人，第二次去，它才开始把你当成一段回忆。',
+    '脚走过和心走过是两回事。第一次是打卡，第二次才是认识。第三次，它才会把一些角落主动让给你。',
+    '每个地方都是一本没写完的小说。你翻过的那几页只是序章，后面的章节还藏在第二次、第三次的往返里。'
+  ];
+  const subPhrases=[
+    '你还没好好去的，有 ',
+    '若再回去，可以把这几个名字从清单上划掉：',
+    '值得二刷的角落还有：',
+    '剩下没见的，是 ',
+    '下次去，可以把这几个地方排上：',
+    '没走到的几个名字，我替你圈着：',
+    '除了你已经见过的，还藏着 ',
+    '想更懂它，得再去看看 '
+  ];
+  const closings=[
+    '不急，脚步在就好。',
+    '慢慢来，风景会等人。',
+    '总有一天，你会用另一种速度重新走过。',
+    '去不去都行，先记着。',
+    '等风，也等你。',
+    '它不急，你也不急。',
+    '先把这页折个角，以后回来读。',
+    '愿你下一次抵达，比上次更松弛。'
+  ];
+  const reflHeads=[
+    '你写过关于'+name+'：\n「'+refl+'」\n\n',
+    '关于'+name+'，你写过：\n「'+refl+'」\n\n',
+    '你留给'+name+'的反馈是：\n「'+refl+'」\n\n'
+  ];
+  let text=bodies[seed % bodies.length];
   if(subs && subs.length){
-    body+='\n\n'+name+'你还没好好去的，有 '+subs.join('、')+'。不急，脚步在就好。';
+    text+='\n\n'+name+'，'+subPhrases[seed % subPhrases.length]+subs.join('、')+'。';
   }
-  return body;
+  text+='\n\n'+closings[(seed+(subs?subs.length:0)) % closings.length];
+  if(refl){
+    text=reflHeads[seed % reflHeads.length]+text;
+  }
+  return text;
 }
 // 去过 + 写了反馈 → 自动寄一封回访信（每处脚印只寄一次）。
 function maybeSendVisitLetter(trip){
