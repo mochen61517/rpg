@@ -859,11 +859,9 @@ function letterCheck(force){
   if(!Array.isArray(S.letters.visitQueue)) S.letters.visitQueue=[];
   migrateWishesPre();
   const list=S.letters.unlocked||[];
-  // 人生愿望已点亮（非历史预设）→ 远方来信收束，不再寄新信
-  if(anyWishReached()){ return; }
   const hasUnread=list.some(l=>!l.read);
   if(hasUnread && !force) return;
-  // v6.0.66 回访信排队：优先一天寄出一封积压的回访信，避免一次性涌出
+  // 回访信：基于「去过但未走全」的脚印（如新疆已去、南疆未去），独立于人生愿望，持续一天一封寄送
   if(S.letters.visitQueue.length){
     const q=S.letters.visitQueue.shift();
     const trip=(q.id && S.trips && S.trips.find(function(t){return t.id===q.id;})) || {name:q.name||'那里', refl:''};
@@ -872,6 +870,8 @@ function letterCheck(force){
     addHist('✉️ 远方来信：回访 · '+(q.name||'那里')); save(); renderLetters();
     return;
   }
+  // 常规远方来信（信库 + 回信池）：点亮人生愿望后收束
+  if(anyWishReached()){ return; }
   // 先寄信库里的（交错去重，忽略回信池）
   const have=new Set(list.filter(l=>l.place!=='well').map(l=>l.place+'#'+l.idx));
   let idx=-1;
@@ -910,7 +910,12 @@ function renderLetters(){
   });
   h+='</div>';
   if(anyWishReached()){
-    h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，远方的信就此收束。地图与脚印会一直在，信箱留着你来时的路。</div>';
+    const vq=(S.letters.visitQueue||[]).length;
+    if(vq){
+      h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，常规远方来信已收束；但「走过的、未走全的地方」回访仍会一天一封慢慢寄来（还有 '+vq+' 封在排队，如新疆已去、南疆未去）。</div>';
+    }else{
+      h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，远方的信就此收束。地图与脚印会一直在，信箱留着你来时的路。</div>';
+    }
   }else{
     h+='<div class="hint" style="margin-top:10px">✉️ 远方来信会一直寄来，直到你点亮一个人生愿望。已寄达 '+list.length+' 封。</div>';
   }
