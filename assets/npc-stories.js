@@ -240,7 +240,7 @@ function openJointNpcEvent(){
 function resolveJointNpcEvent(choice){const e=NPC_JOINT_EVENT,c=e.choices[choice];if(!c||S.npcEvents.joint_four)return;S.npcEvents.joint_four={choice,ts:new Date().toISOString().slice(0,16).replace('T',' ')};S.bonusXP=(S.bonusXP||0)+35;addHist('🏮【四方故人】'+e.title+'：'+c.t+' +35 XP',35);closeNpcEvent();save();render();celebrateTask('🏮 四盏灯，照见同一段路');}
 function renderNpcRelics(){
   const el=document.getElementById('npcRelicBox'); if(!el)return; const owned=S.npcRelics||[];
-  const rows=NPCS.map(p=>({p,e:NPC_EVENTS[p.id]})).filter(x=>owned.includes(x.e.relic.id));
+  const rows=NPCS.map(p=>({p,e:NPC_EVENTS[p.id]})).filter(x=>x.e && owned.includes(x.e.relic.id));
   if(!rows.length){el.innerHTML='<div class="relic-empty">与故人的关系达到「熟识」并完成专属事件后，纪念物会留在这里。</div>';return;}
   el.innerHTML=rows.map(x=>{const rec=S.npcEvents[x.p.id], c=x.e.choices[rec?rec.choice:0];return '<div class="relic-card"><div class="relic-ic">'+x.e.relic.ic+'</div><div class="relic-name">'+x.e.relic.name+'</div><div class="relic-from">来自 '+x.p.n+' · '+x.e.title+'</div><div class="relic-story">'+c.story+'</div></div>';}).join('');
 }
