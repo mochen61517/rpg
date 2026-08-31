@@ -2528,7 +2528,7 @@ function render(){
   renderEnergyPage();
   renderWishes();
   renderTrendCard();
-  try{ renderEnergy(); renderLiunian(); renderDayun(); renderNpc(); renderRelics(); }catch(e){ console.warn('v5.17 render',e); }
+  try{ renderEnergy(); renderLiunian(); renderDayun(); renderNpc(); renderNpcRelics(); }catch(e){ console.warn('v5.17 render',e); }
   try{ renderJianghu(); }catch(e){ console.warn('jianghu',e); }
   try{ renderJianghuPeriod('week'); }catch(e){ console.warn('jianghu week',e); }
   try{ renderJianghuPeriod('month'); }catch(e){ console.warn('jianghu month',e); }
