@@ -12,13 +12,30 @@ const NPCS=[
 // v6.0.53 王菲·菲式历练：主体性修行任务。难度 diff(1微/2中/3重) → 分值 +diff（撤销 −diff）。
 // 王菲为「灵魂导师」，不进入 NPCS：避免污染每周江湖委托 / 联动事件 / 关系面板；仅通过菲式历练区块出现。
 const FEI_TRIALS=[
-  {id:'fei_refuse', t:'明确拒绝一件你不想做的事', hint:'不必给理由。王菲式：「不，谢谢。」', diff:3},
-  {id:'fei_feel',   t:'直接向别人表达你的真实感受', hint:'不绕弯，不修饰。', diff:3},
-  {id:'fei_now',    t:'脑子里想做的事，立刻去做', hint:'不等「准备好了」。', diff:2},
-  {id:'fei_self',   t:'今天就做一件纯粹为自己、不被期待的事', hint:'没人要求，你乐意。', diff:2},
-  {id:'fei_noun',   t:'对一件事说「我乐意」，不解释', hint:'我乐意，就是理由。', diff:1},
-  {id:'fei_silence',t:'在喧嚣里，按自己的节奏安静待着', hint:'不赶进度，不解释。', diff:1},
-  {id:'fei_give',   t:'做一件微小服务（不费力 / 不求回报 / 不求关注）', hint:'帮朋友递个资料、分享一句读到的启发。只在你有余力时做。', diff:2}
+  // A · 表达与边界
+  {id:'fei_refuse', t:'明确拒绝一件你不想做的事', hint:'不必给理由。王菲式：「不，谢谢。」', diff:3, slot:'A'},
+  {id:'fei_feel',   t:'直接向别人表达你的真实感受', hint:'不绕弯，不修饰。', diff:3, slot:'A'},
+  {id:'fei_noun',   t:'对一件事说「我乐意」，不解释', hint:'我乐意，就是理由。', diff:1, slot:'A'},
+  {id:'fei_clear',  t:'删掉一条让你迟疑的未回复消息，不再等', hint:'沉默也是回答。', diff:1, slot:'A'},
+  {id:'fei_need',   t:'开口要一次具体帮助，不铺垫', hint:'需要就是需要。', diff:2, slot:'A'},
+  {id:'fei_opinion',t:'在讨论里先说你的真实判断，不附和', hint:'不同意见也可以 calmly 存在。', diff:2, slot:'A'},
+  {id:'fei_leave',  t:'提前离开一个让你不舒服的场合', hint:'不必给借口。', diff:3, slot:'A'},
+  // B · 行动与创造
+  {id:'fei_now',    t:'脑子里想做的事，立刻去做', hint:'不等「准备好了」。', diff:2, slot:'B'},
+  {id:'fei_self',   t:'今天就做一件纯粹为自己、不被期待的事', hint:'没人要求，你乐意。', diff:2, slot:'B'},
+  {id:'fei_finish', t:'把一个「半成品」推进到能发出去', hint:'完成比完美近一步。', diff:2, slot:'B'},
+  {id:'fei_publish',t:'发一条你真正想说的动态，不检查三遍', hint:'发出去就是真的。', diff:1, slot:'B'},
+  {id:'fei_risk',   t:'做一件有 30% 失败可能的小事', hint:'错了也不致命。', diff:3, slot:'B'},
+  {id:'fei_plan',   t:'把脑子里的想法写成一个具体下一步', hint:'落到纸上。', diff:1, slot:'B'},
+  {id:'fei_minimal',t:'今天只做一件事，但把它做完', hint:'少即是完成。', diff:2, slot:'B'},
+  // C · 身体、关系与环境
+  {id:'fei_silence',t:'在喧嚣里，按自己的节奏安静待着', hint:'不赶进度，不解释。', diff:1, slot:'C'},
+  {id:'fei_give',   t:'做一件微小服务（不费力 / 不求回报 / 不求关注）', hint:'帮朋友递个资料、分享一句读到的启发。只在你有余力时做。', diff:2, slot:'C'},
+  {id:'fei_move',   t:'让身体以它舒服的方式动十分钟', hint:'不训练，只是动。', diff:1, slot:'C'},
+  {id:'fei_rest',   t:'把一件计划中的事取消或推迟', hint:'空出来的时间归自己。', diff:2, slot:'C'},
+  {id:'fei_space',  t:'整理一个你日常停留的小角落', hint:'环境清爽，脑子会松。', diff:1, slot:'C'},
+  {id:'fei_connect',t:'主动联系一个你真心想联系的人', hint:'不带目的，只为见面或说话。', diff:2, slot:'C'},
+  {id:'fei_listen', t:'听一首你曾经单曲循环的歌，认真听完', hint:'怀旧也是注意力。', diff:1, slot:'C'}
 ];
 // v6.0.30 分支委托：每周江湖委托有概率变成二选一，不同选择给不同 XP + 评语 + 关系
 const NPC_BRANCH_QUESTS={

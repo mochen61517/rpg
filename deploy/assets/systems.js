@@ -413,11 +413,15 @@ function ensureFeiDay(){
 }
 function feiDayTrials(){
   ensureFeiDay();
-  const n=FEI_TRIALS.length, want=Math.min(3,n);
   const d=new Date();
   const dn=Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2025,0,1))/86400000);
+  const slots={A:[],B:[],C:[]};
+  FEI_TRIALS.forEach(function(t){ (slots[t.slot||'A']||slots.A).push(t); });
   const out=[];
-  for(let i=0;i<want;i++) out.push(FEI_TRIALS[(dn*want+i)%n]);
+  ['A','B','C'].forEach(function(slot, i){
+    const arr=slots[slot];
+    if(arr.length) out.push(arr[(dn+i)%arr.length]);
+  });
   return out;
 }
 function feiTrialsHtml(){
@@ -1502,12 +1506,28 @@ function tripListHtml(list,kind){
   if(!list.length) return '<div class="trips-empty">'+(kind==='wish'?'还没有「想去」的地方——把心里挂着的城市写下来，让远方先在心里抵达。':'还没有到访记录。从下一段旅程开始，把脚步与感受留下。')+'</div>';
   return '<div class="trip-list">'+list.map(t=>{
     const date=t.date?t.date:(t.createdAt||'').slice(0,10);
-    return '<div class="trip-card" onclick="tripEdit(\''+t.id+'\')">'
-      +'<div class="tc-head"><span class="tc-name">'+tripEscape(t.name)+(t.sub?' <span class="tc-sub">'+tripEscape(t.sub)+'</span>':'')+'</span><span class="tc-date">📅 '+tripEscape(date||'—')+'</span></div>'
-      +(t.rating?'<div class="tc-rating">'+tripStars(t.rating)+'</div>':'')
-      +(t.refl?'<div class="tc-refl">'+tripEscape(t.refl)+'</div>':'')
+    const folded=!!t._folded;
+    const arrow=folded?'▸':'▾';
+    const hasBody=t.rating||t.refl;
+    return '<div class="trip-card'+(folded?' folded':'')+'">'
+      +'<div class="tc-head" onclick="toggleTripFold(\''+t.id+'\')">'
+        +'<span class="tc-h-main"><span class="tc-arrow">'+arrow+'</span><span class="tc-name">'+tripEscape(t.name)+(t.sub?' <span class="tc-sub">'+tripEscape(t.sub)+'</span>':'')+'</span></span>'
+        +'<span class="tc-h-meta">'+(t.rating?'<span class="tc-rating-inline">'+tripStars(t.rating)+'</span>':'')+'<span class="tc-date">📅 '+tripEscape(date||'—')+'</span></span>'
+      +'</div>'
+      +(hasBody&&!folded?'<div class="tc-body">'
+        +(t.rating?'<div class="tc-rating">'+tripStars(t.rating)+'</div>':'')
+        +(t.refl?'<div class="tc-refl">'+tripEscape(t.refl)+'</div>':'')
+        +'<div class="tc-actions"><button class="btn xs ghost" onclick="tripEdit(\''+t.id+'\')">✎ 编辑</button></div>'
+      +'</div>':'')
     +'</div>';
   }).join('')+'</div>';
+}
+function toggleTripFold(id){
+  if(!Array.isArray(S.trips)) return;
+  const t=S.trips.find(function(x){return x.id===id;});
+  if(!t) return;
+  t._folded=!t._folded;
+  save(); renderTripsPage();
 }
 function tripSubmit(id){
   const nameEl=document.getElementById('tfName'); if(!nameEl) return;
