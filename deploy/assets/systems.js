@@ -1450,7 +1450,7 @@ function relLinkText(lv){
 }
 
 // ===== v5.43 旅行脚印（纯文字版，替代自绘世界地图） =====
-let _tripWish=false,_tripEditId=null;
+let _tripWish=false,_tripEditId=null,_tripSecFold={vis:true,wish:false};
 function tripStars(n){
   n=Math.max(0,Math.min(5,n|0));
   return '★'.repeat(n)+'☆'.repeat(5-n);
@@ -1504,30 +1504,35 @@ function tripFormHtml(id){
 }
 function tripListHtml(list,kind){
   if(!list.length) return '<div class="trips-empty">'+(kind==='wish'?'还没有「想去」的地方——把心里挂着的城市写下来，让远方先在心里抵达。':'还没有到访记录。从下一段旅程开始，把脚步与感受留下。')+'</div>';
-  return '<div class="trip-list">'+list.map(t=>{
-    const date=t.date?t.date:(t.createdAt||'').slice(0,10);
-    const folded=!!t._folded;
-    const arrow=folded?'▸':'▾';
-    const hasBody=t.rating||t.refl;
-    return '<div class="trip-card'+(folded?' folded':'')+'">'
-      +'<div class="tc-head" onclick="toggleTripFold(\''+t.id+'\')">'
-        +'<span class="tc-h-main"><span class="tc-arrow">'+arrow+'</span><span class="tc-name">'+tripEscape(t.name)+(t.sub?' <span class="tc-sub">'+tripEscape(t.sub)+'</span>':'')+'</span></span>'
-        +'<span class="tc-h-meta">'+(t.rating?'<span class="tc-rating-inline">'+tripStars(t.rating)+'</span>':'')+'<span class="tc-date">📅 '+tripEscape(date||'—')+'</span></span>'
-      +'</div>'
-      +(hasBody&&!folded?'<div class="tc-body">'
-        +(t.rating?'<div class="tc-rating">'+tripStars(t.rating)+'</div>':'')
-        +(t.refl?'<div class="tc-refl">'+tripEscape(t.refl)+'</div>':'')
-        +'<div class="tc-actions"><button class="btn xs ghost" onclick="tripEdit(\''+t.id+'\')">✎ 编辑</button></div>'
-      +'</div>':'')
-    +'</div>';
-  }).join('')+'</div>';
+  const fold=(_tripSecFold && _tripSecFold[kind]===false)?false:true;
+  const label=(kind==='wish'?'✈️ 想去':'📍 已去过');
+  const arrow=fold?'▸':'▾';
+  return '<div class="trip-sec">'
+    +'<div class="trip-sec-h" onclick="toggleTripSec(\''+kind+'\')">'
+      +'<span class="ts-h-main"><span class="ts-arrow">'+arrow+'</span>'+label+' <span class="tn">'+list.length+'</span></span>'
+      +'<span class="ts-h-meta">'+(fold?'点击展开':'点击收起')+'</span>'
+    +'</div>'
+    +(fold?'':'<div class="trip-list">'+list.map(t=>{
+      const date=t.date?t.date:(t.createdAt||'').slice(0,10);
+      const hasBody=t.rating||t.refl;
+      return '<div class="trip-card" onclick="tripEdit(\''+t.id+'\')">'
+        +'<div class="tc-head">'
+          +'<span class="tc-h-main"><span class="tc-name">'+tripEscape(t.name)+(t.sub?' <span class="tc-sub">'+tripEscape(t.sub)+'</span>':'')+'</span></span>'
+          +'<span class="tc-h-meta">'+(t.rating?'<span class="tc-rating-inline">'+tripStars(t.rating)+'</span>':'')+'<span class="tc-date">📅 '+tripEscape(date||'—')+'</span></span>'
+        +'</div>'
+        +(hasBody?'<div class="tc-body">'
+          +(t.rating?'<div class="tc-rating">'+tripStars(t.rating)+'</div>':'')
+          +(t.refl?'<div class="tc-refl">'+tripEscape(t.refl)+'</div>':'')
+          +'<div class="tc-actions"><button class="btn xs ghost" onclick="event.stopPropagation();tripEdit(\''+t.id+'\')">✎ 编辑</button></div>'
+        +'</div>':'')
+      +'</div>';
+    }).join('')+'</div>')
+  +'</div>';
 }
-function toggleTripFold(id){
-  if(!Array.isArray(S.trips)) return;
-  const t=S.trips.find(function(x){return x.id===id;});
-  if(!t) return;
-  t._folded=!t._folded;
-  save(); renderTripsPage();
+function toggleTripSec(kind){
+  if(!_tripSecFold) _tripSecFold={vis:true,wish:false};
+  _tripSecFold[kind]=!_tripSecFold[kind];
+  renderTripsPage();
 }
 function tripSubmit(id){
   const nameEl=document.getElementById('tfName'); if(!nameEl) return;
