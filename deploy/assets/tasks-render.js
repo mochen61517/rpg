@@ -3644,13 +3644,38 @@ function capsuleOpen(cid){
   alert('⏳ 时间胶囊开启\n\n'+c.text+'\n\n—— '+c.sealedOn+' 的你，写给今天');
   render();
 }
+function autoResizeCapText(el){
+  if(!el) return;
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,240)+'px';
+}
 function renderCapsule(){
   const el=document.getElementById('capsuleBox'); if(!el) return;
   const today=todayStr();
   const sealed=S.capsules.filter(c=>!c.opened && c.unlockOn>today);
   const ready=S.capsules.filter(c=>!c.opened && c.unlockOn<=today);
   const opened=S.capsules.filter(c=>c.opened);
-  let html='<div class="cap-write"><textarea id="capText" placeholder="写一句话给未来的自己…"></textarea>'
+  // 给未来的信：作为时间胶囊区的通知卡片
+  let notice='';
+  if(typeof futureLetterState==='function'){
+    const fst=futureLetterState();
+    const canWriteMonth=!fst.wroteMonth&&fst.isMonthStart;
+    const canWriteQuarter=!fst.wroteQuarter&&fst.isQuarterStart;
+    if(canWriteMonth||canWriteQuarter||fst.unread.length){
+      notice='<div class="cap-future"><div class="cap-future-head"><b>✉️ 给未来的信</b><span>月初写给月底 · 季初写给季末</span></div>';
+      if(canWriteMonth||canWriteQuarter){
+        notice+='<div class="cap-future-row">';
+        if(canWriteMonth) notice+='<button class="btn xs primary" onclick="writeFutureLetter(\'month\')">✍️ 给本月底的信</button>';
+        if(canWriteQuarter) notice+='<button class="btn xs primary" onclick="writeFutureLetter(\'quarter\')">✍️ 给本季度末的信</button>';
+        notice+='</div>';
+      }
+      if(fst.unread.length){
+        notice+='<div class="cap-future-row">'+fst.unread.slice(0,3).map(x=>'<button class="btn xs ghost" onclick="openFutureLetter(\''+x.id+'\')">📨 读 '+(x.cycle==='month'?(x.writeFor+' 月初信'):(x.writeFor+' 季初信'))+'</button>').join('')+'</div>';
+      }
+      notice+='</div>';
+    }
+  }
+  let html=notice+'<div class="cap-write"><textarea id="capText" placeholder="写一句话给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
     +'<div class="cap-row"><input type="date" id="capDate"><button class="btn sm primary" onclick="capsuleSeal()">⏳ 封存</button></div>'
     +'<div class="hint">写给未来的自己，设定解锁日期，到时自动出现在收件匣。</div></div>';
   if(ready.length) html+='<div class="cap-sec"><div class="cap-h">📨 可开启（'+ready.length+'）</div>'+ready.map(c=>'<button class="btn sm" onclick="capsuleOpen(\''+c.id+'\')">开启 '+c.sealedOn+' 的信</button>').join('')+'</div>';

@@ -2458,23 +2458,7 @@ function renderLifeCompound(){
   const prompt=LIFE_PROMPTS[seededIndex(viewDate,LIFE_PROMPTS.length)];
 
   const quick=document.getElementById('lifeBlendBox');
-  const fst=futureLetterState();
-  let flHtml='<div class="lc-future"><div class="lc-future-head"><b>✉️ 给未来的信</b><span>月初写给月底 · 季初写给季末</span></div>';
-  const canWriteMonth=!fst.wroteMonth&&fst.isMonthStart;
-  const canWriteQuarter=!fst.wroteQuarter&&fst.isQuarterStart;
-  if(canWriteMonth||canWriteQuarter){
-    flHtml+='<div class="lc-future-row">';
-    if(canWriteMonth) flHtml+='<button class="btn xs primary" onclick="writeFutureLetter(\'month\')">✍️ 给本月底的信</button>';
-    if(canWriteQuarter) flHtml+='<button class="btn xs primary" onclick="writeFutureLetter(\'quarter\')">✍️ 给本季度末的信</button>';
-    flHtml+='</div>';
-  } else {
-    flHtml+='<div class="hint">本月/本季的信已写好，或不在书写窗口（月初/季初前 7 天可写）。</div>';
-  }
-  if(fst.unread.length){
-    flHtml+='<div class="lc-future-row">'+fst.unread.slice(0,3).map(x=>'<button class="btn xs ghost" onclick="openFutureLetter(\''+x.id+'\')">📨 读 '+(x.cycle==='month'?(x.writeFor+' 月初信'):(x.writeFor+' 季初信'))+'</button>').join('')+'</div>';
-  }
-  flHtml+='</div>';
-  if(quick) quick.innerHTML= flHtml
+  if(quick) quick.innerHTML=
     +'<div class="lc-head"><div><b>🌱 '+(isViewToday?'今日行动':'补录')+' · 复利轨道</b><span>'+(isViewToday?'点图标记一笔，今天完成的会亮起来':('这里显示 '+fmtMD(viewDate)+' 已点亮的情况；点图可在那天补记一笔'))+'</span></div>'
       +'<div class="lc-score">'+viewActive+'/'+live.length+' 条已点亮 · 共 '+viewMin+' 分钟'+(isViewToday?'':' · '+fmtMD(viewDate))+'</div></div>'
     +'<div class="lc-ic-row">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
