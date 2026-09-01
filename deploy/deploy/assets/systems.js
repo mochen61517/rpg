@@ -2444,46 +2444,22 @@ function clearLifeToday(key){
 // v5.42 复利轨道改为图标优先：默认只显示图标，点击图标展开时间录入器；
 // 记录后图标从暗(未记录)变亮(已记录)，已点亮的再点可继续叠加时间。
 let _lcOpenTrack=null;
-function lcToggle(key){ _lcOpenTrack=key; renderLifeCompound(); const i=document.getElementById('lcMin_'+key); if(i) i.focus(); }
+function lcToggle(key){ _lcOpenTrack=key; renderLifeCompound();
+  setTimeout(function(){ const i=document.getElementById('lcMin_'+key); if(i){ try{ i.focus(); i.select&&i.select(); }catch(e){} } },30);
+}
 function lcClose(){ _lcOpenTrack=null; renderLifeCompound(); }
 function renderLifeCompound(){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
-  const live=keys.filter(function(k){return !LIFE_TRACKS[k].paused;});
   const viewDate=recordDateStr();
   const isViewToday=viewDate===todayStr();
-  const viewActive=keys.filter(function(k){return practiceViewMinutes(k)>0;}).length;
   const mems=S.lifeCompound.memories||[];
-  const viewMin=keys.reduce(function(n,k){return n+practiceViewMinutes(k);},0);
   const prompt=LIFE_PROMPTS[seededIndex(viewDate,LIFE_PROMPTS.length)];
 
+  // v6.0.80：图标行已合并进今日主线（todayDetailCockpit），此处只保留「生活碎片」。
   const quick=document.getElementById('lifeBlendBox');
   if(quick) quick.innerHTML=
-    +'<div class="lc-head"><div><b>🌱 '+(isViewToday?'今日行动':'补录')+' · 复利轨道</b><span>'+(isViewToday?'点图标记一笔，今天完成的会亮起来':('这里显示 '+fmtMD(viewDate)+' 已点亮的情况；点图可在那天补记一笔'))+'</span></div>'
-      +'<div class="lc-score">'+viewActive+'/'+live.length+' 条已点亮 · 共 '+viewMin+' 分钟'+(isViewToday?'':' · '+fmtMD(viewDate))+'</div></div>'
-    +'<div class="lc-ic-row">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
-      const t=LIFE_TRACKS[k], m=practiceViewMinutes(k), lit=m>0;
-      return '<button class="lc-ic-btn '+(lit?'lit':'dim')+(_lcOpenTrack===k?' open':'')+'" onclick="lcToggle(\''+k+'\')" title="'+escHtml(lifeVariant(k))+'">'
-        +'<span class="lc-ic">'+t.ic+'</span>'
-        +'<span class="lc-ic-name">'+t.n+'</span>'
-        +(lit?'<span class="lc-ic-badge">'+m+'</span>':'')
-        +'</button>';
-    }).join('')+'</div>'
-    +(_lcOpenTrack?(function(){
-        const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceViewMinutes(k), rec=t.rec||15;
-        return '<div class="lc-expand">'
-          +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>'+(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
-          +'<button class="btn xs ghost lc-close" onclick="lcClose()" title="收起">✕</button></div>'
-          +'<div class="lc-expand-body">'
-            +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
-              +'onkeydown="if(event.key===\'Enter\')recordLifePractice(\''+k+'\')">'
-            +'<span class="lc-unit">分钟</span>'
-            +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
-            +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
-            +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销当天这条轨道的全部记录">↺</button>':'')
-          +'</div></div>';
-      })():'')
-    +'<div class="lc-memory"><div><b>✨ '+(isViewToday?'今日生活碎片':fmtMD(viewDate)+'生活碎片')+'</b><span>'+prompt+'</span></div>'
+    '<div class="lc-memory"><div><b>✨ '+(isViewToday?'今日生活碎片':fmtMD(viewDate)+'生活碎片')+'</b><span>'+prompt+'</span></div>'
       +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
       +keys.map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
       +'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…">'
@@ -2503,6 +2479,7 @@ function renderLifeCompound(){
         +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';
     }).join('')+'</div>'
     +'<div class="lp-note">羽毛球/力量/冥想/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
+  renderTodayCockpit();
 }
 
 function setupLifeCompoundUI(){
@@ -2511,7 +2488,7 @@ function setupLifeCompoundUI(){
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
   try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
   try{ migrateBodySplit(); }catch(e){ console.warn('body split migrate',e); }
-  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('recBar')||document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('afterend',p);}
+  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('afterend',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
 }

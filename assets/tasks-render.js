@@ -1909,23 +1909,59 @@ function cockpitCandidates(){
   try{ (ensureJianghu().list||[]).forEach(function(x){ out.push({id:x.id,t:x.t,a:safeAttr(x.a),done:!!x.done,min:0,src:'江湖'}); }); }catch(e){}
   return out;
 }
+function todayMainOrRecord(k){
+  const sel=todayMainKeys();
+  if(sel.indexOf(k)<0){ toggleTodayMain(k); }
+  else { lcToggle(k); }
+}
 function renderTodayCockpit(){
   const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
   const e=energyState(), live=liveTrackKeys(), sel=todayMainKeys();
+  const viewDate=recordDateStr();
+  const isViewToday=viewDate===todayStr();
   const chip=function(k){
     const t=LIFE_TRACKS[k], on=sel.indexOf(k)>=0, m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
-    return '<button class="tm-chip'+(on?' on':'')+(m>0?' lit':'')+'" onclick="toggleTodayMain(\''+k+'\')">'
-      +'<span class="tm-chip-ic">'+t.ic+'</span><span class="tm-chip-n">'+escHtml(t.n)+'</span>'
-      +(on?'<span class="tm-chip-tick">✓</span>':'')+'</button>';
+    const cls=['lc-ic-btn'];
+    if(on) cls.push('on');
+    if(m>0) cls.push('lit');
+    if(!on && m===0) cls.push('dim');
+    if(_lcOpenTrack===k) cls.push('open');
+    return '<button class="'+cls.join(' ')+'" onclick="todayMainOrRecord(\''+k+'\')" title="'+escHtml(t.n)+' · 建议 '+t.rec+' 分钟">'
+      +'<span class="lc-ic">'+t.ic+'</span>'
+      +'<span class="lc-ic-name">'+escHtml(t.n)+'</span>'
+      +(on && m===0?'<span class="lc-ic-tick">✓</span>':'')
+      +(m>0?'<span class="lc-ic-badge">'+m+'</span>':'')
+      +'</button>';
   };
   const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return m>=(t.rec||20); }).length;
+  const expandHtml=_lcOpenTrack?(function(){
+    const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceViewMinutes(k), rec=t.rec||15;
+    return '<div class="lc-expand">'
+      +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>'+(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
+      +'<button class="btn xs ghost lc-close" onclick="lcClose()" title="收起">✕</button></div>'
+      +'<div class="lc-expand-body">'
+      +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
+      +'onkeydown="if(event.key===\'Enter\')recordLifePractice(\''+k+'\')">'
+      +'<span class="lc-unit">分钟</span>'
+      +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
+      +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
+      +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销当天这条轨道的全部记录">↺</button>':'')
+      +'</div></div>';
+  })():'';
+  const dateBarHtml='<div class="tm-recbar">'
+    +'<span class="reclabel">记录于</span>'
+    +'<input id="recDate" type="date" class="recinput" value="'+(REC_DATE||todayStr())+'" onchange="setRecDate(this.value)">'
+    +'<button class="btn ghost xs" onclick="setRecDate(\'\')">今天</button>'
+    +'<span class="rechint" id="recHint">'+(REC_DATE?'正在补录 '+fmtMD(REC_DATE)+'：点亮与分钟都会记到那一天。补完点「今天」切回。':'默认记今天；要补录过去某天，先选日期再勾任务。选好后会显示那天的点亮情况与已记分钟。')+'</span>'
+    +'</div>';
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
     +'<div class="tm-title">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
     +'<div class="tm-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
-    +'<div class="tm-pick-label">从长期复利轨道里挑（最多 3 条 · 点一下选中）</div>'
-    +'<div class="tm-pick">'+live.map(chip).join('')+'</div>'
-    +(sel.length?'':'<div class="tm-empty">还没选。今天只认 1–3 条就够，其余全算加分。</div>')
+    +dateBarHtml
+    +'<div class="tm-light-tip">已点亮 '+sel.length+'/3 · 点暗图标先选中主线，点亮后再点可填时间；直接填了时间也算完成主线</div>'
+    +'<div class="lc-ic-row">'+live.map(chip).join('')+'</div>'
+    +expandHtml
     +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
     +(sel.length?' <button class="btn xs ghost" onclick="clearTodayMain()">清空重选</button>':'')+'</div>';
   renderDashboardSummary();

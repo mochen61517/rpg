@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.0.79</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=20260901-2132">
+<title>人生修行录 · v6.0.80</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=20260901-2146">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-ic" id="brandAvatar" onclick="document.getElementById('avatarFile').click()" title="点击更换头像">🕯️</div>
-      <div class="brand-t">人生修行录<span>v6.0.79 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.0.80 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -353,13 +353,7 @@
       <!-- ===== 今日行动 ===== -->
       <div id="st-action-pane">
         <div class="panel today-cockpit today-detail-cockpit" id="todayDetailCockpit"></div>
-        <div class="recbar" id="recBar">
-          <span class="reclabel">记录于</span>
-          <input id="recDate" type="date" class="recinput" onchange="setRecDate(this.value)">
-          <button class="btn ghost xs" onclick="setRecDate('')">今天</button>
-          <span class="rechint" id="recHint">默认记今天；要补录过去某天，先选日期再勾任务。选好后下方「复利轨道」会显示那天的点亮情况与已记分钟。</span>
-        </div>
-      <!-- 「复利轨道」面板由 systems.js 动态插入到 recBar 之后 -->
+      <!-- 「生活碎片」面板由 systems.js 动态插入到 todayDetailCockpit 之后 -->
       <div class="panel">
         <h2>🌙 今日小习惯</h2>
         <div class="subh">只打勾、不计时 <span class="qmin">（羽毛球/力量/拉伸/阅读等计时项，请在上方「复利轨道」直接填时间）</span></div>
@@ -773,9 +767,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=20260901-2132"></script>
-<script src="assets/tasks-render.js?v=20260901-2132"></script>
-<script src="assets/npc-stories.js?v=20260901-2132"></script>
-<script src="assets/systems.js?v=20260901-2132"></script>
+<script src="assets/core-state.js?v=20260901-2146"></script>
+<script src="assets/tasks-render.js?v=20260901-2146"></script>
+<script src="assets/npc-stories.js?v=20260901-2146"></script>
+<script src="assets/systems.js?v=20260901-2146"></script>
 </body>
 </html>
