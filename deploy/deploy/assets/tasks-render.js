@@ -988,9 +988,17 @@ function openTonightTodo(){
   const tomorrow=addDays(todayStr(),1);
   S.dayTasks=S.dayTasks||[];
   lines.forEach(t=>{ S.dayTasks.push({id:id(), t, start:'', dur:'', d:tomorrow, span:1, done:false, from:'tonight'}); });
-  addHist('🌙 睡前写下 '+lines.length+' 条明日 TODO', 0);
+  // v6.0.81 修复：睡前写明日 TODO 应奖励 15 XP（心智），且当天只奖一次
+  const d=todayStr(); let xp=0;
+  if(S.nightTodoDate!==d){ xp=15; S.nightTodoDate=d; }
+  if(xp){
+    grant('MIND', xp);
+    addHist('🌙 睡前写下 '+lines.length+' 条明日 TODO +'+xp+' XP', xp);
+  } else {
+    addHist('🌙 睡前补写 '+lines.length+' 条明日 TODO（今日已记，不重复奖励）', 0);
+  }
   save(); renderDayTasks();
-  alert('已为明天写好 '+lines.length+' 条 TODO ✅ 明早打开就能看到。');
+  alert('已为明天写好 '+lines.length+' 条 TODO ✅ 明早打开就能看到。'+(xp?'本次 +'+xp+' XP（心智）':''));
 }
 // ===== 旅行地图：自绘世界地图 + 地点解锁 + 感受记录（合规：台湾属中国、含南海诸岛） =====
 function projX(lng){ return ((lng+180)/360*1000).toFixed(1); }

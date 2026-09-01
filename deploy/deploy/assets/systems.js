@@ -897,11 +897,23 @@ function letterCheck(force){
   addHist('✉️ 远方来信：'+wm.t); save();
 }
 function letterUnread(){ return (S.letters.unlocked||[]).filter(l=>!l.read).length; }
+function clearVisitLetters(){
+  if(!S.letters) return;
+  const before=(S.letters.unlocked||[]).length;
+  const visitIds=new Set((S.letters.visitQueue||[]).map(q=>q.id||q.name));
+  S.letters.unlocked=(S.letters.unlocked||[]).filter(function(l){ return l.kind!=='visit' && !visitIds.has(l.place) && !visitIds.has(letterPlaceName(l)); });
+  S.letters.visitQueue=[];
+  const removed=before-(S.letters.unlocked||[]).length;
+  if(removed>0) addHist('🧹 清空了 '+removed+' 封回访信', 0);
+  save(); renderLetters();
+}
 function renderLetters(){
   const el=document.getElementById('letterBox'); if(!el) return;
   const list=S.letters.unlocked||[];
+  const visitCount=list.filter(l=>l.kind==='visit').length;
   let h='<h2>✉️ 远方来信 <span class="note">按你心里的地图，慢慢寄到</span>';
   const un=letterUnread(); if(un) h+=' <span class="badge-new">'+un+' 封未读</span>';
+  if(visitCount>0) h+=' <button class="btn xs ghost" onclick="if(confirm(\'确认清空全部 '+visitCount+' 封回访信？\'))clearVisitLetters()">🧹 清回访信</button>';
   h+='</h2>';
   if(!list.length){ h+='<div class="hint">还没有来信。信会按节奏慢慢寄到——先把北京安放好，远方自会抵达。</div>'; el.innerHTML=h; return; }
   h+='<div class="letter-list">';
