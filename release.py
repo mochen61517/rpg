@@ -6,7 +6,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 VERSION = "6.0.84"  # 人类可读版本（功能版本），新增功能时手动改这里
 CB = datetime.datetime.now().strftime("%Y%m%d-%H%M")  # 缓存破坏符：每次发版唯一，强制浏览器/CDN 拉新 JS
 
-HTMLS = ["life-rpg.html", "deploy/life-rpg.html", "deploy/deploy/life-rpg.html"]
+HTMLS = ["life-rpg.html", "deploy/life-rpg.html", "deploy/deploy/life-rpg.html",
+          "deploy/index.html", "deploy/deploy/index.html"]
 
 def sync_assets(src, dst):
     if os.path.exists(dst):
@@ -30,10 +31,11 @@ def main():
     for lvl in ["deploy", "deploy/deploy"]:
         os.makedirs(lvl, exist_ok=True)
         shutil.copy2(os.path.join(ROOT, "life-rpg.html"), os.path.join(lvl, "life-rpg.html"))
+        shutil.copy2(os.path.join(ROOT, "life-rpg.html"), os.path.join(lvl, "index.html"))
         sync_assets(os.path.join(ROOT, "assets"), os.path.join(lvl, "assets"))
     for p in HTMLS:
         bump_html(os.path.join(ROOT, p))
-    print(f"[deploy] 完成：显示版本 v{VERSION} | 缓存符 ?v={CB} | 三份副本已同步")
+    print(f"[deploy] 完成：显示版本 v{VERSION} | 缓存符 ?v={CB} | 入口已统一(index+life-rpg)")
 
 if __name__ == "__main__":
     main()
