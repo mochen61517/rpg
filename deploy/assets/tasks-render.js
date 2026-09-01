@@ -96,30 +96,6 @@ function isValidDataUrl(s){ return typeof s==='string' && s.startsWith('data:') 
 function applyAvatar(){
   const src=(S.avatar && isValidDataUrl(S.avatar)) ? S.avatar : DEFAULT_AVATAR;
   const ha=document.getElementById('heroAvatar'); if(ha) ha.src=src;
-  const ba=document.getElementById('brandAvatar');
-  if(!ba) return;
-  if(!src || src===DEFAULT_AVATAR){
-    if(DEFAULT_AVATAR){
-      ba.style.backgroundImage='url('+DEFAULT_AVATAR+')';
-      ba.textContent='';
-    }else{
-      ba.style.backgroundImage='';
-      ba.textContent='🕯️';
-    }
-    return;
-  }
-  // 先尝试加载，失败则回退默认并清理脏数据
-  const test=new Image();
-  test.onload=function(){
-    ba.style.backgroundImage='url('+src+')';
-    ba.textContent='';
-  };
-  test.onerror=function(){
-    ba.style.backgroundImage='';
-    ba.textContent='🕯️';
-    if(S.avatar){ S.avatar=''; save(); }
-  };
-  test.src=src;
 }
 let _avatarInput=null;
 function uploadAvatar(input){
