@@ -916,6 +916,82 @@ function renderSupps(){
       +'</button>';
   }).join('')+'</div>';
 }
+// ===== v6.0.77 今日小习惯：横排小图标（像补剂），完成即点亮 =====
+const DAILY_ICON={
+  '喝 8 杯水':'💧','饮食少油少盐':'🥗','早睡早起':'😴','做面部操':'💆','不要久坐':'🪑'
+};
+function renderDailyIcons(){
+  const el=document.getElementById('dailyList'); if(!el) return;
+  if(!S.daily||!S.daily.length){ el.innerHTML='<div class="hint">暂无小习惯。</div>'; return; }
+  const d=REC_DATE||todayStr();
+  el.innerHTML='<div class="supp-row">'+S.daily.map(x=>{
+    const done=isDone(x,d);
+    const ic=DAILY_ICON[x.t]||'📌';
+    return '<button type="button" class="supp-ic'+(done?' done':'')+'" title="'+escHtml((done?'已完成：':'待完成：')+x.t+'（+'+x.xp+' XP）')+'" onclick="toggle(S.daily,\''+x.id+'\')">'
+      +'<span class="supp-em">'+ic+'</span>'
+      +'<span class="supp-nm">'+escHtml(x.t)+'</span>'
+      +(done?'<span class="supp-ck">✔</span>':'')
+      +'<span class="supp-del" onclick="event.stopPropagation();delQuest(\'daily\',\''+x.id+'\')" title="删除">×</span>'
+      +'</button>';
+  }).join('')+'</div>';
+}
+// ===== v6.0.77 今日任务：临时任务（当天加 / 睡前写明日todo流转）=====
+function addDays(d,n){ const p=d.split('-').map(Number); const dt=new Date(Date.UTC(p[0],p[1]-1,p[2])); dt.setUTCDate(dt.getUTCDate()+n); return dt.toISOString().slice(0,10); }
+function daysBetween(a,b){ const pa=a.split('-').map(Number), pb=b.split('-').map(Number); return Math.round((Date.UTC(pb[0],pb[1]-1,pb[2])-Date.UTC(pa[0],pa[1]-1,pa[2]))/86400000); }
+function renderDayTasks(){
+  const el=document.getElementById('dayTaskList'); if(!el) return;
+  const d=todayStr();
+  const list=(S.dayTasks||[]).filter(x=>!x.done);   // 完成即隐藏；未完成的持续显示（含跨天/逾期）
+  if(!list.length){ el.innerHTML='<div class="hint">今日暂无临时任务。下面加一个，或睡前写下明天的 TODO。</div>'; return; }
+  el.innerHTML=list.map(x=>{
+    const overdue=daysBetween(x.d,d)>(x.span||1)-1;
+    const meta=[];
+    if(x.start) meta.push('🕐 '+escHtml(x.start)+(x.dur?(' · '+escHtml(x.dur)):''));
+    if((x.span||1)>1) meta.push('持续 '+(x.span||1)+' 天');
+    if(x.from==='tonight') meta.push('🌙 昨晚写');
+    if(overdue) meta.push('⏰ 逾期');
+    return '<div class="daytask'+(overdue?' overdue':'')+'" onclick="toggleDayTask(\''+x.id+'\')">'
+      +'<span class="dt-chk">○</span>'
+      +'<span class="dt-t">'+escHtml(x.t)+'</span>'
+      +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
+      +'<span class="dt-x" onclick="event.stopPropagation();delDayTask(\''+x.id+'\')" title="删除">×</span>'
+      +'</div>';
+  }).join('');
+}
+function addDayTask(){
+  const inp=document.getElementById('dayTaskText');
+  const t=(inp&&inp.value||'').trim(); if(!t) return;
+  const start=document.getElementById('dayTaskStart'), dur=document.getElementById('dayTaskDur'), spanEl=document.getElementById('dayTaskSpan');
+  const span=Math.max(1, parseInt((spanEl&&spanEl.value)||'1')||1);
+  S.dayTasks=S.dayTasks||[];
+  S.dayTasks.push({id:id(), t, start:(start&&start.value)||'', dur:(dur&&dur.value)||'', d:todayStr(), span, done:false, from:'manual'});
+  if(inp) inp.value=''; if(start) start.value=''; if(dur) dur.value=''; if(spanEl) spanEl.value='1';
+  save(); renderDayTasks();
+}
+function toggleDayTask(uid){
+  const t=(S.dayTasks||[]).find(x=>x.id===uid); if(!t) return;
+  t.done=!t.done;
+  if(t.done){ t.doneDate=todayStr(); addHist('✔ 今日任务：'+t.t, 0); }
+  else { addHist('✘ 今日任务：'+t.t, 0); }
+  save(); renderDayTasks();
+}
+function delDayTask(uid){
+  if(!Array.isArray(S.dayTasks)) return;
+  S.dayTasks=S.dayTasks.filter(x=>x.id!==uid);
+  save(); renderDayTasks();
+}
+function openTonightTodo(){
+  const v=prompt('🌙 睡前放空大脑 · 写下明天的 TODO（每行一条）：','');
+  if(v==null) return;
+  const lines=v.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length) return;
+  const tomorrow=addDays(todayStr(),1);
+  S.dayTasks=S.dayTasks||[];
+  lines.forEach(t=>{ S.dayTasks.push({id:id(), t, start:'', dur:'', d:tomorrow, span:1, done:false, from:'tonight'}); });
+  addHist('🌙 睡前写下 '+lines.length+' 条明日 TODO', 0);
+  save(); renderDayTasks();
+  alert('已为明天写好 '+lines.length+' 条 TODO ✅ 明早打开就能看到。');
+}
 // ===== 旅行地图：自绘世界地图 + 地点解锁 + 感受记录（合规：台湾属中国、含南海诸岛） =====
 function projX(lng){ return ((lng+180)/360*1000).toFixed(1); }
 function projY(lat){ return ((90-lat)/180*500).toFixed(1); }
@@ -2485,7 +2561,8 @@ function render(){
   renderLoot();
 
   // lists: 日常 / 补剂 / 手动周目标 / 随机日行 / 随机周游 / 月行 / 账本
-  document.getElementById('dailyList').innerHTML=listHtml(S.daily,'daily');
+  renderDailyIcons();
+  renderDayTasks();
   renderSupps();
   renderWeeklyReview();
   renderWeeklyHistory();

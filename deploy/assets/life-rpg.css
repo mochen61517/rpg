@@ -201,6 +201,17 @@
   .supp-del{position:absolute;top:2px;left:5px;font-size:13px;line-height:1;color:var(--dim);opacity:0;transition:.15s}
   .supp-ic:hover .supp-del{opacity:.85}
   .supp-del:hover{color:var(--warn)}
+  /* v6.0.77 今日任务 */
+  .daytask{display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);cursor:pointer;transition:.16s;margin-top:7px}
+  .daytask:hover{border-color:var(--grw);background:rgba(95,208,160,.06)}
+  .dt-chk{width:18px;height:18px;border:1.5px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--grw);flex:0 0 auto}
+  .dt-t{flex:1;font-size:13px;color:var(--txt)}
+  .dt-meta{font-size:11px;color:var(--dim);white-space:nowrap}
+  .daytask.overdue{border-color:var(--warn)}
+  .daytask.overdue .dt-meta{color:var(--warn)}
+  .dt-x{font-size:14px;color:var(--dim);opacity:0;transition:.15s;flex:0 0 auto}
+  .daytask:hover .dt-x{opacity:.8}
+  .dt-x:hover{color:var(--warn)}
   /* goals */
   .goal{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
   .goal.paused{opacity:.5;filter:grayscale(.6)}

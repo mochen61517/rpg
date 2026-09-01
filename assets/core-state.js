@@ -598,14 +598,16 @@ function defaultState(){
     attrs:{BADMINTON:0,CAREER:0,BODY:0,MIND:0},
     // v5.39 计时型日课全部搬进「复利轨道」（羽毛球/力量/拉伸/精神充电/职业行动），
     // 那边可直接填分钟并标记完成，此处只留没有时长、纯打勾的小习惯，避免同一件事记两遍。
-    // v6.0.53+ 生活健康/心理健康小习惯：早睡早起、面部操、不久坐、开心视频、喝水
+    // v6.0.77 固定小习惯横排小图标化（像补剂）：喝8杯水 / 饮食少油少盐 / 早睡早起 / 做面部操 / 不要久坐
     daily:[
-      {id:id(),t:'今天喝够水',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'喝 8 杯水',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
+      {id:id(),t:'饮食少油少盐',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
       {id:id(),t:'早睡早起',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
       {id:id(),t:'做面部操',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
       {id:id(),t:'不要久坐',a:'BODY',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
-      {id:id(),t:'看点让自己开心的视频',a:'MIND',xp:5,min:0,mode:'fixed',done:false,rec:'每日'},
     ],
+    // v6.0.77 今日任务：临时任务（当天加 / 睡前写明日todo流转），可加起始时间、跨天持续、完成即隐藏
+    dayTasks:[],
     supps: defaultSupps(),
     // 固定周常不再自动生成：周任务 = 随机周游（江湖掉落）+ 手动周目标（你明确要做的）。
     // 老用户已有的 S.weekly 项目保留为「手动周目标」，此处仅清空默认种子。
@@ -843,6 +845,17 @@ function migrate(){
       if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'今日小习惯更新：移除「呼吸」等计时型重复项，新增生活/心理健康小习惯',xp:0});
     }
     S.dailyHabitsRefreshed_v1 = true;
+  }
+  // v6.0.77 今日任务区初始化 + 固定小习惯标题对齐用户清单（喝8杯水 / 饮食少油少盐）
+  if(!S.dailyV677){
+    if(!Array.isArray(S.dayTasks)) S.dayTasks=[];
+    if(Array.isArray(S.daily)){
+      S.daily.forEach(x=>{
+        if((x.t||'')==='今天喝够水'){ x.t='喝 8 杯水'; }
+        if((x.t||'')==='看点让自己开心的视频'){ x.t='饮食少油少盐'; x.a='BODY'; }
+      });
+    }
+    S.dailyV677 = true;
   }
   // 兼容旧存档：周常里的羽毛球视频学习应归羽毛球领域
   if(Array.isArray(S.weekly)){
