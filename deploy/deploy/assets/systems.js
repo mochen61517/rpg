@@ -2500,7 +2500,7 @@ function setupLifeCompoundUI(){
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
   try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
   try{ migrateBodySplit(); }catch(e){ console.warn('body split migrate',e); }
-  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('afterend',p);}
+  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('beforebegin',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
 }
