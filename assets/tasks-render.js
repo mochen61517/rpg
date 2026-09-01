@@ -1885,10 +1885,7 @@ function todayMainKeys(){ const p=ensureTodayPlan(), live=liveTrackKeys(); retur
 function toggleTodayMain(k){
   const p=ensureTodayPlan(), i=(p.main||[]).indexOf(k);
   if(i>=0) p.main.splice(i,1);
-  else{
-    if(p.main.length>=3){ try{ celebrateTask('🎯 今日主线最多 3 条 · 先取消一条再选'); }catch(e){} return; }
-    p.main.push(k);
-  }
+  else{ p.main.push(k); }
   save(); renderTodayCockpit(); try{ renderLifeCompound(); }catch(e){}
 }
 function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(); }
@@ -1967,7 +1964,7 @@ function renderTodayCockpit(){
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
     +'<div class="tm-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +dateBarHtml
-    +'<div class="tm-light-tip">已点亮 '+sel.length+'/3 · 点暗图标先选中主线，点亮后再点可填时间；直接填了时间也算完成主线</div>'
+    +'<div class="tm-light-tip">已点亮 '+sel.length+' 条 · 点暗图标先选中主线，点亮后再点可填时间；直接填了时间也算完成主线</div>'
     +'<div class="lc-ic-row">'+live.map(chip).join('')+'</div>'
     +expandHtml
     +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
@@ -1981,7 +1978,7 @@ function renderDashboardSummary(){
   const e=energyState(), gxp=overallXP(), lv=lvlOf(gxp), lr=xpInLvl(gxp);
   const wk=Object.keys(ATTRS).reduce(function(s,a){return s+weeklyAttrMinutes(a);},0);
   const cards=[
-    {ic:'🎯',n:'今日主线',v:sel.length?(doneN+' / '+sel.length):'未选',s:sel.length?'今天认下的事 · 点击进入':'去挑 1–3 条复利轨道',p:'current'},
+    {ic:'🎯',n:'今日主线',v:sel.length?(doneN+' / '+sel.length):'未选',s:sel.length?'今天认下的事 · 点击进入':'去挑今天想完成的事',p:'current'},
     {ic:'🗓️',n:'本周投入',v:h(wk),s:'四大领域累计 · 点击查看周复盘',p:'week'},
     {ic:'🔋',n:'当前精力',v:e.v,s:e.label+' · '+(e.v<50?'建议减量':'节奏正常'),p:'energy'},
     {ic:'✦',n:'修行等级',v:'Lv.'+lv,s:Math.round(lr.xp)+' / '+Math.round(lr.need)+' XP',p:'growth'}
