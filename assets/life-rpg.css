@@ -1665,6 +1665,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .top-tabs .tt-main .nav-badge{position:static;margin-left:6px;transform:none}
 .myjh-overdue{outline:1px solid #e0625a}
 .myjh-overdue .jh-over{color:#e0625a;font-weight:700}
+.jh-expired-tag{display:inline-block;font-size:12px;font-weight:700;color:#e0625a;border:1px dashed #e0625a;border-radius:8px;padding:3px 10px;background:rgba(224,98,90,.08);cursor:not-allowed;user-select:none}
 .myjh-done{opacity:.55}
 .jh-dead{font-size:12px;color:#9aa;margin-top:4px;width:100%;text-align:right}
 .jh-src{background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;font-size:12px;color:#bbb}

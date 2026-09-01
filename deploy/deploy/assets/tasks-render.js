@@ -2281,8 +2281,10 @@ function myJianghuUnfinished(){ return (S.myJianghu||[]).filter(function(e){retu
 function jianghuMyToggle(uid){
   if(!Array.isArray(S.myJianghu)) return;
   const e=S.myJianghu.find(function(x){return x.uid===uid;}); if(!e) return;
+  // v6.0.74 已逾期的揭榜不再允许标记完成（仅允许撤销已完成的）
+  if(!e.done && e.deadline<Date.now()) return;
   const st=jianghuPeriodOfSrc(e.src), arr=(st.list||[]).filter(function(q){return q.id===e.id;});
-  const a=safeAttr(e.a), overdue=e.deadline<Date.now();
+  const a=safeAttr(e.a);
   if(!arr.length){
     if(!e.done){ e.done=true; grant(a,e.xp); addHist('✔【揭榜】'+e.t+' +'+e.xp+' XP',e.xp); addSubjectivity(2,'揭榜完成'); }
     else { e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); addSubjectivity(-2,'揭榜撤销'); }
@@ -2290,12 +2292,12 @@ function jianghuMyToggle(uid){
   }
   const x=arr[0];
   if(!x.done){
-    x.done=true; e.done=true; const award=overdue?e.xp:Math.round(e.xp*1.2);
-    grant(a,award); addHist('✔【揭榜·'+(overdue?'逾期':'准时')+'】'+e.t+' +'+award+' XP'+(overdue?'':'（准时 +'+(award-e.xp)+'）'),award);
-    addSubjectivity(overdue?2:3, '揭榜完成·'+(overdue?'逾期':'准时'));
+    x.done=true; e.done=true; const award=Math.round(e.xp*1.2);
+    grant(a,award); addHist('✔【揭榜·准时】'+e.t+' +'+award+' XP（准时 +'+(award-e.xp)+'）',award);
+    addSubjectivity(3, '揭榜完成·准时');
     save(); render(); try{ celebrateTask('🗡️ '+e.t+' · +'+award+' XP'); }catch(err){}
   }else{
-    x.done=false; e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); addSubjectivity(-(overdue?2:3),'揭榜撤销'); save(); render();
+    x.done=false; e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); addSubjectivity(-3,'揭榜撤销'); save(); render();
   }
 }
 function renderMyJianghu(){
@@ -2314,7 +2316,11 @@ function renderMyJianghu(){
       +'<span class="jh-src">'+(e.src==='day'?'日榜':(e.src==='week'?'周榜':'月榜'))+'</span>'
       +(overdue?'<span class="jh-over">已逾期</span>':'')+'</div></div>'
       +'<div class="jh-xp">+'+(overdue?e.xp:Math.round(e.xp*1.2))+'</div>'
-      +'<button class="btn xs '+(e.done?'ghost':'primary')+'" onclick="jianghuMyToggle(\''+e.uid+'\')">'+(e.done?'撤销':'完成')+'</button>'
+      +(e.done
+          ? '<button class="btn xs ghost" onclick="jianghuMyToggle(\''+e.uid+'\')">撤销</button>'
+          : (overdue
+              ? '<span class="jh-expired-tag">已过期</span>'
+              : '<button class="btn xs primary" onclick="jianghuMyToggle(\''+e.uid+'\')">完成</button>'))
       +'<div class="jh-dead">截止 '+fmtDeadline(e.deadline)+'</div>'
       +'</div>';
   }).join('');
