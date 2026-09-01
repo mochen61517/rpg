@@ -2415,22 +2415,26 @@ function futureLetterState(){
     unread:fl.filter(x=>!x.readDate)
   };
 }
-function writeFutureLetter(cycle){
-  const st=futureLetterState();
-  const key=cycle==='month'?st.monthKey:st.quarterKey;
-  const label=cycle==='month'?('给 '+st.monthKey+' 月底的信'):('给 '+st.quarterKey+' 季度末的信');
-  const v=prompt('✍️ '+label+' —— 写下给未来的自己的一段话（可多行）：','');
-  if(v==null) return;
-  const text=v.trim(); if(!text) return;
+// v6.0.88 给未来的信：时间胶囊区内联编辑 + 封存（固定 XP），不再弹窗；不区分月/季，随时可写
+var FUTURE_LETTER_XP=10; // 每次封存固定经验值
+function sealFutureLetter(){
+  const t=document.getElementById('flEditText'); if(!t) return;
+  const text=t.value.trim(); if(!text){ alert('先写点什么给未来的自己'); return; }
   S.futureLetters=S.futureLetters||[];
-  S.futureLetters.push({id:id(),cycle,writeFor:key,writeDate:todayStr(),text,readDate:null});
-  addHist('✉️ 写下'+label,0); save(); renderLifeCompound();
+  const now=new Date(), mo=now.getMonth()+1;
+  const key=now.getFullYear()+'-'+String(mo).padStart(2,'0');
+  S.futureLetters.push({id:id(),cycle:'free',writeFor:key,writeDate:todayStr(),text,readDate:null});
+  S.bonusXP=(S.bonusXP||0)+FUTURE_LETTER_XP;
+  addHist('✉️ 封存一封信给未来的自己 +'+FUTURE_LETTER_XP+' XP',FUTURE_LETTER_XP);
+  save(); render();
+  try{ celebrateTask('✉️ 一封信已封存 · 给未来的自己 +'+FUTURE_LETTER_XP+' XP'); }catch(e){}
 }
-function openFutureLetter(uid){
-  const t=(S.futureLetters||[]).find(x=>x.id===uid); if(!t) return;
-  alert('📨 你写给未来的信（'+t.writeFor+'）：\n\n'+t.text);
-  if(!t.readDate){ t.readDate=todayStr(); addHist('📨 读了一封写给未来的信',0); save(); }
-  renderLifeCompound();
+let _flOpenId=null;
+function toggleFutureLetter(uid){
+  _flOpenId=(_flOpenId===uid)?null:uid;
+  const t=(S.futureLetters||[]).find(x=>x.id===uid);
+  if(t && !t.readDate){ t.readDate=todayStr(); addHist('📨 读了一封写给未来的信',0); save(); }
+  renderCapsule();
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 // v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。

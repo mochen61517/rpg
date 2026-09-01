@@ -3696,25 +3696,26 @@ function renderCapsule(){
   const sealed=S.capsules.filter(c=>!c.opened && c.unlockOn>today);
   const ready=S.capsules.filter(c=>!c.opened && c.unlockOn<=today);
   const opened=S.capsules.filter(c=>c.opened);
-  // 给未来的信：作为时间胶囊区的通知卡片
+  // v6.0.88 给未来的信：时间胶囊区内联编辑 + 封存，不弹窗、不区分月/季，随时可写
   let notice='';
-  if(typeof futureLetterState==='function'){
-    const fst=futureLetterState();
-    const canWriteMonth=!fst.wroteMonth&&fst.isMonthStart;
-    const canWriteQuarter=!fst.wroteQuarter&&fst.isQuarterStart;
-    if(canWriteMonth||canWriteQuarter||fst.unread.length){
-      notice='<div class="cap-future"><div class="cap-future-head"><b>✉️ 给未来的信</b><span>月初写给月底 · 季初写给季末</span></div>';
-      if(canWriteMonth||canWriteQuarter){
-        notice+='<div class="cap-future-row">';
-        if(canWriteMonth) notice+='<button class="btn xs primary" onclick="writeFutureLetter(\'month\')">✍️ 给本月底的信</button>';
-        if(canWriteQuarter) notice+='<button class="btn xs primary" onclick="writeFutureLetter(\'quarter\')">✍️ 给本季度末的信</button>';
-        notice+='</div>';
-      }
-      if(fst.unread.length){
-        notice+='<div class="cap-future-row">'+fst.unread.slice(0,3).map(x=>'<button class="btn xs ghost" onclick="openFutureLetter(\''+x.id+'\')">📨 读 '+(x.cycle==='month'?(x.writeFor+' 月初信'):(x.writeFor+' 季初信'))+'</button>').join('')+'</div>';
-      }
-      notice+='</div>';
+  {
+    const fl=(S.futureLetters||[]).slice().reverse().slice(0,6);
+    let list='';
+    if(fl.length){
+      list='<div class="cap-future-list">'+fl.map(function(x){
+        const open=_flOpenId===x.id;
+        const badge=x.readDate?'':' <span class="fl-unread">未读</span>';
+        return '<div class="fl-item'+(x.readDate?' read':'')+'">'
+          +'<div class="fl-item-head" onclick="toggleFutureLetter(\''+x.id+'\')">📨 写给 '+escHtml(x.writeFor)+'（'+x.writeDate+'）'+badge+(open?' ▴':' ▾')+'</div>'
+          +(open?'<div class="fl-item-body">'+escHtml(x.text)+'</div>':'')
+          +'</div>';
+      }).join('')+'</div>';
     }
+    notice='<div class="cap-future"><div class="cap-future-head"><b>✉️ 给未来的信</b><span>想写就写 · 点封存即留档（每次 +'+FUTURE_LETTER_XP+' XP）</span></div>'
+      +'<textarea id="flEditText" class="fl-ta" placeholder="写点什么给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
+      +'<div class="cap-future-row"><button class="btn xs primary" onclick="sealFutureLetter()">📩 封存这封信 · +'+FUTURE_LETTER_XP+' XP</button></div>'
+      +list
+      +'</div>';
   }
   let html=notice+'<div class="cap-write"><textarea id="capText" placeholder="写一句话给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
     +'<div class="cap-row"><input type="date" id="capDate"><button class="btn sm primary" onclick="capsuleSeal()">⏳ 封存</button></div>'

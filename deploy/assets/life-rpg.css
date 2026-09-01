@@ -1725,6 +1725,13 @@ body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)
 #capsuleBox .cap-future-head b{font-size:13px;color:var(--txt)}
 #capsuleBox .cap-future-head span{color:var(--dim);font-size:11px}
 #capsuleBox .cap-future-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+#capsuleBox .fl-ta{margin-top:6px}
+#capsuleBox .cap-future-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+#capsuleBox .fl-item{border:1px solid var(--line);border-radius:8px;background:var(--panel2);overflow:hidden}
+#capsuleBox .fl-item-head{padding:7px 9px;font-size:12px;color:var(--txt);cursor:pointer;display:flex;align-items:center;gap:6px}
+#capsuleBox .fl-item.read .fl-item-head{color:var(--dim)}
+#capsuleBox .fl-unread{color:var(--gold);font-size:11px}
+#capsuleBox .fl-item-body{padding:8px 10px;font-size:13px;color:var(--txt);white-space:pre-wrap;border-top:1px solid var(--line);line-height:1.6}
 #capsuleBox .cap-row{display:flex;gap:8px;align-items:center}
 #capsuleBox .cap-sec{margin-top:10px}
 #capsuleBox .cap-h{font-size:12px;color:var(--dim);margin-bottom:6px}
