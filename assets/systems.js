@@ -2235,7 +2235,7 @@ const LIFE_TRACKS={
   ai:{ic:'🤖',n:'AI提效',a:'CAREER',base:0,unit:'累计',rec:20,paused:false,
     realms:[[0,'初出茅庐'],[100,'工具上手'],[300,'流程打通'],[600,'半自动'],[1000,'人机协同'],[1500,'AI 原生']],
     variants:['今天用 AI 帮自己省下一件本要手动的琐事。','把一个重复动作试着交给 AI 跑一遍。','记下今天 AI 帮你做成的一件小事。']},
-  travel:{ic:'🧭',n:'旅行·探索',a:'BODY',base:0,unit:'累计',rec:30,paused:false,
+  travel:{ic:'🧭',n:'旅行·探索',a:'BODY',base:0,unit:'累计',rec:30,paused:true,
     realms:[[0,'初出茅庐'],[50,'初探四方'],[150,'行脚渐广'],[400,'走南闯北'],[800,'见多识广'],[1500,'行走的智者']],
     variants:['今天去了一个新地方，留意和平时不一样的空气。','不赶行程，只认真看一处。','把路上遇见的某个小细节记下来。']}
 };
@@ -2296,7 +2296,7 @@ function lifeTrackOfTask(item){
   if(/冥想|呼吸|正念|打坐|静坐/.test(t)) return 'meditation';
   if(/AI提效|AI 提效|用 ?AI|AI 工具|AI 学习|提示词|prompt|自动化工作流|coze|扣子/.test(t)) return 'ai';
   if(/职业|求职|事业编|央企|文职|简历|面试/.test(t)) return 'career';
-  if(/出行|旅行|出游|远游|游玩|逛展|看展|采风|闲逛|远足|徒步|户外|探索|散心/.test(t)) return 'travel';
+  if(/出行|旅行|出游|远游|游玩|逛展|看展|采风|闲逛|远足|徒步|户外|探索|散心/.test(t)) return '';
   const mind=[/唱歌|声乐/.test(t)&&'singing',/钢琴|弹琴/.test(t)&&'piano',/阅读|读书|小说/.test(t)&&'reading'].filter(Boolean);
   return mind.length===1?mind[0]:'';
 }
@@ -2473,7 +2473,7 @@ function renderLifeCompound(){
   if(quick) quick.innerHTML=
     '<div class="lc-memory"><div><b>✨ '+(isViewToday?'今日生活碎片':fmtMD(viewDate)+'生活碎片')+'</b><span>'+prompt+'</span></div>'
       +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
-      +keys.map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
+      +keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
       +'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…">'
       +'<button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button></div></div>';
 
@@ -2481,7 +2481,7 @@ function renderLifeCompound(){
   if(detail) detail.innerHTML=
     '<div class="lp-head"><div><b>🌳 长期复利轨道</b><span>不追求每天完美，只让总量持续向前</span></div>'
       +'<div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div>'
-    +'<div class="lp-grid">'+keys.map(function(k){
+    +'<div class="lp-grid">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
       const t=LIFE_TRACKS[k], fresh=practiceNewMinutes(k), total=getLifeBaseMin(k)+fresh, st=trackStage(total,t.realms);
       return '<div class="lp-card'+(t.paused?' paused':'')+'">'
         +'<div class="lp-title" ondblclick="editLifeBase(\''+k+'\')" title="双击调整历史基数"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div>'
@@ -2665,7 +2665,7 @@ function renderFortune(){
       +'<div class="fo-col fo-yi"><div class="fo-col-h">宜</div><ul>'+yiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
       +'<div class="fo-col fo-ji"><div class="fo-col-h">忌</div><ul>'+jiAll.map(function(x){return '<li>'+escHtml(x)+'</li>';}).join('')+'</ul></div>'
     +'</div>'
-    +(yiTravelActive()?'<div class="fo-yi-travel">✈️ 今日宜出行：在「旅行·探索」复利轨道记录，或记旅行脚印，经验 +20%（气运加持）</div>':'')
+    +(yiTravelActive()?'<div class="fo-yi-travel">✈️ 今日宜出行：去记一枚旅行脚印，经验 +20%（气运加持）</div>':'')
     +'<div class="fo-season">🌿 当令 · '+jq.jieqi+'（'+jq.el+'行）：'+seasonAct(jq.el)[0]+' <span class="fo-season-act">今日小行动 · '+seasonAct(jq.el)[1]+'</span></div>'
     +'<div class="fo-note">依你的命格「丁火 · 身强偏旺 · 喜金水清凉」判定，非通用黄历。带「·」的条目来自你自己的记录与'+city.n+'实时天气。</div>';
 }
