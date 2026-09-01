@@ -1012,15 +1012,14 @@ function renderDayTasks(){
   const el=document.getElementById('dayTaskList'); if(!el) return;
   const d=todayStr();
   const list=(S.dayTasks||[]).filter(x=>!x.done);   // 完成即隐藏；未完成的持续显示（含跨天/逾期）
-  if(!list.length){ el.innerHTML='<div class="hint">今日暂无临时任务。下面加一个，或睡前写下明天的 TODO。</div>'; return; }
+  if(!list.length){ el.innerHTML='<div class="hint">今日暂无临时任务。下面加一个，完成后自动隐藏。</div>'; return; }
   el.innerHTML=list.map(x=>{
     const due=x.due||'';
     const overdue=due && due<d;
     const meta=[];
     if(due) meta.push('⏰ 截止 '+fmtMD(due));
-    if(x.dur) meta.push(escHtml(x.dur));
-    if(x.from==='tonight') meta.push('🌙 睡前写');
     if(overdue) meta.push('已逾期');
+    if(x.xp) meta.push('+'+(x.xp)+' XP');
     return '<div class="daytask'+(overdue?' overdue':'')+'" onclick="toggleDayTask(\''+x.id+'\')">'
       +'<span class="dt-chk">○</span>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
@@ -1034,42 +1033,32 @@ function addDayTask(){
   const t=(inp&&inp.value||'').trim(); if(!t) return;
   const dueEl=document.getElementById('dayTaskDue');
   const due=(dueEl&&dueEl.value)||'';
+  const xpEl=document.getElementById('dayTaskXp');
+  const xp=Math.max(1, parseInt((xpEl&&xpEl.value)||'15')||15);
   S.dayTasks=S.dayTasks||[];
-  S.dayTasks.push({id:id(), t, due, d:todayStr(), done:false, from:'manual'});
-  if(inp) inp.value=''; if(dueEl) dueEl.value='';
+  S.dayTasks.push({id:id(), t, due, xp, d:todayStr(), done:false, from:'manual'});
+  if(inp) inp.value=''; if(dueEl) dueEl.value=''; if(xpEl) xpEl.value='15';
   save(); renderDayTasks();
 }
 function toggleDayTask(uid){
   const t=(S.dayTasks||[]).find(x=>x.id===uid); if(!t) return;
+  const xp=t.xp||15;
   t.done=!t.done;
-  if(t.done){ t.doneDate=todayStr(); addHist('✔ 今日任务：'+t.t, 0); }
-  else { addHist('✘ 今日任务：'+t.t, 0); }
+  if(t.done){
+    t.doneDate=todayStr();
+    grant('MIND', xp);
+    addHist('✔ 今日任务：'+t.t, xp);
+    try{ floatXP('+'+xp+' XP','dt_'+uid); }catch(e){}
+  } else {
+    grant('MIND', xp, true);
+    addHist('✘ 今日任务：'+t.t, -xp);
+  }
   save(); renderDayTasks();
 }
 function delDayTask(uid){
   if(!Array.isArray(S.dayTasks)) return;
   S.dayTasks=S.dayTasks.filter(x=>x.id!==uid);
   save(); renderDayTasks();
-}
-function openTonightTodo(){
-  const v=prompt('🌙 睡前放空大脑 · 写下明天的 TODO（每行一条）：','');
-  if(v==null) return;
-  const lines=v.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(!lines.length) return;
-  const tomorrow=addDays(todayStr(),1);
-  S.dayTasks=S.dayTasks||[];
-  lines.forEach(t=>{ S.dayTasks.push({id:id(), t, due:tomorrow, d:todayStr(), done:false, from:'tonight'}); });
-  // v6.0.81 修复：睡前写明日 TODO 应奖励 15 XP（心智），且当天只奖一次
-  const d=todayStr(); let xp=0;
-  if(S.nightTodoDate!==d){ xp=15; S.nightTodoDate=d; }
-  if(xp){
-    grant('MIND', xp);
-    addHist('🌙 睡前写下 '+lines.length+' 条明日 TODO +'+xp+' XP', xp);
-  } else {
-    addHist('🌙 睡前补写 '+lines.length+' 条明日 TODO（今日已记，不重复奖励）', 0);
-  }
-  save(); renderDayTasks();
-  alert('已为明天写好 '+lines.length+' 条 TODO ✅ 明早打开就能看到。'+(xp?'本次 +'+xp+' XP（心智）':''));
 }
 // ===== 旅行地图：自绘世界地图 + 地点解锁 + 感受记录（合规：台湾属中国、含南海诸岛） =====
 function projX(lng){ return ((lng+180)/360*1000).toFixed(1); }
