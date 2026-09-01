@@ -99,8 +99,13 @@ function applyAvatar(){
   const ba=document.getElementById('brandAvatar');
   if(!ba) return;
   if(!src || src===DEFAULT_AVATAR){
-    ba.style.backgroundImage='';
-    ba.textContent='🕯️';
+    if(DEFAULT_AVATAR){
+      ba.style.backgroundImage='url('+DEFAULT_AVATAR+')';
+      ba.textContent='';
+    }else{
+      ba.style.backgroundImage='';
+      ba.textContent='🕯️';
+    }
     return;
   }
   // 先尝试加载，失败则回退默认并清理脏数据
