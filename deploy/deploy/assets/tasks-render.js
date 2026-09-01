@@ -1980,8 +1980,10 @@ function cockpitCandidates(){
 }
 function todayMainOrRecord(k){
   const sel=todayMainKeys();
-  if(sel.indexOf(k)<0){ toggleTodayMain(k); }
-  else { lcToggle(k); }
+  const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
+  if(sel.indexOf(k)<0){ toggleTodayMain(k); }            // 未点亮 → 点亮
+  else if(m===0){ toggleTodayMain(k); }                  // 已点亮但没输入时间 → 取消点亮
+  else { lcToggle(k); }                                  // 已点亮且已输入时间 → 展开/收起记录器
 }
 function renderTodayCockpit(){
   const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
@@ -2028,7 +2030,7 @@ function renderTodayCockpit(){
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
     +'<div class="tm-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +dateBarHtml
-    +'<div class="tm-light-tip">已点亮 '+sel.length+' 条 · 点暗图标先选中主线，点亮后再点可填时间；直接填了时间也算完成主线</div>'
+    +'<div class="tm-light-tip">已点亮 '+sel.length+' 条 · 点图标点亮；未输入时间时再点一次可取消点亮；填了时间即展开记录器</div>'
     +'<div class="lc-ic-row">'+live.map(chip).join('')+'</div>'
     +expandHtml
     +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'

@@ -3,7 +3,7 @@
 import os, shutil, re, datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-VERSION = "6.0.90"  # 人类可读版本（功能版本），新增功能时手动改这里
+VERSION = "6.0.91"  # 人类可读版本（功能版本），新增功能时手动改这里
 CB = datetime.datetime.now().strftime("%Y%m%d-%H%M")  # 缓存破坏符：每次发版唯一，强制浏览器/CDN 拉新 JS
 
 HTMLS = ["life-rpg.html", "deploy/life-rpg.html", "deploy/deploy/life-rpg.html",
