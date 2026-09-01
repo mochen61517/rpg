@@ -2388,6 +2388,39 @@ function saveLifeMemory(){
   const input=document.getElementById('lifeMemoryInput'),sel=document.getElementById('lifeMemoryTrack');const textv=(input&&input.value||'').trim();if(!textv)return;
   const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,key:sel&&sel.value||'life'});addSubjectivity(1,'留下一枚生活碎片');if(input)input.value='';save();renderLifeCompound();render();celebrateTask('✨ 一枚生活碎片已被留下 · 主体性 +1');
 }
+// ===== v6.0.78 给未来的信：月初写月底信 / 季初写季末信，到期提示读取 =====
+function futureLetterState(){
+  const now=new Date(); const y=now.getFullYear(), mo=now.getMonth()+1, d=now.getDate();
+  const q=Math.floor((mo-1)/3)+1;
+  const monthKey=y+'-'+String(mo).padStart(2,'0');
+  const quarterKey=y+'-Q'+q;
+  const isMonthStart=d<=7;
+  const isQuarterStart=(mo===1||mo===4||mo===7||mo===10)&&d<=7;
+  const fl=S.futureLetters||[];
+  return {
+    monthKey, quarterKey, isMonthStart, isQuarterStart,
+    wroteMonth:fl.some(x=>x.cycle==='month'&&x.writeFor===monthKey),
+    wroteQuarter:fl.some(x=>x.cycle==='quarter'&&x.writeFor===quarterKey),
+    unread:fl.filter(x=>!x.readDate)
+  };
+}
+function writeFutureLetter(cycle){
+  const st=futureLetterState();
+  const key=cycle==='month'?st.monthKey:st.quarterKey;
+  const label=cycle==='month'?('给 '+st.monthKey+' 月底的信'):('给 '+st.quarterKey+' 季度末的信');
+  const v=prompt('✍️ '+label+' —— 写下给未来的自己的一段话（可多行）：','');
+  if(v==null) return;
+  const text=v.trim(); if(!text) return;
+  S.futureLetters=S.futureLetters||[];
+  S.futureLetters.push({id:id(),cycle,writeFor:key,writeDate:todayStr(),text,readDate:null});
+  addHist('✉️ 写下'+label,0); save(); renderLifeCompound();
+}
+function openFutureLetter(uid){
+  const t=(S.futureLetters||[]).find(x=>x.id===uid); if(!t) return;
+  alert('📨 你写给未来的信（'+t.writeFor+'）：\n\n'+t.text);
+  if(!t.readDate){ t.readDate=todayStr(); addHist('📨 读了一封写给未来的信',0); save(); }
+  renderLifeCompound();
+}
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 // v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。
 // 每条轨道可直接填分钟并标记完成；填了时间即视为今天完成，卡片点亮。
@@ -2425,8 +2458,24 @@ function renderLifeCompound(){
   const prompt=LIFE_PROMPTS[seededIndex(viewDate,LIFE_PROMPTS.length)];
 
   const quick=document.getElementById('lifeBlendBox');
-  if(quick) quick.innerHTML=
-    '<div class="lc-head"><div><b>🌱 '+(isViewToday?'今日行动':'补录')+' · 复利轨道</b><span>'+(isViewToday?'点图标记一笔，今天完成的会亮起来':('这里显示 '+fmtMD(viewDate)+' 已点亮的情况；点图可在那天补记一笔'))+'</span></div>'
+  const fst=futureLetterState();
+  let flHtml='<div class="lc-future"><div class="lc-future-head"><b>✉️ 给未来的信</b><span>月初写给月底 · 季初写给季末</span></div>';
+  const canWriteMonth=!fst.wroteMonth&&fst.isMonthStart;
+  const canWriteQuarter=!fst.wroteQuarter&&fst.isQuarterStart;
+  if(canWriteMonth||canWriteQuarter){
+    flHtml+='<div class="lc-future-row">';
+    if(canWriteMonth) flHtml+='<button class="btn xs primary" onclick="writeFutureLetter(\'month\')">✍️ 给本月底的信</button>';
+    if(canWriteQuarter) flHtml+='<button class="btn xs primary" onclick="writeFutureLetter(\'quarter\')">✍️ 给本季度末的信</button>';
+    flHtml+='</div>';
+  } else {
+    flHtml+='<div class="hint">本月/本季的信已写好，或不在书写窗口（月初/季初前 7 天可写）。</div>';
+  }
+  if(fst.unread.length){
+    flHtml+='<div class="lc-future-row">'+fst.unread.slice(0,3).map(x=>'<button class="btn xs ghost" onclick="openFutureLetter(\''+x.id+'\')">📨 读 '+(x.cycle==='month'?(x.writeFor+' 月初信'):(x.writeFor+' 季初信'))+'</button>').join('')+'</div>';
+  }
+  flHtml+='</div>';
+  if(quick) quick.innerHTML= flHtml
+    +'<div class="lc-head"><div><b>🌱 '+(isViewToday?'今日行动':'补录')+' · 复利轨道</b><span>'+(isViewToday?'点图标记一笔，今天完成的会亮起来':('这里显示 '+fmtMD(viewDate)+' 已点亮的情况；点图可在那天补记一笔'))+'</span></div>'
       +'<div class="lc-score">'+viewActive+'/'+live.length+' 条已点亮 · 共 '+viewMin+' 分钟'+(isViewToday?'':' · '+fmtMD(viewDate))+'</div></div>'
     +'<div class="lc-ic-row">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
       const t=LIFE_TRACKS[k], m=practiceViewMinutes(k), lit=m>0;

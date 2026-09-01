@@ -608,6 +608,8 @@ function defaultState(){
     ],
     // v6.0.77 今日任务：临时任务（当天加 / 睡前写明日todo流转），可加起始时间、跨天持续、完成即隐藏
     dayTasks:[],
+    // v6.0.78 给未来的信：月初写给月底 / 季初写给季末，到期提示读取
+    futureLetters:[],
     supps: defaultSupps(),
     // 固定周常不再自动生成：周任务 = 随机周游（江湖掉落）+ 手动周目标（你明确要做的）。
     // 老用户已有的 S.weekly 项目保留为「手动周目标」，此处仅清空默认种子。
@@ -857,6 +859,8 @@ function migrate(){
     }
     S.dailyV677 = true;
   }
+  // v6.0.78 给未来的信数据初始化
+  if(!Array.isArray(S.futureLetters)) S.futureLetters=[];
   // 兼容旧存档：周常里的羽毛球视频学习应归羽毛球领域
   if(Array.isArray(S.weekly)){
     S.weekly.forEach(x=>{
