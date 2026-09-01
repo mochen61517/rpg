@@ -20,6 +20,10 @@ const FEI_TRIALS=[
   {id:'fei_need',   t:'开口要一次具体帮助，不铺垫', hint:'需要就是需要。', diff:2, slot:'A'},
   {id:'fei_opinion',t:'在讨论里先说你的真实判断，不附和', hint:'不同意见也可以 calmly 存在。', diff:2, slot:'A'},
   {id:'fei_leave',  t:'提前离开一个让你不舒服的场合', hint:'不必给借口。', diff:3, slot:'A'},
+  {id:'fei_receive',t:'接受一次别人的给予，不急着还', hint:'接受和给予一样需要主体性。', diff:2, slot:'A'},
+  {id:'fei_name',   t:'用一个不是职位/角色的身份介绍自己', hint:'没有公司替你定义身份时，你是谁？', diff:3, slot:'A'},
+  {id:'fei_uncertain',t:'告诉某人「我还没想好」，不假装确定', hint:'不确定也可以真实存在。', diff:2, slot:'A'},
+  {id:'fei_slow',   t:'在一次对话里，停顿三秒再回应', hint:'不急着填补沉默。', diff:1, slot:'A'},
   // B · 行动与创造
   {id:'fei_now',    t:'脑子里想做的事，立刻去做', hint:'不等「准备好了」。', diff:2, slot:'B'},
   {id:'fei_self',   t:'今天就做一件纯粹为自己、不被期待的事', hint:'没人要求，你乐意。', diff:2, slot:'B'},
@@ -28,6 +32,11 @@ const FEI_TRIALS=[
   {id:'fei_risk',   t:'做一件有 30% 失败可能的小事', hint:'错了也不致命。', diff:3, slot:'B'},
   {id:'fei_plan',   t:'把脑子里的想法写成一个具体下一步', hint:'落到纸上。', diff:1, slot:'B'},
   {id:'fei_minimal',t:'今天只做一件事，但把它做完', hint:'少即是完成。', diff:2, slot:'B'},
+  {id:'fei_no_wage',t:'做一件不为工资/KPI、只为「我能创造」的小事', hint:'没有固定工资保证未来，你相信自己还能创造价值吗？', diff:3, slot:'B'},
+  {id:'fei_offer',  t:'主动给出一个真实建议或技能，不担心被拒绝', hint:'价值感不靠别人点头。', diff:2, slot:'B'},
+  {id:'fei_unfinished',t:'启动一个「没有明确终点」的小项目', hint:'在没有标准路线时，你敢不敢选择并开始？', diff:3, slot:'B'},
+  {id:'fei_alone',  t:'独自完成一件往常需要人陪才有动力的事', hint:'不靠依赖证明亲密，你能自己点火吗？', diff:2, slot:'B'},
+  {id:'fei_no_proof',t:'做一件不晒出来、不为证明自己的事', hint:'不必用钱/成就/关注来确认自己。', diff:2, slot:'B'},
   // C · 身体、关系与环境
   {id:'fei_silence',t:'在喧嚣里，按自己的节奏安静待着', hint:'不赶进度，不解释。', diff:1, slot:'C'},
   {id:'fei_give',   t:'做一件微小服务（不费力 / 不求回报 / 不求关注）', hint:'帮朋友递个资料、分享一句读到的启发。只在你有余力时做。', diff:2, slot:'C'},
@@ -35,7 +44,11 @@ const FEI_TRIALS=[
   {id:'fei_rest',   t:'把一件计划中的事取消或推迟', hint:'空出来的时间归自己。', diff:2, slot:'C'},
   {id:'fei_space',  t:'整理一个你日常停留的小角落', hint:'环境清爽，脑子会松。', diff:1, slot:'C'},
   {id:'fei_connect',t:'主动联系一个你真心想联系的人', hint:'不带目的，只为见面或说话。', diff:2, slot:'C'},
-  {id:'fei_listen', t:'听一首你曾经单曲循环的歌，认真听完', hint:'怀旧也是注意力。', diff:1, slot:'C'}
+  {id:'fei_listen', t:'听一首你曾经单曲循环的歌，认真听完', hint:'怀旧也是注意力。', diff:1, slot:'C'},
+  {id:'fei_no_phone',t:'给自己一段没有任何信息输入的空白时间', hint:'关掉推送，让脑子自己走一段。', diff:1, slot:'C'},
+  {id:'fei_mess',   t:'允许一个小角落暂时不整理，不为此内疚', hint:'不必把所有环境都控制在手里。', diff:1, slot:'C'},
+  {id:'fei_body',   t:'让身体决定今天动还是静，而不是计划', hint:'重新相信身体的判断。', diff:1, slot:'C'},
+  {id:'fei_unchosen',t:'做一件「没有正确答案」的小事，按自己的标准判断', hint:'人生没有标准路线，你敢不敢选择？', diff:2, slot:'C'}
 ];
 // v6.0.30 分支委托：每周江湖委托有概率变成二选一，不同选择给不同 XP + 评语 + 关系
 const NPC_BRANCH_QUESTS={
