@@ -2386,7 +2386,7 @@ function syncLifePracticeFromTask(item,d,min,remove){
 }
 function saveLifeMemory(){
   const input=document.getElementById('lifeMemoryInput'),sel=document.getElementById('lifeMemoryTrack');const textv=(input&&input.value||'').trim();if(!textv)return;
-  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,key:sel&&sel.value||'life'});if(input)input.value='';save();renderLifeCompound();celebrateTask('✨ 一枚生活碎片已被留下');
+  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,key:sel&&sel.value||'life'});addSubjectivity(1,'留下一枚生活碎片');if(input)input.value='';save();renderLifeCompound();render();celebrateTask('✨ 一枚生活碎片已被留下 · 主体性 +1');
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 // v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。
