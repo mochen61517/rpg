@@ -1988,9 +1988,9 @@ function cockpitCandidates(){
 function todayMainOrRecord(k){
   const sel=todayMainKeys();
   const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
-  if(sel.indexOf(k)<0){ toggleTodayMain(k); }            // 未点亮 → 点亮
-  else if(m===0){ toggleTodayMain(k); }                  // 已点亮但没输入时间 → 取消点亮
-  else { lcToggle(k); }                                  // 已点亮且已输入时间 → 展开/收起记录器
+  if(sel.indexOf(k)<0){ toggleTodayMain(k); _lcOpenTrack=k; renderLifeCompound(); }  // 未点亮 → 点亮并立即展开时间记录器
+  else if(m===0){ toggleTodayMain(k); _lcOpenTrack=null; renderLifeCompound(); }      // 已点亮未填时间 → 再点取消点亮
+  else { _lcOpenTrack=(_lcOpenTrack===k)?null:k; renderLifeCompound(); }             // 已点亮已填时间 → 展开/收起记录器
 }
 function renderTodayCockpit(){
   const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
