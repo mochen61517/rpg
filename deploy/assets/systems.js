@@ -363,7 +363,7 @@ function npcSend(qid){
 function renderNpc(){
   const el=document.getElementById('npcBox'); if(!el) return;
   if(!S.npc.active.length){ el.innerHTML=feiTrialsHtml()+'<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
-  el.innerHTML=S.npc.active.map(q=>{
+  el.innerHTML=feiTrialsHtml()+S.npc.active.map(q=>{
     const p=NPCS.find(n=>n.id===q.npc)||{n:'?',ic:'❓',d:''};
     const ri=npcRelInfo(p.id);
     const adv=nextAdvancedNpcEvent(p.id,ri.xp),marks=[6,10].map(lv=>S.npcEvents[p.id+'_'+lv]).filter(Boolean).map(x=>x.mark);
@@ -393,7 +393,6 @@ function renderNpc(){
       +'</div>';
   }).join('')
   + birthdayQuestRowsHtml()
-  + feiTrialsHtml()
   +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
   +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
 }
