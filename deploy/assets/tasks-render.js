@@ -2453,7 +2453,7 @@ function jianghuAccept(src,idv){
   if(myJianghuAccepted(src,idv)){ render(); return; }
   const st=jianghuPeriodOfSrc(src), arr=(st.list||[]).filter(function(q){return q.id===idv;});
   if(!arr.length) return; const x=arr[0];
-  S.myJianghu.push({uid:id()+'',src:src,id:idv,period:myJianghuPeriod(src),t:jianghuDisplayText(idv,src)||x.t,a:x.a,xp:x.xp,diff:x.diff,deadline:jianghuDeadline(src),done:false});
+  S.myJianghu.push({uid:id()+'',src:src,id:idv,period:myJianghuPeriod(src),t:jianghuDisplayText(idv,src)||x.t,a:x.a,xp:x.xp,diff:x.diff,deadline:jianghuDeadline(src),done:false,acceptedAt:Date.now()});
   save(); render();
   try{ celebrateTask('🗡️ 已揭榜：'+(jianghuDisplayText(idv,src)||x.t)); }catch(e){}
 }
@@ -2485,7 +2485,12 @@ function renderMyJianghu(){
   const el=document.getElementById('myJianghuBox'); if(!el) return;
   if(!Array.isArray(S.myJianghu)) S.myJianghu=[];
   const now=Date.now();
-  const list=S.myJianghu.slice().sort(function(a,b){ if(a.done!==b.done) return a.done?1:-1; return a.deadline-b.deadline; });
+  const list=S.myJianghu.slice().map(function(e,i){ e._idx=i; return e; }).sort(function(a,b){
+    const aLate=!a.done&&a.deadline<now; const bLate=!b.done&&b.deadline<now;
+    if(aLate!==bLate) return aLate?1:-1;
+    if(a.done!==b.done) return a.done?1:-1;
+    return (a.acceptedAt||a._idx||0)-(b.acceptedAt||b._idx||0);
+  });
   if(!list.length){ el.innerHTML='<div class="hint">还没有揭榜。去「江湖日榜 / 周榜 / 月榜」点 🗡️ 揭榜，认领这一期想做的任务，这里会追踪状态与截止日。</div>'; return; }
   el.innerHTML=list.map(function(e){
     const overdue=!e.done&&e.deadline<now; const a=ATTRS[safeAttr(e.a)];
