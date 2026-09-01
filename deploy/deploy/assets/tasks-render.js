@@ -116,27 +116,91 @@ function applyAvatar(){
   };
   test.src=src;
 }
+let _avatarInput=null;
 function uploadAvatar(input){
+  _avatarInput=input;
   const f=input && input.files && input.files[0]; if(!f) return;
   if(!f.type.startsWith('image/')){ alert('请上传图片文件'); if(input) input.value=''; return; }
   const url=URL.createObjectURL(f);
   const img=new Image();
-  img.onload=function(){
-    const canvas=document.createElement('canvas');
-    const MAX=400;
-    let w=img.width,h=img.height;
-    if(w>MAX || h>MAX){ if(w>h){ h=Math.round(h*MAX/w); w=MAX; }else{ w=Math.round(w*MAX/h); h=MAX; } }
-    canvas.width=w; canvas.height=h;
-    const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-    ctx.drawImage(img,0,0,w,h);
-    const data=canvas.toDataURL('image/jpeg',0.85);
-    S.avatar=data; save(); render();
-    URL.revokeObjectURL(url);
-  };
+  img.onload=function(){ openAvatarCropper(img, url); };
   img.onerror=function(){ alert('图片加载失败'); URL.revokeObjectURL(url); };
   img.src=url;
-  if(input) input.value='';
+}
+function openAvatarCropper(img, url){
+  closeAvatarCropper();
+  const mask=document.createElement('div');
+  mask.className='modal-mask';
+  mask.id='avatarCropperMask';
+  mask.innerHTML=
+    '<div class="modal" style="width:min(420px,94vw)">'+
+    '<div class="modal-h">✂️ 裁剪头像<span class="modal-x" onclick="closeAvatarCropper()">×</span></div>'+
+    '<div class="modal-sub">拖动方框选择要显示的区域，拉伸右下角圆点可缩放</div>'+
+    '<div class="crop-stage" id="cropStage"><img id="cropImg" src="'+url+'" alt=""><div class="crop-box" id="cropBox"><span class="crop-handle" id="cropHandle"></span></div></div>'+
+    '<div class="modal-actions"><button class="btn sm ghost" onclick="closeAvatarCropper()">取消</button><button class="btn sm primary" onclick="confirmAvatarCrop()">确认裁剪</button></div>'+
+    '</div>';
+  document.body.appendChild(mask);
+  const stage=document.getElementById('cropStage');
+  const box=document.getElementById('cropBox');
+  const handle=document.getElementById('cropHandle');
+  requestAnimationFrame(function(){
+    const sw=stage.clientWidth, sh=stage.clientHeight;
+    const size=Math.min(sw,sh)*0.85;
+    const bx=(sw-size)/2, by=(sh-size)/2;
+    box.style.left=bx+'px'; box.style.top=by+'px'; box.style.width=size+'px'; box.style.height=size+'px';
+    box._sw=sw; box._sh=sh;
+  });
+  let drag=null;
+  box.addEventListener('pointerdown', function(e){
+    if(e.target===handle) return;
+    e.preventDefault();
+    drag={mode:'move', x:e.clientX, y:e.clientY, bx:parseFloat(box.style.left), by:parseFloat(box.style.top)};
+    box.setPointerCapture(e.pointerId);
+  });
+  box.addEventListener('pointermove', function(e){
+    if(!drag||drag.mode!=='move') return;
+    const sw=box._sw, sh=box._sh, size=parseFloat(box.style.width);
+    let nx=Math.max(0, Math.min(drag.bx+(e.clientX-drag.x), sw-size));
+    let ny=Math.max(0, Math.min(drag.by+(e.clientY-drag.y), sh-size));
+    box.style.left=nx+'px'; box.style.top=ny+'px';
+  });
+  box.addEventListener('pointerup', function(){ drag=null; });
+  box.addEventListener('pointercancel', function(){ drag=null; });
+  handle.addEventListener('pointerdown', function(e){
+    e.preventDefault(); e.stopPropagation();
+    drag={mode:'resize', x:e.clientX, y:e.clientY, size:parseFloat(box.style.width), bx:parseFloat(box.style.left), by:parseFloat(box.style.top)};
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', function(e){
+    if(!drag||drag.mode!=='resize') return;
+    const sw=box._sw, sh=box._sh;
+    const delta=Math.max(e.clientX-drag.x, e.clientY-drag.y);
+    let ns=Math.max(40, Math.min(drag.size+delta, sw-drag.bx, sh-drag.by));
+    box.style.width=ns+'px'; box.style.height=ns+'px';
+  });
+  handle.addEventListener('pointerup', function(){ drag=null; });
+  handle.addEventListener('pointercancel', function(){ drag=null; });
+}
+function confirmAvatarCrop(){
+  const img=document.getElementById('cropImg');
+  const box=document.getElementById('cropBox');
+  const stage=document.getElementById('cropStage');
+  if(!img||!box||!stage) return;
+  const dispW=stage.clientWidth;
+  const scale=img.naturalWidth/dispW;
+  const bx=parseFloat(box.style.left)||0, by=parseFloat(box.style.top)||0, bs=parseFloat(box.style.width)||0;
+  const sx=bx*scale, sy=by*scale, ss=bs*scale;
+  const canvas=document.createElement('canvas'); canvas.width=400; canvas.height=400;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,400,400);
+  try{ ctx.drawImage(img, sx, sy, ss, ss, 0,0,400,400); }catch(e){ console.warn('crop draw',e); }
+  const data=canvas.toDataURL('image/jpeg',0.85);
+  S.avatar=data; save(); render();
+  closeAvatarCropper();
+}
+function closeAvatarCropper(){
+  const m=document.getElementById('avatarCropperMask'); if(m) m.remove();
+  if(_avatarInput){ _avatarInput.value=''; _avatarInput=null; }
 }
 function resetAvatar(){ S.avatar=''; save(); render(); }
 function addQuest(kind){
