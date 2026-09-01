@@ -1337,7 +1337,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .dayun-axis .dy-note{ margin-top:7px; color:var(--txt); font-size:11px; border-top:1px dashed var(--line); padding-top:7px; }
 .tabbar{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
 .tabbar .tab{ padding:8px 16px; border-radius:20px; border:1px solid var(--line); background:var(--panel2); color:var(--dim); cursor:pointer; font-size:13px; transition:all .15s; }
-.tabbar .tab.on{ background:linear-gradient(135deg,var(--gold),#e8b85c); color:#1a1208; border-color:var(--gold); font-weight:700; }
+.tabbar .tab.on{ background:linear-gradient(135deg,#9af0d2,#5fd0a0); color:#0d2a20; border-color:#5fd0a0; font-weight:700; box-shadow:0 2px 10px rgba(95,208,160,.3); }
 .lt-form{ display:flex; flex-direction:column; gap:4px; }
 .lt-lab{ font-size:12px; color:var(--dim); margin-top:8px; }
 .lt-ta{ width:100%; min-height:60px; resize:vertical; padding:9px 11px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--txt); font-family:inherit; font-size:13px; box-sizing:border-box; }
@@ -1538,8 +1538,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .lc-ic-btn.dim:hover .lc-ic{opacity:.72;filter:grayscale(.55)}
 .lc-ic-btn.dim:hover .lc-ic-name{color:var(--txt)}
 .lc-ic-btn.lit .lc-ic{filter:none;opacity:1}
-.lc-ic-btn.lit{border-color:rgba(91,182,166,.5);background:rgba(91,182,166,.09)}
-.lc-ic-btn.lit .lc-ic-name{color:var(--txt)}
+.lc-ic-btn.lit{border-color:rgba(95,208,160,.55);background:rgba(95,208,160,.16)}
+.lc-ic-btn.lit .lc-ic-name{color:#bfeede}
 .lc-ic-btn.open{border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,178,76,.22)}
 .lc-ic-badge{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--gold);color:#1a1208;font-size:11px;font-weight:700;line-height:20px;text-align:center;box-shadow:0 2px 6px rgba(90,80,60,.25)}
 .lc-expand{margin:16px 0 18px;padding:16px 18px;border:1px solid rgba(240,178,76,.35);border-radius:12px;background:linear-gradient(135deg,rgba(244,178,95,.07),rgba(108,197,255,.05));animation:lcPop .22s ease-out}
@@ -1646,10 +1646,10 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .tm-recbar .recinput{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:4px 8px;font-size:13px;font-family:inherit}
   .tm-recbar .rechint{font-size:12px;color:var(--dim)}
   .tm-light-tip{margin:4px 0 16px;font-size:12px;line-height:1.7;color:var(--dim)}
-  .lc-ic-btn.on{background:linear-gradient(135deg,var(--gold),#e7c178);border-color:var(--gold);color:#1a1206}
+  .lc-ic-btn.on{background:linear-gradient(135deg,#9af0d2,#5fd0a0);border-color:#5fd0a0;color:#0d2a20;font-weight:700;box-shadow:0 0 0 2px rgba(95,208,160,.3),0 4px 14px rgba(95,208,160,.25)}
   .lc-ic-btn.on .lc-ic{filter:none;opacity:1}
-  .lc-ic-btn.on .lc-ic-name{color:#1a1206;font-weight:600}
-  .lc-ic-tick{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#1a1206;font-size:12px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 2px 5px rgba(90,80,60,.22)}
+  .lc-ic-btn.on .lc-ic-name{color:#0d2a20;font-weight:700}
+  .lc-ic-tick{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#9af0d2,#5fd0a0);color:#0d2a20;font-size:12px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 2px 5px rgba(95,208,160,.35)}
 
   /* ===== v5.44 江湖任务日榜 jianghu ===== */
   .jianghu-card{padding:14px 16px}

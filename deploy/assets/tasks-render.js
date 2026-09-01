@@ -3790,9 +3790,7 @@ function renderCapsule(){
       +list
       +'</div>';
   }
-  let html=notice+'<div class="cap-write"><textarea id="capText" placeholder="写一句话给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
-    +'<div class="cap-row"><input type="date" id="capDate"><button class="btn sm primary" onclick="capsuleSeal()">⏳ 封存</button></div>'
-    +'<div class="hint">写给未来的自己，设定解锁日期，到时自动出现在收件匣。</div></div>';
+  let html=notice;
   if(ready.length) html+='<div class="cap-sec"><div class="cap-h">📨 可开启（'+ready.length+'）</div>'+ready.map(c=>'<button class="btn sm" onclick="capsuleOpen(\''+c.id+'\')">开启 '+c.sealedOn+' 的信</button>').join('')+'</div>';
   if(sealed.length) html+='<div class="cap-sec"><div class="cap-h">🌱 已封存（'+sealed.length+'）</div>'+sealed.map(c=>'<span class="cap-chip">'+c.unlockOn+' 开启</span>').join('')+'</div>';
   if(opened.length) html+='<div class="cap-sec"><div class="cap-h">📖 已开启（'+opened.length+'）</div>'+opened.map(c=>'<span class="cap-chip done">'+c.sealedOn+'</span>').join('')+'</div>';
