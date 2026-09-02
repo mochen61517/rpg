@@ -188,7 +188,7 @@ function addQuest(kind){
   const txt=document.getElementById(kind[0]+'Text').value.trim();
   const a=document.getElementById(kind[0]+'Attr').value;
   const min=parseInt(document.getElementById(kind[0]+'Min')?.value)||0;
-  const xp=parseInt(document.getElementById(kind[0]+'Xp').value)||10;
+  const xp=parseInt(document.getElementById(kind[0]+'Xp')?.value)||10;
   if(!txt)return;
   const mode = min>0 ? 'time':'fixed';
   S[kind].push({id:id(),t:txt,a,xp:mode==='fixed'?xp:0,min,mode,donedates:[],mins:{}});
@@ -2717,7 +2717,7 @@ function render(){
   renderSupps();
   renderWeeklyReview();
   renderWeeklyHistory();
-  document.getElementById('dAttr').innerHTML=optAttrs('BODY');
+  document.getElementById('dAttr').innerHTML=optAttrs('MIND');
   const dtAttr=document.getElementById('dayTaskAttr'); if(dtAttr) dtAttr.innerHTML=optAttrs('MIND');
   const wAttr=document.getElementById('wAttr'); if(wAttr) wAttr.innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
