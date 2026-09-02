@@ -2943,10 +2943,32 @@ function celebrateTask(msg){
   if(rewardQueueTimer)return;rewardQueueTimer=setTimeout(flushRewardQueue,520);
 }
 function flushRewardQueue(){
-  rewardQueueTimer=null;const fx=document.getElementById('fxLayer'),items=rewardQueue.splice(0);if(!fx||!items.length)return;
-  const el=document.createElement('div');el.className='task-celebrate batch';const uniq=[...new Set(items)],show=uniq.slice(0,3);
-  el.innerHTML='<div class="tc-batch-title">✦ 本轮收获'+(uniq.length>1?' · '+uniq.length+' 项':'')+'</div>'+show.map(x=>'<div class="tc-batch-line">'+escHtml(x)+'</div>').join('')+(uniq.length>3?'<div class="tc-batch-more">另有 '+(uniq.length-3)+' 项已合并</div>':'');
-  fx.appendChild(el);setTimeout(()=>el.remove(),2600);
+  rewardQueueTimer=null;const items=rewardQueue.splice(0);if(!items.length)return;
+  let stack=document.getElementById('toastStack');
+  if(!stack){ stack=document.createElement('div'); stack.id='toastStack'; document.body.appendChild(stack); }
+  const uniq=[...new Set(items)];
+  if(uniq.length===1){ buildToast(uniq[0], uniq[0].length>30); return; }
+  const show=uniq.slice(0,3);
+  const el=document.createElement('div');el.className='toast toast-batch';
+  el.innerHTML='<div class="toast-ic toast-reward">✦</div><div class="toast-body"><div class="toast-title">本轮收获 · '+uniq.length+' 项</div>'+show.map(function(x){return '<div class="toast-line">'+escHtml(x)+'</div>';}).join('')+(uniq.length>3?'<div class="toast-more">另有 '+(uniq.length-3)+' 项已合并</div>':'')+'</div>';
+  stack.appendChild(el);autoToast(el);
+}
+// v6.2.9 完成/添加提示统一为页面底部 toast：左侧独立彩色色块 + 右侧单独文字，约 3s 自动消失
+function toastCat(m){
+  if(/^🎁|嘉奖掉落|\✦|💰/.test(m)) return {kind:'reward',ic:'🎁'};
+  if(/^✨|^📝|^📎|^✉️|^🌟|^➕|^🌳|^⏳|^🪞/.test(m)) return {kind:'add',ic:'➕'};
+  if(/^🎤|^菲式/.test(m)) return {kind:'add',ic:'🎤'};
+  return {kind:'done',ic:'✔'};
+}
+function buildToast(m,wide){
+  const c=toastCat(m),el=document.createElement('div');
+  el.className='toast'+(wide?' toast-wide':'');
+  el.innerHTML='<div class="toast-ic toast-'+c.kind+'">'+c.ic+'</div><div class="toast-body"><div class="toast-line">'+escHtml(m)+'</div></div>';
+  document.getElementById('toastStack').appendChild(el);autoToast(el);return el;
+}
+function autoToast(el){
+  requestAnimationFrame(function(){ el.classList.add('show'); });
+  setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },320); }, 3000);
 }
 function toggleQuietMode(){S.uiPrefs=S.uiPrefs||{quiet:false};S.uiPrefs.quiet=!S.uiPrefs.quiet;if(S.uiPrefs.quiet){rewardQueue=[];rewardQueueTimer=null;}save();renderQuietMode();}
 function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=document.getElementById('quietModeText'),on=!!((S.uiPrefs||{}).quiet);if(b){b.textContent=on?'关闭安静模式':'开启安静模式';b.classList.toggle('primary',on);}if(t)t.textContent=on?'当前：普通奖励提示已静音':'当前：同一轮奖励自动合并';}
