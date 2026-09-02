@@ -992,10 +992,12 @@ function renderDayTasks(){
   el.innerHTML=list.map(x=>{
     const due=x.due||'';
     const overdue=due && due<d;
+    const a=x.a||'MIND';
+    const ao=ATTRS[a]||ATTRS.MIND;
     const meta=[];
+    if(x.xp) meta.push(ao.icon+' +'+(x.xp)+' XP · '+ao.name);
     if(due) meta.push('⏰ 截止 '+fmtMD(due));
     if(overdue) meta.push('已逾期');
-    if(x.xp) meta.push('+'+(x.xp)+' XP');
     return '<div class="daytask'+(overdue?' overdue':'')+'" onclick="toggleDayTask(\''+x.id+'\')">'
       +'<span class="dt-chk">○</span>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
@@ -1007,26 +1009,30 @@ function renderDayTasks(){
 function addDayTask(){
   const inp=document.getElementById('dayTaskText');
   const t=(inp&&inp.value||'').trim(); if(!t) return;
+  const attrEl=document.getElementById('dayTaskAttr');
+  const a=(attrEl&&attrEl.value)||'MIND';
   const dueEl=document.getElementById('dayTaskDue');
   const due=(dueEl&&dueEl.value)||'';
   const xpEl=document.getElementById('dayTaskXp');
   const xp=Math.max(1, parseInt((xpEl&&xpEl.value)||'15')||15);
   S.dayTasks=S.dayTasks||[];
-  S.dayTasks.push({id:id(), t, due, xp, d:todayStr(), done:false, from:'manual'});
-  if(inp) inp.value=''; if(dueEl) dueEl.value=''; if(xpEl) xpEl.value='15';
+  S.dayTasks.push({id:id(), t, a, due, xp, d:todayStr(), done:false, from:'manual'});
+  if(inp) inp.value=''; if(attrEl) attrEl.value='MIND'; if(dueEl) dueEl.value=''; if(xpEl) xpEl.value='15';
   save(); renderDayTasks();
 }
 function toggleDayTask(uid){
   const t=(S.dayTasks||[]).find(x=>x.id===uid); if(!t) return;
   const xp=t.xp||15;
+  const a=t.a||'MIND';
+  const ao=ATTRS[a]||ATTRS.MIND;
   t.done=!t.done;
   if(t.done){
     t.doneDate=todayStr();
-    grant('MIND', xp);
+    grant(a, xp);
     addHist('✔ 今日任务：'+t.t, xp);
-    try{ floatXP('+'+xp+' XP','dt_'+uid); }catch(e){}
+    try{ floatXP('+'+xp+' XP · '+ao.name,'dt_'+uid); }catch(e){}
   } else {
-    grant('MIND', xp, true);
+    grant(a, xp, true);
     addHist('✘ 今日任务：'+t.t, -xp);
   }
   save(); renderDayTasks();
@@ -2651,6 +2657,7 @@ function render(){
   renderWeeklyReview();
   renderWeeklyHistory();
   document.getElementById('dAttr').innerHTML=optAttrs('BODY');
+  const dtAttr=document.getElementById('dayTaskAttr'); if(dtAttr) dtAttr.innerHTML=optAttrs('MIND');
   const wAttr=document.getElementById('wAttr'); if(wAttr) wAttr.innerHTML=optAttrs('CAREER');
   document.getElementById('sAttr').innerHTML=optAttrs('BODY');
   const swEl=document.getElementById('sideWeeklyList'); if(swEl) swEl.innerHTML=sideListHtml(S.sideWeekly,'weekly');
