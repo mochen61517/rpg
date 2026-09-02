@@ -972,7 +972,7 @@ function renderDailyIcons(){
   el.innerHTML='<div class="supp-row">'+S.daily.map(x=>{
     const done=isDone(x,d);
     const ic=DAILY_ICON[x.t]||'📌';
-    return '<button type="button" class="supp-ic'+(done?' done':'')+'" title="'+escHtml((done?'已完成：':'待完成：')+x.t+'（+'+x.xp+' XP）')+'" onclick="toggle(S.daily,\''+x.id+'\')">'
+    return '<button type="button" class="supp-ic daily-ic'+(done?' done':'')+'" title="'+escHtml((done?'已完成：':'待完成：')+x.t+'（+'+x.xp+' XP）')+'" onclick="toggle(S.daily,\''+x.id+'\')">'
       +'<span class="supp-em">'+ic+'</span>'
       +'<span class="supp-nm">'+escHtml(x.t)+'</span>'
       +(done?'<span class="supp-ck">✔</span>':'')

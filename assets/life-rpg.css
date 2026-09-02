@@ -208,12 +208,17 @@
   .supp-row{display:flex;flex-wrap:wrap;gap:10px}
   .supp-ic{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;width:76px;padding:11px 6px 8px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--dim);cursor:pointer;font-family:inherit;transition:.18s}
   .supp-ic:hover{border-color:#5ba8e8;transform:translateY(-2px);box-shadow:0 6px 16px rgba(90,80,60,.1)}
+  .daily-ic:hover{border-color:#e8b36d;box-shadow:0 6px 16px rgba(255,180,100,.1)}
   .supp-em{font-size:27px;line-height:1;filter:grayscale(1);opacity:.4;transition:.18s}
   .supp-nm{font-size:10px;text-align:center;line-height:1.25;max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .supp-ic.done{background:linear-gradient(160deg,rgba(91,168,232,.18),var(--panel2));border-color:#5ba8e8;color:var(--txt)}
-  .supp-ic.done .supp-em{filter:none;opacity:1}
-  .supp-ic.done .supp-nm{color:#5ba8e8}
+  /* v6.2.7 习惯与补剂点亮分色：补剂=淡蓝，习惯=更轻盈的暖金 */
+  .supp-ic.done{background:linear-gradient(160deg,rgba(91,168,232,.12),rgba(91,168,232,.03));border-color:rgba(91,168,232,.50);color:var(--txt)}
+  .daily-ic.done{background:linear-gradient(160deg,rgba(255,190,110,.10),rgba(255,200,130,.03));border-color:rgba(255,180,100,.42);color:var(--txt)}
+  .supp-ic.done .supp-em,.daily-ic.done .supp-em{filter:none;opacity:1}
+  .supp-ic.done .supp-nm{color:#4a9bd6}
+  .daily-ic.done .supp-nm{color:#c98b35}
   .supp-ck{position:absolute;top:5px;right:7px;font-size:12px;color:#5ba8e8;font-weight:700}
+  .daily-ic.done .supp-ck{color:#c98b35}
   .supp-del{position:absolute;top:2px;left:5px;font-size:13px;line-height:1;color:var(--dim);opacity:0;transition:.15s}
   .supp-ic:hover .supp-del{opacity:.85}
   .supp-del:hover{color:var(--warn)}
