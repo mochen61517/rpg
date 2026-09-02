@@ -1697,9 +1697,9 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fo-wx-d{font-size:11px;color:var(--dim)}
 .fo-wx-sub{font-size:10px;color:var(--dim);margin-top:3px;white-space:nowrap}
 .fo-wx-load{font-size:11px;color:var(--dim);line-height:1.5}
-.fo-cols{display:grid;grid-template-columns:1fr 1fr;gap:0}
-  .fo-col{padding:12px 16px 13px}
-  .fo-col+.fo-col{border-left:1px solid var(--line)}
+.fo-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 16px 0}
+  .fo-col{padding:12px 16px 13px;border-radius:10px}
+  .fo-col+.fo-col{border-left:none}
   /* v6.1.9 宜/忌两列做单独色块（宜=淡绿渐变 / 忌=淡红渐变） */
   .fo-col.fo-yi{background:linear-gradient(180deg,rgba(126,196,143,.18),rgba(126,196,143,.03))}
   .fo-col.fo-ji{background:linear-gradient(180deg,rgba(214,120,106,.18),rgba(214,120,106,.03))}
@@ -1712,13 +1712,13 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fo-col li:before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%}
 .fo-yi li:before{background:var(--grw)}
 .fo-ji li:before{background:var(--warn)}
-.fo-note{font-size:10px;color:var(--dim);line-height:1.6;padding:9px 16px 12px;border-top:1px solid var(--line);background:var(--panel)}
+.fo-note{font-size:10px;color:var(--dim);line-height:1.6;padding:12px 16px 16px;border-top:1px solid var(--line);background:var(--panel);margin-top:16px}
 @media(max-width:760px){
   .fo-top{grid-template-columns:auto 1fr;gap:10px;row-gap:10px}
   .fo-wx{grid-column:1/-1;text-align:left;border-top:1px solid var(--line);padding-top:9px}
   .fo-wx-main{justify-content:flex-start}
-  .fo-cols{grid-template-columns:1fr}
-  .fo-col+.fo-col{border-left:none;border-top:1px solid var(--line)}
+  .fo-cols{grid-template-columns:1fr;gap:12px;padding:16px 16px 0}
+  .fo-col+.fo-col{border-left:none;border-top:none}
 }
 
 
