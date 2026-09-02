@@ -76,25 +76,27 @@
   .ya-edit.done{color:var(--dim);background:transparent;border-color:var(--line);cursor:not-allowed;opacity:.5}
   .ya-elapsed{font-size:13px;color:var(--dim);margin:11px 0 8px}
   .ya-elapsed b{color:var(--txt);font-size:14px}
-  .ya-bar{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .ya-fill{display:block;height:100%;border-radius:8px;transition:width .4s}
-  .ya-fill.ya-ok{background:linear-gradient(90deg,var(--mint),#7fe0b0)}
-  .ya-fill.ya-warn{background:linear-gradient(90deg,#e0c060,var(--gold))}
-  .ya-fill.ya-bad{background:linear-gradient(90deg,#e08a7a,#e0606a)}
+  .ya-bar{height:14px;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
+  .ya-fill{display:block;height:100%;border-radius:10px;transition:width .4s}
+  .ya-fill.ya-ok{background:linear-gradient(90deg,#9af0d2,#5fd0a0)}
+  .ya-fill.ya-warn{background:linear-gradient(90deg,#ffd07a,#ffb347)}
+  .ya-fill.ya-bad{background:linear-gradient(90deg,#ff9080,#ff5e5e)}
   .ya-prog-label{font-size:12.5px;color:var(--dim);margin-top:6px;line-height:1.6}
   .ya-prog-label b{color:var(--txt)}
   .ya-ok{color:var(--grw)!important}
-  .ya-warn{color:var(--gold)!important}
-  .ya-bad{color:#e8746a!important}
-  .ya-advice{margin-top:12px;background:rgba(95,208,160,.06);border:1px solid rgba(95,208,160,.22);border-radius:10px;padding:11px 13px}
-  .ya-advice-h{font-size:12px;color:var(--mint);margin-bottom:6px;letter-spacing:.3px}
+  .ya-warn{color:#e09b1f!important}
+  .ya-bad{color:#e8554a!important}
+  /* v6.1.5 长期主线小节色块区分：分析建议=暖橙 / 周追踪=天蓝 */
+  .ya-advice{margin-top:12px;background:rgba(255,159,91,.1);border:1px solid rgba(255,159,91,.28);border-radius:10px;padding:11px 13px}
+  .ya-advice-h{font-size:12px;color:#ff9f5b;margin-bottom:6px;letter-spacing:.3px}
   .ya-advice ul{margin:0;padding-left:18px}
   .ya-advice li{font-size:13px;line-height:1.7;color:var(--txt);margin:3px 0}
   .ya-advice li.dim{color:var(--dim);list-style:none;margin-left:-18px}
-  .ya-rec{margin-top:12px;background:rgba(95,208,160,.05);border:1px solid rgba(95,208,160,.18);border-radius:10px;padding:11px 13px}
-  .ya-rec-h{font-size:12px;color:var(--mint);margin-bottom:6px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  /* 周追踪改为天蓝系（区分分析建议的暖橙） */
+  .ya-rec{margin-top:12px;background:rgba(91,168,232,.1);border:1px solid rgba(91,168,232,.26);border-radius:10px;padding:11px 13px}
+  .ya-rec-h{font-size:12px;color:#5ba8e8;margin-bottom:6px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
   .ya-rec-toggle{font-size:11px;color:var(--dim);cursor:pointer;margin-left:auto}
-  .ya-rec-toggle:hover{color:var(--mint)}
+  .ya-rec-toggle:hover{color:#5ba8e8}
   .ya-rec-ta{width:100%;min-height:54px;margin:4px 0 8px;resize:vertical}
   .ya-rec-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .ya-rec-actions .btn{cursor:pointer}
@@ -106,8 +108,8 @@
   .ya-rec-list{margin-top:8px;display:flex;flex-direction:column;gap:4px}
   .ya-rec-row{border:1px solid var(--line);border-radius:6px;overflow:hidden}
   .ya-rec-dtline{display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(34,30,26,.55);cursor:pointer;font-size:12px;color:var(--txt)}
-  .ya-rec-dtline:hover{background:rgba(95,208,160,.08)}
-  .ya-rec-dtline.open{border-bottom:1px solid rgba(95,208,160,.15)}
+  .ya-rec-dtline:hover{background:rgba(91,168,232,.1)}
+  .ya-rec-dtline.open{border-bottom:1px solid rgba(91,168,232,.2)}
   .ya-rec-dt{font-weight:600;letter-spacing:.3px}
   .ya-rec-fcnt{font-size:10px;color:var(--dim);background:rgba(212,168,75,.12);padding:1px 6px;border-radius:10px}
   .ya-rec-arr{font-size:10px;color:var(--dim);margin-left:auto}
@@ -115,7 +117,7 @@
   .ya-rec-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .ya-rec-fileitem{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 6px 5px 5px}
   .ya-rec-filelink{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--txt);font-size:11px}
-  .ya-rec-filelink:hover{color:var(--mint)}
+  .ya-rec-filelink:hover{color:#5ba8e8}
   .ya-rec-thumb{width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--line)}
   .ya-rec-fileicon{font-size:18px}
   .ya-rec-fname{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
