@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.2.0</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=20260902-1054">
+<title>人生修行录 · v6.2.1</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=20260902-1229">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-t">人生修行录<span>v6.2.0 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.2.1 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -77,11 +77,11 @@
         <div class="hint" style="margin:8px 0 0">点击进入江湖榜</div>
       </div>
 <div class="panel col12" data-dash-id="energy">
-        <h2>🔋 精力 <span class="note">负荷 vs 恢复 · 过载时请减量，不必补齐清单</span></h2>
+        <h2>🔋 精力 <span class="tip" data-tip="负荷 vs 恢复 · 过载时请减量，不必补齐清单">ⓘ</span></h2>
         <div id="energyBox"></div>
       </div>
 <div class="panel dash-card col12" data-dash-id="enc" onclick="showPage('dashboard')">
-        <h2>🪄 江湖偶遇 <span class="note">故人偶至 · 即时应答</span></h2>
+        <h2>🪄 江湖偶遇 <span class="tip" data-tip="故人偶至 · 即时应答">ⓘ</span></h2>
         <div id="encBox"></div>
       </div>
 <div class="panel dash-card col6" data-dash-id="badges" onclick="showPage('growth')">
@@ -247,12 +247,12 @@
       </div>
 
       <div class="panel" id="jpLiunian">
-        <h2>🕯 丁火流年 <span class="note">节气当令 · 宜忌与建议</span></h2>
+        <h2>🕯 丁火流年 <span class="tip" data-tip="节气当令 · 宜忌与建议">ⓘ</span></h2>
         <div id="liunianBox"></div>
       </div>
 
       <div class="panel" id="jpDayun">
-        <h2>🔮 人生大运时间轴 <span class="note">十年一步 · 高亮当前运 · 宜忌</span></h2>
+        <h2>🔮 人生大运时间轴 <span class="tip" data-tip="十年一步 · 高亮当前运 · 宜忌">ⓘ</span></h2>
         <div id="dayunBox" class="dayun-axis"></div>
       </div>
 
@@ -276,12 +276,12 @@
       </div>
 
       <div class="panel" id="jpPet">
-        <h2>🐱 灵宠 <span class="note">会偶尔冒出来蹭你的猫</span></h2>
+        <h2>🐱 灵宠 <span class="tip" data-tip="会偶尔冒出来蹭你的猫">ⓘ</span></h2>
         <div id="petBox"></div>
       </div>
 
       <div class="panel" id="jpBirthday">
-        <h2>💌 生日来信 · 重要日子 <span class="note">来临前自动寄信 + 安排江湖委托</span></h2>
+        <h2>💌 生日来信 · 重要日子 <span class="tip" data-tip="来临前自动寄信 + 安排江湖委托">ⓘ</span></h2>
         <div id="birthdayBox"></div>
       </div>
 
@@ -292,17 +292,17 @@
       </div>
 
       <div class="panel" id="jpCapsule">
-        <h2>⏳ 时间胶囊 <span class="note">写给未来的自己</span></h2>
+        <h2>⏳ 时间胶囊 <span class="tip" data-tip="写给未来的自己">ⓘ</span></h2>
         <div id="capsuleBox"></div>
       </div>
 
       <div class="panel" id="jpCodex">
-        <h2>📖 人生收集册 <span class="note">走过 / 点亮 / 解锁的痕迹</span></h2>
+        <h2>📖 人生收集册 <span class="tip" data-tip="走过 / 点亮 / 解锁的痕迹">ⓘ</span></h2>
         <div id="codexBox"></div>
       </div>
 
       <div class="panel" id="jpDemon">
-        <h2>👹 心魔挑战 <span class="note">温和 · 削弱而非击败</span></h2>
+        <h2>👹 心魔挑战 <span class="tip" data-tip="温和 · 削弱而非击败">ⓘ</span></h2>
         <div id="demonBox"></div>
       </div>
 
@@ -355,7 +355,7 @@
       <!-- 「生活碎片」面板由 systems.js 动态插入到 todayDetailCockpit 之前（页面最顶部，主线上方） -->
       <div class="panel">
         <h2>🌙 今日小习惯</h2>
-        <div class="subh">只打勾、不计时 <span class="qmin">（羽毛球/力量/拉伸/阅读等计时项，请在上方「复利轨道」直接填时间）</span></div>
+        <div class="subh">只打勾、不计时 <span class="tip" data-tip="羽毛球/力量/拉伸/阅读等计时项，请在上方「复利轨道」直接填时间">ⓘ</span></div>
         <div id="dailyList"></div>
         <div class="addrow">
           <input type="text" id="dText" placeholder="新日常任务…">
@@ -365,7 +365,7 @@
           <button class="btn sm" onclick="addQuest('daily')">+ 添加</button>
         </div>
         <div class="suppwrap">
-          <div class="subh">💊 每日补剂 <span class="qmin">（勾选已服用，每日重置）</span></div>
+          <div class="subh">💊 每日补剂 <span class="tip" data-tip="勾选已服用，每日重置">ⓘ</span></div>
           <div id="suppList"></div>
           <div class="addrow">
             <input type="text" id="sText" placeholder="新补剂…">
@@ -377,7 +377,7 @@
       </div>
       <!-- 今日任务：独立色块，置于「每日补剂」之后 -->
       <div class="panel today-task-panel">
-        <div class="subh">📝 今日任务 <span class="qmin">（临时任务·可加截止日期与经验值·完成即隐藏·未完持续显示）</span></div>
+        <div class="subh">📝 今日任务 <span class="tip" data-tip="临时任务·可加截止日期与经验值·完成即隐藏·未完持续显示">ⓘ</span></div>
         <div id="dayTaskList"></div>
         <div class="addrow">
           <input type="text" id="dayTaskText" placeholder="加一个今日任务…（如 去按摩）">
@@ -402,7 +402,7 @@
         </div>
         <div id="jh-npc-pane" style="display:none">
           <div class="panel">
-            <h2>📜 江湖委托 <span class="note">每周一刷新 · 四位故人各留一言</span>
+            <h2>📜 江湖委托 <span class="tip" data-tip="每周一刷新 · 四位故人各留一言">ⓘ</span>
               <button class="btn sm ghost" style="float:right" onclick="npcRoll(true);save();render()">🔄 重摇本周</button></h2>
             <div id="npcBox"></div>
           </div>
@@ -412,21 +412,21 @@
         </div>
         <div id="jh-week-pane" style="display:none">
           <div class="panel">
-            <h2>🗡️ 江湖周榜 <span class="note">每周一刷新 · 难度高 / 积分高在上</span>
+            <h2>🗡️ 江湖周榜 <span class="tip" data-tip="每周一刷新 · 难度高 / 积分高在上">ⓘ</span>
               <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('week');save();render()">🔄 换榜</button></h2>
             <div id="jianghuWeekBox"></div>
           </div>
         </div>
         <div id="jh-month-pane" style="display:none">
           <div class="panel">
-            <h2>🗡️ 江湖月榜 <span class="note">每月 1 日刷新 · 难度高 / 积分高在上</span>
+            <h2>🗡️ 江湖月榜 <span class="tip" data-tip="每月 1 日刷新 · 难度高 / 积分高在上">ⓘ</span>
               <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('month');save();render()">🔄 换榜</button></h2>
             <div id="jianghuMonthBox"></div>
           </div>
         </div>
         <div id="jh-my-pane" style="display:none">
           <div class="panel">
-            <h2>🗡️ 我的揭榜 <span class="note">你认领的任务 · 状态 / 截止日 一目了然</span></h2>
+            <h2>🗡️ 我的揭榜 <span class="tip" data-tip="你认领的任务 · 状态 / 截止日 一目了然">ⓘ</span></h2>
             <div id="myJianghuBox"></div>
           </div>
         </div>
@@ -439,7 +439,7 @@
           <div id="weeklyHistoryBox"></div>
         </div>
         <div class="panel">
-          <h2>📊 周报 / 月报 <span class="note">周 / 月分开放，互不覆盖，自动留痕</span></h2>
+          <h2>📊 周报 / 月报 <span class="tip" data-tip="周 / 月分开放，互不覆盖，自动留痕">ⓘ</span></h2>
           <div class="rep-actions">
             <span class="rep-actions-g">📅 本周</span>
             <button class="btn sm" onclick="genReport('week')">预览</button>
@@ -509,7 +509,7 @@
         <div class="achs" id="achsUnlocked"></div>
       </div>
       <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
-      <!-- v6.2.0 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
+      <!-- v6.2.1 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
       <div class="gp-tabs" id="gpTabs">
         <button class="gp-tab on" data-tab="compound" onclick="switchGrowthTab('compound')">🌳 长期复利轨道</button>
         <button class="gp-tab" data-tab="rewards" onclick="switchGrowthTab('rewards')">🎁 嘉奖箱</button>
@@ -522,7 +522,7 @@
         </div>
       </div>
       <div class="panel" id="gardenPanel">
-        <h2>🌳 灵圃 <span class="note">盲盒栽种 · 我的植物</span></h2>
+        <h2>🌳 灵圃 <span class="tip" data-tip="盲盒栽种 · 我的植物">ⓘ</span></h2>
         <div id="gardenBox"></div>
       </div>
     </div>
@@ -609,7 +609,7 @@
       <div class="panel xp-ledger"><div id="xpLedgerBox"></div></div>
       <div class="panel" style="margin-top:12px"><div id="bondBox"></div></div>
       <div class="panel" id="jpLoot" style="margin-top:12px">
-        <h2>🧿 故人信物 <span class="note">故事收藏 · 不提供数值加成</span></h2>
+        <h2>🧿 故人信物 <span class="tip" data-tip="故事收藏 · 不提供数值加成">ⓘ</span></h2>
         <div id="npcRelicBox" class="relic-grid"></div>
       </div>
     </div>
@@ -767,9 +767,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=20260902-1054"></script>
-<script src="assets/tasks-render.js?v=20260902-1054"></script>
-<script src="assets/npc-stories.js?v=20260902-1054"></script>
-<script src="assets/systems.js?v=20260902-1054"></script>
+<script src="assets/core-state.js?v=20260902-1229"></script>
+<script src="assets/tasks-render.js?v=20260902-1229"></script>
+<script src="assets/npc-stories.js?v=20260902-1229"></script>
+<script src="assets/systems.js?v=20260902-1229"></script>
 </body>
 </html>

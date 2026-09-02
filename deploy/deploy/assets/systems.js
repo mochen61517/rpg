@@ -767,7 +767,7 @@ function renderDraw(){
   const el=document.getElementById('drawBox'); if(!el) return;
   if(!S.draw||S.draw.date!==todayStr()) drawRoll();
   const d=S.draw;
-  let h='<h2>🎴 今日宜忌 <span class="note">每日一签 · 承气运 +20</span></h2>';
+  let h='<h2>🎴 今日宜忌 <span class="tip" data-tip="每日一签 · 承气运 +20">ⓘ</span></h2>';
   h+='<div class="yiji"><span class="yj yi">宜 · '+d.yi+'</span><span class="yj ji">忌 · '+d.ji+'</span></div>';
   h+='<div class="yiji-note">'+(d.note||'')+'</div>';
   h+= d.claimed? '<div class="yiji-done">✦ 今日气运已承</div>'
@@ -910,7 +910,7 @@ function renderLetters(){
   const el=document.getElementById('letterBox'); if(!el) return;
   const list=S.letters.unlocked||[];
   const visitCount=list.filter(l=>l.kind==='visit').length;
-  let h='<h2>✉️ 远方来信 <span class="note">按你心里的地图，慢慢寄到</span>';
+  let h='<h2>✉️ 远方来信 <span class="tip" data-tip="按你心里的地图，慢慢寄到">ⓘ</span>';
   const un=letterUnread(); if(un) h+=' <span class="badge-new">'+un+' 封未读</span>';
   if(visitCount>0) h+=' <button class="btn xs ghost" onclick="if(confirm(\'确认清空全部 '+visitCount+' 封回访信？\'))clearVisitLetters()">🧹 清回访信</button>';
   h+='</h2>';
@@ -1365,7 +1365,7 @@ function encPick(i){
 }
 function renderEncounter(){
   const el=document.getElementById('encBox'); if(!el) return;
-  let h='<h2>🪄 江湖偶遇 <span class="note">按你近日行迹，故人偶现 · 接了就去做</span></h2>';
+  let h='<h2>🪄 江湖偶遇 <span class="tip" data-tip="按你近日行迹，故人偶现 · 接了就去做">ⓘ</span></h2>';
   if(S.enc.cur){
     const c=S.enc.cur;
     h+='<div class="enc-who">'+c.who+'</div><div class="enc-tex">'+c.tex+'</div><div class="enc-opts">';
@@ -1401,7 +1401,7 @@ function todayBlessing(){
 function nextBlessing(){ _blessOff=(_blessOff+1)%97; renderBonds(); }
 function renderBonds(){
   const el=document.getElementById('bondBox'); if(!el) return;
-  let h='<h2>🤝 故人 · 我们的链接 <span class="note">印象 · 好感度 · 一封来自他们的信</span></h2>';
+  let h='<h2>🤝 故人 · 我们的链接 <span class="tip" data-tip="印象 · 好感度 · 一封来自他们的信">ⓘ</span></h2>';
   h+='<div class="rel-list">';
   NPCS.forEach(p=>{
     const ri=npcRelInfo(p.id);
@@ -2174,7 +2174,7 @@ function reorganizeDetailPages(){
 
   const monthly=byTitle('action','月行大计');
   const monthlyTitle=monthly&&monthly.querySelector('h2');
-  if(monthlyTitle) monthlyTitle.innerHTML='🌙 月度挑战 <span class="note">每月 1 日刷新 · 区别于长期主线</span>';
+  if(monthlyTitle) monthlyTitle.innerHTML='🌙 月度挑战 <span class="tip" data-tip="每月 1 日刷新 · 区别于长期主线">ⓘ</span>';
 
   // 低频独立页合并：保留完整功能和数据，只减少导航与页面切换。
   const xp=document.querySelector('#page-loot > .xp-ledger');
@@ -2698,7 +2698,7 @@ function clearUsageInsights(){if(!confirm('只清除本机使用统计，不影�
 function setupUsageTracking(){
   if(document.getElementById('usageInsightsPanel'))return;
   const target=document.getElementById('page-data');if(!target)return;
-  const panel=document.createElement('div');panel.className='panel';panel.id='usageInsightsPanel';panel.innerHTML='<h2>📊 本机使用概览 <span class="note">不上传 · 用于两周后判断去留</span><button class="btn xs ghost" style="float:right" onclick="clearUsageInsights()">清零统计</button></h2><div id="usageInsightsBox"></div>';
+  const panel=document.createElement('div');panel.className='panel';panel.id='usageInsightsPanel';panel.innerHTML='<h2>📊 本机使用概览 <span class="tip" data-tip="不上传 · 用于两周后判断去留">ⓘ</span><button class="btn xs ghost" style="float:right" onclick="clearUsageInsights()">清零统计</button></h2><div id="usageInsightsBox"></div>';
   target.appendChild(panel);renderUsageInsights();
   document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('.ia-detail-group')&&d.open){const name=d.querySelector('summary span')?.textContent||'折叠区';trackUsage('group',name.trim());}},true);
   document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;const txt=(b.textContent||'').trim();if(/新增地点|打造|记一笔|生成周报|生成月报|只看今日三件|退出三件模式/.test(txt))trackUsage('action',txt.slice(0,18));},true);
