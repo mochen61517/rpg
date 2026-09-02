@@ -3794,9 +3794,9 @@ function renderCodex(){
     const fold = !!(S._codexFold && S._codexFold[key]);   // 未设置 → 展开
     const arrow = fold ? '▸' : '▾';
     const head = '<div class="codex-h codex-fold codex-'+key+'" onclick="toggleCodexSec(\''+key+'\')">'+arrow+' '+icon+' '+title+'(<span class="codex-n">'+items.length+'</span>)</div>';
-    if(!items.length) return '<div class="codex-sec">'+head+'<div class="hint">'+empty+'</div></div>';
-    let h='<div class="codex-sec">'+head;
-    if(!fold) h+='<div class="codex-chips">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div>';
+    if(!items.length) return '<div class="codex-sec codex-sec-'+key+'">'+head+'<div class="hint">'+empty+'</div></div>';
+    let h='<div class="codex-sec codex-sec-'+key+'">'+head;
+    if(!fold) h+='<div class="codex-chips codex-chips-'+key+'">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div>';
     return h+'</div>';
   }
   el.innerHTML=sec('走过的地方','🗺️',visited,'还没有记过「去过」的旅行脚印。','visited')
