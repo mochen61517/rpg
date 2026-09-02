@@ -2747,7 +2747,11 @@ function renderWishes(){
     if(!g){ g={g:w.g,items:[]}; groups.push(g); }
     g.items.push({w,i});
   });
-  el.innerHTML=groups.map(g=>`<div class="wishgroup"><div class="wish-title">${g.g} <span style="color:var(--dim);font-weight:400">${g.items.filter(x=>x.w.un).length}/${g.items.length}</span></div><div class="wishlist">${g.items.map(({w,i})=>`<span class="wish ${w.un?'reached':''}" onclick="toggleWish(${i})" title="点击点亮 / 取消">${w.un?'<span class="ck">✔</span>':''}${w.t}</span>`).join('')}</div></div>`).join('');
+  const catSlug={人生:'life','羽 · 琴 · 身':'yqs','读万卷书 · 行万里路':'read'};
+  el.innerHTML=groups.map(g=>{
+    const slug=catSlug[g.g]||'other';
+    return `<div class="wishgroup wg-${slug}"><div class="wish-title">${g.g} <span style="color:var(--dim);font-weight:400">${g.items.filter(x=>x.w.un).length}/${g.items.length}</span></div><div class="wishlist">${g.items.map(({w,i})=>`<span class="wish ${w.un?'reached':''}" onclick="toggleWish(${i})" title="点击点亮 / 取消">${w.un?'<span class="ck">✔</span>':''}${w.t}</span>`).join('')}</div></div>`;
+  }).join('');
 }
 
 function toggleWish(i){
@@ -3789,7 +3793,7 @@ function renderCodex(){
   function sec(title,icon,items,empty,key){
     const fold = !!(S._codexFold && S._codexFold[key]);   // 未设置 → 展开
     const arrow = fold ? '▸' : '▾';
-    const head = '<div class="codex-h codex-fold" onclick="toggleCodexSec(\''+key+'\')">'+arrow+' '+icon+' '+title+'(<span class="codex-n">'+items.length+'</span>)</div>';
+    const head = '<div class="codex-h codex-fold codex-'+key+'" onclick="toggleCodexSec(\''+key+'\')">'+arrow+' '+icon+' '+title+'(<span class="codex-n">'+items.length+'</span>)</div>';
     if(!items.length) return '<div class="codex-sec">'+head+'<div class="hint">'+empty+'</div></div>';
     let h='<div class="codex-sec">'+head;
     if(!fold) h+='<div class="codex-chips">'+items.map(function(s){return '<span class="codex-chip">'+escHtml(s)+'</span>';}).join('')+'</div>';
