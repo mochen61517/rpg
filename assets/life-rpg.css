@@ -1591,7 +1591,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 
 /* ===== 今日运势 · 天象 · 宜忌（v5.39） ===== */
 .panel.fortune-panel{padding:0;overflow:hidden}
-.fo-top{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 16px;background:var(--panel2);border-bottom:1px solid var(--line)}
+  /* v6.1.9 顶部条与底部 note 改白色（去掉 v6.1.8 panel2 淡蓝米），宜/忌两列做大色块区分 */
+  .fo-top{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
 .fo-gz{text-align:center;flex:0 0 auto;padding-right:14px;border-right:1px solid var(--line)}
 .fo-gz-c{font-size:26px;font-weight:800;letter-spacing:2px;line-height:1.15;color:var(--txt)}
 .fo-gz-l{font-size:10px;color:var(--dim);margin-top:3px;white-space:nowrap}
@@ -1613,18 +1614,21 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fo-wx-sub{font-size:10px;color:var(--dim);margin-top:3px;white-space:nowrap}
 .fo-wx-load{font-size:11px;color:var(--dim);line-height:1.5}
 .fo-cols{display:grid;grid-template-columns:1fr 1fr;gap:0}
-.fo-col{padding:12px 16px 13px}
-.fo-col+.fo-col{border-left:1px solid var(--line)}
-.fo-col-h{font-size:13px;font-weight:800;width:24px;height:24px;line-height:24px;text-align:center;border-radius:6px;margin-bottom:9px}
-.fo-yi .fo-col-h{background:rgba(126,196,143,.16);color:var(--grw);border:1px solid rgba(126,196,143,.4)}
-.fo-yi-travel{margin:10px 16px 0;padding:9px 12px;border-radius:9px;background:rgba(240,178,76,.1);border:1px solid rgba(240,178,76,.35);color:var(--gold);font-size:12px;line-height:1.6}
-.fo-ji .fo-col-h{background:rgba(214,120,106,.14);color:var(--warn);border:1px solid rgba(214,120,106,.36)}
+  .fo-col{padding:12px 16px 13px}
+  .fo-col+.fo-col{border-left:1px solid var(--line)}
+  /* v6.1.9 宜/忌两列做单独色块（宜=淡绿渐变 / 忌=淡红渐变） */
+  .fo-col.fo-yi{background:linear-gradient(180deg,rgba(126,196,143,.18),rgba(126,196,143,.03))}
+  .fo-col.fo-ji{background:linear-gradient(180deg,rgba(214,120,106,.18),rgba(214,120,106,.03))}
+  .fo-col-h{font-size:13px;font-weight:800;width:24px;height:24px;line-height:24px;text-align:center;border-radius:6px;margin-bottom:9px}
+  .fo-yi .fo-col-h{background:rgba(126,196,143,.32);color:#3fa578;border:1px solid rgba(126,196,143,.55)}
+  .fo-yi-travel{margin:10px 16px 0;padding:9px 12px;border-radius:9px;background:rgba(240,178,76,.1);border:1px solid rgba(240,178,76,.35);color:var(--gold);font-size:12px;line-height:1.6}
+  .fo-ji .fo-col-h{background:rgba(214,120,106,.28);color:#d8554a;border:1px solid rgba(214,120,106,.55)}
 .fo-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
 .fo-col li{font-size:12px;line-height:1.55;padding-left:13px;position:relative;color:var(--txt)}
 .fo-col li:before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%}
 .fo-yi li:before{background:var(--grw)}
 .fo-ji li:before{background:var(--warn)}
-.fo-note{font-size:10px;color:var(--dim);line-height:1.6;padding:9px 16px 12px;border-top:1px solid var(--line);background:var(--panel2)}
+.fo-note{font-size:10px;color:var(--dim);line-height:1.6;padding:9px 16px 12px;border-top:1px solid var(--line);background:var(--panel)}
 @media(max-width:760px){
   .fo-top{grid-template-columns:auto 1fr;gap:10px;row-gap:10px}
   .fo-wx{grid-column:1/-1;text-align:left;border-top:1px solid var(--line);padding-top:9px}
