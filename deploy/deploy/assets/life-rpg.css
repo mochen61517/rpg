@@ -1714,6 +1714,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   #jh-week-pane .jh-head{background:linear-gradient(90deg,rgba(91,168,232,.12),rgba(91,168,232,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
   #jh-month-pane .jh-head{background:linear-gradient(90deg,rgba(165,139,232,.12),rgba(165,139,232,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
   .jh-list{display:flex;flex-direction:column;gap:7px}
+  /* v6.2.2 我的揭榜没有 jh-head 色条，单独补标题与首行间距 + 行间距 */
+  #myJianghuBox{margin-top:16px;display:flex;flex-direction:column;gap:7px}
   .jh-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border:1px solid var(--line);
     border-radius:10px;background:var(--panel2);position:relative;overflow:hidden}
   .jh-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line)}
