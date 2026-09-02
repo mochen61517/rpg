@@ -1656,13 +1656,10 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .jh-score{font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;
     padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel2)}
   .jh-score small{display:block;font-size:10px;color:var(--dim);font-weight:400}
-  /* v6.1.1 三榜主题色：日榜=暖橙 / 周榜=天蓝 / 月榜=薰衣草紫 */
-  #jianghuBox .jh-head b{color:#ff9f5b}
-  #jianghuBox .jh-score{color:#ff9f5b;border-color:rgba(255,159,91,.38)}
-  #jianghuWeekBox .jh-head b{color:#5ba8e8}
-  #jianghuWeekBox .jh-score{color:#5ba8e8;border-color:rgba(91,168,232,.38)}
-  #jianghuMonthBox .jh-head b{color:#a58be8}
-  #jianghuMonthBox .jh-score{color:#a58be8;border-color:rgba(165,139,232,.38)}
+  /* v6.1.1 三榜主题色块：日榜=暖橙 / 周榜=天蓝 / 月榜=薰衣草紫（面板背景区分） */
+  #jh-day-pane > .panel{background:linear-gradient(180deg,rgba(255,159,91,.14),var(--panel) 38%)}
+  #jh-week-pane > .panel{background:linear-gradient(180deg,rgba(91,168,232,.14),var(--panel) 38%)}
+  #jh-month-pane > .panel{background:linear-gradient(180deg,rgba(165,139,232,.14),var(--panel) 38%)}
   .jh-list{display:flex;flex-direction:column;gap:7px}
   .jh-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border:1px solid var(--line);
     border-radius:10px;background:var(--panel2);position:relative;overflow:hidden}
