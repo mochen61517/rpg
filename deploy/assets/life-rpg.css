@@ -1710,9 +1710,10 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   #jh-day-pane > .panel::before{background:linear-gradient(90deg,#ff9f5b,#ffba88);height:5px;opacity:1}
   #jh-week-pane > .panel::before{background:linear-gradient(90deg,#5ba8e8,#8fd1e8);height:5px;opacity:1}
   #jh-month-pane > .panel::before{background:linear-gradient(90deg,#a58be8,#c8b9f0);height:5px;opacity:1}
-  #jh-day-pane .jh-head{background:linear-gradient(90deg,rgba(255,159,91,.12),rgba(255,159,91,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
-  #jh-week-pane .jh-head{background:linear-gradient(90deg,rgba(91,168,232,.12),rgba(91,168,232,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
-  #jh-month-pane .jh-head{background:linear-gradient(90deg,rgba(165,139,232,.12),rgba(165,139,232,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
+  #jh-day-pane .jh-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:11px}
+  #jh-week-pane .jh-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:11px}
+  #jh-month-pane .jh-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:11px}
+  /* 三榜头部只保留标题/说明/操作，背景与 panel 同色（白色），不再做整宽彩色色块 */
   .jh-list{display:flex;flex-direction:column;gap:7px}
   /* v6.2.2 我的揭榜没有 jh-head 色条，单独补标题与首行间距 + 行间距 */
   #myJianghuBox{margin-top:16px;display:flex;flex-direction:column;gap:7px}
