@@ -1693,9 +1693,16 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .jh-score small{display:block;font-size:10px;color:var(--dim);font-weight:400}
   /* v6.1.1 三榜主题色块：日榜=暖橙 / 周榜=天蓝 / 月榜=薰衣草紫（面板背景区分） */
   /* v6.1.7 加深背景色块（.14→.22，渐变 38%→50%），让色块更明显 */
-  #jh-day-pane > .panel{background:linear-gradient(180deg,rgba(255,159,91,.22),var(--panel) 50%)}
-  #jh-week-pane > .panel{background:linear-gradient(180deg,rgba(91,168,232,.22),var(--panel) 50%)}
-  #jh-month-pane > .panel{background:linear-gradient(180deg,rgba(165,139,232,.22),var(--panel) 50%)}
+  /* v6.2.0 修复层次违规：panel 大色块改回白色，三榜色块放到面板顶部 5px 细条（::before）+ 头部 jh-head 淡色块 */
+  #jh-day-pane > .panel,
+  #jh-week-pane > .panel,
+  #jh-month-pane > .panel{background:var(--panel)}
+  #jh-day-pane > .panel::before{background:linear-gradient(90deg,#ff9f5b,#ffba88);height:5px;opacity:1}
+  #jh-week-pane > .panel::before{background:linear-gradient(90deg,#5ba8e8,#8fd1e8);height:5px;opacity:1}
+  #jh-month-pane > .panel::before{background:linear-gradient(90deg,#a58be8,#c8b9f0);height:5px;opacity:1}
+  #jh-day-pane .jh-head{background:linear-gradient(90deg,rgba(255,159,91,.12),rgba(255,159,91,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
+  #jh-week-pane .jh-head{background:linear-gradient(90deg,rgba(91,168,232,.12),rgba(91,168,232,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
+  #jh-month-pane .jh-head{background:linear-gradient(90deg,rgba(165,139,232,.12),rgba(165,139,232,.02));border-radius:10px;padding:6px 12px;margin-left:-12px;margin-right:-12px;margin-bottom:11px}
   .jh-list{display:flex;flex-direction:column;gap:7px}
   .jh-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border:1px solid var(--line);
     border-radius:10px;background:var(--panel2);position:relative;overflow:hidden}
