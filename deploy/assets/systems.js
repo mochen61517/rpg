@@ -1502,7 +1502,7 @@ function tripFormHtml(id){
     +'<div class="tf-row two">'
       +(wish
         ? '<span class="tf-hint">这一栏是你还「想去」的地方 🌱</span>'
-        : '<label>到访日期 <input id="tfDate" type="text" placeholder="YYYY / YYYY-MM / YYYY-MM-DD" value="'+tripEscape(t?t.date||'':'')+'"></label>'
+        : '<label>到访日期 <input id="tfDate" type="date" value="'+tripEscape(t?(t.date||todayStr()):todayStr())+'"></label>'
           +'<label>评分 <span id="tfStars" class="tf-stars">'+tripStars(t?(t.rating||0):0).split('').map((s,i)=>'<i data-n="'+(i+1)+'"'+(i<(t?(t.rating||0):0)?' class="on"':'')+'>'+s+'</i>').join('')+'</span></label>')
     +'</div>'
     +'<textarea id="tfRefl" class="tf-refl" rows="3" maxlength="400" placeholder="'+(wish?'想去的理由（风景 / 故事 / 心愿）…':'那次的感受 / 一句记忆 / 还想再去的理由…')+'">'+(t?tripEscape(t.refl||''):'')+'</textarea>'
