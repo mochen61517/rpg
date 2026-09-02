@@ -1928,7 +1928,7 @@ function toggleTodayMain(k){
   const p=ensureTodayPlan(), i=(p.main||[]).indexOf(k);
   if(i>=0) p.main.splice(i,1);
   else{ p.main.push(k); }
-  save(); renderTodayCockpit(); try{ renderLifeCompound(); }catch(e){}
+  save(); renderTodayCockpit(true); try{ renderLifeCompound(true); }catch(e){}
 }
 function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(); }
 const TRACK_LIGHT_HINTS={
@@ -1959,11 +1959,11 @@ function cockpitCandidates(){
 function todayMainOrRecord(k){
   const sel=todayMainKeys();
   const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
-  if(sel.indexOf(k)<0){ toggleTodayMain(k); _lcOpenTrack=k; renderLifeCompound(); }  // 未点亮 → 点亮并立即展开时间记录器
-  else if(m===0){ toggleTodayMain(k); _lcOpenTrack=null; renderLifeCompound(); }      // 已点亮未填时间 → 再点取消点亮
-  else { _lcOpenTrack=(_lcOpenTrack===k)?null:k; renderLifeCompound(); }             // 已点亮已填时间 → 展开/收起记录器
+  if(sel.indexOf(k)<0){ toggleTodayMain(k); _lcOpenTrack=k; renderLifeCompound(true); }  // 未点亮 → 点亮并立即展开时间记录器
+  else if(m===0){ toggleTodayMain(k); _lcOpenTrack=null; renderLifeCompound(true); }      // 已点亮未填时间 → 再点取消点亮
+  else { _lcOpenTrack=(_lcOpenTrack===k)?null:k; renderLifeCompound(true); }             // 已点亮已填时间 → 展开/收起记录器
 }
-function renderTodayCockpit(){
+function renderTodayCockpit(force){
   const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
   const e=energyState(), live=liveTrackKeys(), sel=todayMainKeys();
   const viewDate=recordDateStr();
@@ -1975,7 +1975,7 @@ function renderTodayCockpit(){
     if(m>0) cls.push('lit');
     if(!on && m===0) cls.push('dim');
     if(_lcOpenTrack===k) cls.push('open');
-    return '<button class="'+cls.join(' ')+'" onclick="todayMainOrRecord(\''+k+'\')" title="'+escHtml(t.n)+' · 建议 '+t.rec+' 分钟">'
+    return '<button class="'+cls.join(' ')+'" data-k="'+k+'" onclick="todayMainOrRecord(\''+k+'\')" title="'+escHtml(t.n)+' · 建议 '+t.rec+' 分钟">'
       +'<span class="lc-ic">'+t.ic+'</span>'
       +'<span class="lc-ic-name">'+escHtml(t.n)+'</span>'
       +(on && m===0?'<span class="lc-ic-tick">✓</span>':'')
@@ -1986,7 +1986,7 @@ function renderTodayCockpit(){
   const expandHtml=_lcOpenTrack?(function(){
     const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceViewMinutes(k), rec=t.rec||15;
     return '<div class="lc-expand">'
-      +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span>'+(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
+      +'<div class="lc-expand-head"><b>'+t.ic+' '+t.n+'</b><span id="lcExpandHead">'+(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+rec+' 分钟</span>'
       +'<button class="btn xs ghost lc-close" onclick="lcClose()" title="收起">✕</button></div>'
       +'<div class="lc-expand-body">'
       +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
@@ -2003,16 +2003,42 @@ function renderTodayCockpit(){
     +'<button class="btn ghost xs" onclick="setRecDate(\'\')">今天</button>'
     +'<span class="rechint" id="recHint">'+(REC_DATE?'正在补录 '+fmtMD(REC_DATE)+'：点亮与分钟都会记到那一天。补完点「今天」切回。':'默认记今天；要补录过去某天，先选日期再勾任务。选好后会显示那天的点亮情况与已记分钟。')+'</span>'
     +'</div>';
+  // 增量更新：已初始化且非结构变更时只更新动态值，避免整体重绘造成的闪动
+  if(detail.dataset.init==='1' && !force){
+    const titleEl=detail.querySelector('#tmTitleMain');
+    if(titleEl) titleEl.textContent= sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事';
+    const enEl=detail.querySelector('#tmEnergy');
+    if(enEl){ enEl.className='tm-energy '+e.cls; enEl.innerHTML='<span>精力 · '+e.label+'</span><b>'+e.v+'</b>'; }
+    const tipEl=detail.querySelector('#tmLightTip');
+    if(tipEl) tipEl.textContent='已点亮 '+sel.length+' 条 · 点图标点亮；未输入时间时再点一次可取消点亮；填了时间即展开记录器';
+    detail.querySelectorAll('.lc-ic-btn').forEach(function(btn){
+      const k=btn.dataset.k; if(!k) return;
+      const on=sel.indexOf(k)>=0, m=practiceViewMinutes(k);
+      const cls=['lc-ic-btn'];
+      if(on) cls.push('on'); if(m>0) cls.push('lit'); if(!on && m===0) cls.push('dim'); if(_lcOpenTrack===k) cls.push('open');
+      btn.className=cls.join(' ');
+      let tick=btn.querySelector('.lc-ic-tick'), badge=btn.querySelector('.lc-ic-badge');
+      if(on && m===0){ if(!tick){ tick=document.createElement('span'); tick.className='lc-ic-tick'; tick.textContent='✓'; btn.appendChild(tick);} }
+      else if(tick){ tick.remove(); }
+      if(m>0){ if(!badge){ badge=document.createElement('span'); badge.className='lc-ic-badge'; btn.appendChild(badge);} badge.textContent=m; }
+      else if(badge){ badge.remove(); }
+    });
+    const exHead=detail.querySelector('#lcExpandHead');
+    if(exHead && _lcOpenTrack){ const k=_lcOpenTrack, t=LIFE_TRACKS[k], m=practiceViewMinutes(k); exHead.textContent=(isViewToday?'今天':fmtMD(viewDate))+'已 '+m+' 分钟 · 建议 '+(t.rec||15)+' 分钟'; }
+    renderDashboardSummary();
+    return;
+  }
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
-    +'<div class="tm-title">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
+    +'<div class="tm-title" id="tmTitleMain">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
-    +'<div class="tm-energy '+e.cls+'"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
+    +'<div class="tm-energy '+e.cls+'" id="tmEnergy"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +dateBarHtml
-    +'<div class="tm-light-tip">已点亮 '+sel.length+' 条 · 点图标点亮；未输入时间时再点一次可取消点亮；填了时间即展开记录器</div>'
+    +'<div class="tm-light-tip" id="tmLightTip">已点亮 '+sel.length+' 条 · 点图标点亮；未输入时间时再点一次可取消点亮；填了时间即展开记录器</div>'
     +'<div class="lc-ic-row">'+live.map(chip).join('')+'</div>'
     +expandHtml
     +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
     +(sel.length?' <button class="btn xs ghost" onclick="clearTodayMain()">清空重选</button>':'')+'</div>';
+  detail.dataset.init='1';
   renderDashboardSummary();
 }
 function renderDashboardSummary(){

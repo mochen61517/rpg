@@ -2388,7 +2388,7 @@ function addLifePractice(key,min){
   const yiBonus=(key==='travel'&&yiTravelActive());
   const effMin=yiBonus?Math.round(min*1.2):min;
   // v5.44.1 同步存属性，便于 weeklyReviewStats 直接归类（不必再反查 LIFE_TRACKS）
-  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min:effMin,src:'quick',a:t.a});grant(t.a,effMin,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(effMin*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+effMin+' 分钟'+(yiBonus?'（宜出行·气运+20%）':''),effMin,d);save();renderLifeCompound();render();celebrateTask(t.ic+' '+t.n+' +'+effMin+' 分钟 · +'+xpGain+' XP'+(yiBonus?' · 宜出行':''));
+  lc.logs.push({id:'manual:'+Date.now()+':'+key,key,d,min:effMin,src:'quick',a:t.a});grant(t.a,effMin,false);const sk=(typeof skillBonusFor==='function')?skillBonusFor(t.a):0;const xpGain=Math.round(effMin*(1+equipBonusFor(t.a)+sk));touchActivity(d);addHist(t.ic+' '+t.n+'复利 +'+effMin+' 分钟'+(yiBonus?'（宜出行·气运+20%）':''),effMin,d);save();render();celebrateTask(t.ic+' '+t.n+' +'+effMin+' 分钟 · +'+xpGain+' XP'+(yiBonus?' · 宜出行':''));
 }
 function syncLifePracticeFromTask(item,d,min,remove){
   const key=lifeTrackOfTask(item);if(!key)return;const lc=ensureLifeCompound(),lid='task:'+(item.id||item.t)+':'+d,idx=lc.logs.findIndex(x=>x.id===lid);
@@ -2437,11 +2437,14 @@ function openLifeFragmentModal(id){
 function saveLifeMemory(){
   const input=document.getElementById('lifeMemoryInput');const textv=(input&&input.value||'').trim();
   if(!textv&&!_lifeFragmentImg)return;
-  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,img:_lifeFragmentImg||null});addSubjectivity(1,'留下一枚生活碎片');if(input)input.value='';clearLifeFragmentImage();save();renderLifeCompound();render();celebrateTask('✨ 一枚生活碎片已被留下 · 主体性 +1');
+  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,img:_lifeFragmentImg||null});addSubjectivity(1,'留下一枚生活碎片');if(input)input.value='';clearLifeFragmentImage();save();render();celebrateTask('✨ 一枚生活碎片已被留下 · 主体性 +1');
 }
 function renderLifeFragments(){
   const el=document.getElementById('lifeBlendBox');if(!el)return;
   const mems=S.lifeCompound.memories||[];
+  // 增量：内容签名未变则跳过整体重建，避免每次 render 重绘造成的闪动
+  const sig=mems.length+(mems[0]?'|'+mems[0].id:'')+(mems.length&&mems[mems.length-1]?'|'+mems[mems.length-1].id:'');
+  if(el.dataset.fragInit==='1' && el.dataset.fragSig===sig) return;
   const prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
   let html='<div class="lc-memory-input">'
     +'<div class="lc-memory-prompt">'+escHtml(prompt)+'</div>'
@@ -2474,6 +2477,8 @@ function renderLifeFragments(){
   }
   html+='</div>';
   el.innerHTML=html;
+  el.dataset.fragInit='1';
+  el.dataset.fragSig=sig;
 }
 // ===== v6.0.78 给未来的信：月初写月底信 / 季初写季末信，到期提示读取 =====
 function futureLetterState(){
@@ -2530,27 +2535,53 @@ function clearLifeToday(key){
   lc.logs=lc.logs.filter(function(x){return !(x.key===key&&x.d===d);});
   try{ grant(t.a, -mins, false); }catch(e){}
   addHist(t.ic+' '+t.n+'撤销'+fmtMD(d)+'记录 −'+mins+' 分钟', -mins, d);
-  save(); renderLifeCompound(); render();
+  save(); render();
 }
 // v5.42 复利轨道改为图标优先：默认只显示图标，点击图标展开时间录入器；
 // 记录后图标从暗(未记录)变亮(已记录)，已点亮的再点可继续叠加时间。
 let _lcOpenTrack=null;
-function lcToggle(key){ _lcOpenTrack=key; renderLifeCompound();
+function lcToggle(key){ _lcOpenTrack=key; renderLifeCompound(true);
   setTimeout(function(){ const i=document.getElementById('lcMin_'+key); if(i){ try{ i.focus(); i.select&&i.select(); }catch(e){} } },30);
 }
-function lcClose(){ _lcOpenTrack=null; renderLifeCompound(); }
-function renderLifeCompound(){
+function lcClose(){ _lcOpenTrack=null; renderLifeCompound(true); }
+function updateLpGrid(mems){
+  const grid=document.querySelector('#longPracticeBox .lp-grid'); if(!grid) return;
+  const head=grid.parentNode.querySelector('.lp-head .lp-chapter');
+  if(head) head.textContent='✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片';
+  Object.keys(LIFE_TRACKS).forEach(function(k){
+    const t=LIFE_TRACKS[k]; if(t.paused) return;
+    const card=grid.querySelector('.lp-card[data-lp="'+k+'"]'); if(!card) return;
+    const fresh=practiceNewMinutes(k), total=getLifeBaseMin(k)+fresh, st=trackStage(total,t.realms);
+    const totalEl=card.querySelector('.lp-total'), barEl=card.querySelector('.lp-bar > i'),
+          metaEl=card.querySelector('.lp-meta'), stageEl=card.querySelector('.lp-title span');
+    if(totalEl) totalEl.innerHTML=(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small>';
+    if(barEl) barEl.style.width=st.pct+'%';
+    if(stageEl) stageEl.textContent=st.n;
+    if(metaEl){
+      metaEl.innerHTML='<span>本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span>'
+        +'<span>'+practiceDays(k)+' 个投入日</span>'
+        +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span>';
+    }
+  });
+}
+function renderLifeCompound(force){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
   const mems=S.lifeCompound.memories||[];
-
   const detail=document.getElementById('longPracticeBox');
+  // 增量更新：DOM 已初始化且非结构变更时，只更新数值，避免整体重绘造成的闪动
+  if(detail && detail.dataset.lcInit==='1' && !force){
+    updateLpGrid(mems);
+    renderTodayCockpit(false);
+    renderLifeFragments();
+    return;
+  }
   if(detail) detail.innerHTML=
     '<div class="lp-head"><div><b>🌳 长期复利轨道</b><span>不追求每天完美，只让总量持续向前</span></div>'
       +'<div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div>'
     +'<div class="lp-grid">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
       const t=LIFE_TRACKS[k], fresh=practiceNewMinutes(k), total=getLifeBaseMin(k)+fresh, st=trackStage(total,t.realms);
-      return '<div class="lp-card lp-'+t.a.toLowerCase()+(t.paused?' paused':'')+'">'
+      return '<div class="lp-card lp-'+t.a.toLowerCase()+(t.paused?' paused':'')+'" data-lp="'+k+'">'
         +'<div class="lp-title" ondblclick="editLifeBase(\''+k+'\')" title="双击调整历史基数"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div>'
         +'<div class="lp-total">'+(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small></div>'
         +'<div class="lp-bar"><i style="width:'+st.pct+'%"></i></div>'
@@ -2558,7 +2589,8 @@ function renderLifeCompound(){
         +'<span>'+(st.next?('下一境界「'+st.next.n+'」还差 '+Math.max(0,(st.next.h*60-total)/60).toFixed(0)+'h'):'已达最高境界 ✦')+'</span></div></div>';
     }).join('')+'</div>'
     +'<div class="lp-note">羽毛球/力量/冥想/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
-  renderTodayCockpit();
+  if(detail) detail.dataset.lcInit='1';
+  renderTodayCockpit(force);
   renderLifeFragments();
 }
 
