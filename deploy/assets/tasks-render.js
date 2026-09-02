@@ -984,12 +984,14 @@ function renderDailyIcons(){
 function addDays(d,n){ const p=d.split('-').map(Number); const dt=new Date(Date.UTC(p[0],p[1]-1,p[2])); dt.setUTCDate(dt.getUTCDate()+n); return dt.toISOString().slice(0,10); }
 function daysBetween(a,b){ const pa=a.split('-').map(Number), pb=b.split('-').map(Number); return Math.round((Date.UTC(pb[0],pb[1]-1,pb[2])-Date.UTC(pa[0],pa[1]-1,pa[2]))/86400000); }
 function fmtMD(s){ if(!s) return ''; const p=String(s).split('-'); if(p.length<3) return s; return (parseInt(p[1],10))+'/'+parseInt(p[2],10); }
+let _editingDayTask=null;
 function renderDayTasks(){
   const el=document.getElementById('dayTaskList'); if(!el) return;
   const d=todayStr();
   const list=(S.dayTasks||[]).filter(x=>!x.done);   // 完成即隐藏；未完成的持续显示（含跨天/逾期）
   if(!list.length){ el.innerHTML='<div class="hint">今日暂无临时任务。下面加一个，完成后自动隐藏。</div>'; return; }
   el.innerHTML=list.map(x=>{
+    if(_editingDayTask===x.id) return editDayTaskHtml(x);
     const due=x.due||'';
     const overdue=due && due<d;
     const a=x.a||'MIND';
@@ -1002,9 +1004,21 @@ function renderDayTasks(){
       +'<span class="dt-chk">○</span>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
       +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
+      +'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>'
       +'<span class="dt-x" onclick="event.stopPropagation();delDayTask(\''+x.id+'\')" title="删除">×</span>'
       +'</div>';
   }).join('');
+}
+function editDayTaskHtml(x){
+  return '<div class="daytask editing">'
+    +'<div class="dt-edit-form">'
+    +'<input type="text" id="editDayTaskText" class="dt-edit-text" value="'+escHtml(x.t)+'" placeholder="任务内容">'
+    +'<select id="editDayTaskAttr" class="dt-edit-attr" title="经验值归属属性">'+optAttrs(x.a)+'</select>'
+    +'<input type="date" id="editDayTaskDue" class="dt-edit-due" title="截止日期（可选）" value="'+(x.due||'')+'">'
+    +'<input type="number" id="editDayTaskXp" class="dt-edit-xp" value="'+(x.xp||15)+'" min="1" title="完成经验值 XP">'
+    +'<button class="btn xs primary" onclick="saveDayTaskEdit(\''+x.id+'\')">保存</button>'
+    +'<button class="btn xs ghost" onclick="cancelDayTaskEdit()">取消</button>'
+    +'</div></div>';
 }
 function addDayTask(){
   const inp=document.getElementById('dayTaskText');
@@ -1040,6 +1054,27 @@ function toggleDayTask(uid){
 function delDayTask(uid){
   if(!Array.isArray(S.dayTasks)) return;
   S.dayTasks=S.dayTasks.filter(x=>x.id!==uid);
+  save(); renderDayTasks();
+}
+function editDayTask(uid){
+  if(!(S.dayTasks||[]).some(x=>x.id===uid)) return;
+  _editingDayTask=uid; renderDayTasks();
+  const te=document.getElementById('editDayTaskText'); if(te) te.focus();
+}
+function cancelDayTaskEdit(){ _editingDayTask=null; renderDayTasks(); }
+function saveDayTaskEdit(uid){
+  const t=(S.dayTasks||[]).find(x=>x.id===uid); if(!t) return;
+  const te=document.getElementById('editDayTaskText');
+  const ae=document.getElementById('editDayTaskAttr');
+  const de=document.getElementById('editDayTaskDue');
+  const xe=document.getElementById('editDayTaskXp');
+  const nt=(te&&te.value||'').trim();
+  if(!nt){ if(te) te.focus(); return; }            // 内容不能为空
+  t.t=nt;
+  t.a=(ae&&ae.value)||t.a;                          // 可改分类（如 灵台 / 羽道 / 业道 / 体道）
+  t.due=(de&&de.value)||'';
+  t.xp=Math.max(1, parseInt((xe&&xe.value)||'15')||15);  // 可改 XP
+  _editingDayTask=null;
   save(); renderDayTasks();
 }
 // ===== 旅行地图：自绘世界地图 + 地点解锁 + 感受记录（合规：台湾属中国、含南海诸岛） =====

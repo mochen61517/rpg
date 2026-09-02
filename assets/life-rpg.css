@@ -241,6 +241,16 @@
   .dt-x{font-size:14px;color:var(--dim);opacity:0;transition:.15s;flex:0 0 auto}
   .daytask:hover .dt-x{opacity:.8}
   .dt-x:hover{color:var(--warn)}
+  .dt-edit{font-size:13px;color:var(--dim);opacity:0;transition:.15s;flex:0 0 auto;cursor:pointer;margin-left:2px}
+  .daytask:hover .dt-edit{opacity:.8}
+  .dt-edit:hover{color:var(--c-btn)}
+  .daytask.editing{display:block;cursor:default;margin-top:7px;padding:11px}
+  .daytask.editing:hover{background:var(--panel2);border-color:var(--line)}
+  .dt-edit-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .dt-edit-form input,.dt-edit-form select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 10px;font-size:13px}
+  .dt-edit-form input[type=text]{flex:1 1 160px}
+  .dt-edit-form input[type=number]{width:70px}
+  .dt-edit-form select{padding:7px 8px}
   /* goals */
   .goal{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
   .goal.paused{opacity:.5;filter:grayscale(.6)}
