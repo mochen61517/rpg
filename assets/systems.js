@@ -2486,7 +2486,7 @@ function renderLifeCompound(){
       +'<div class="lp-chapter">✨ '+lifeChapter(mems.length)+' · '+mems.length+' 枚生活碎片</div></div>'
     +'<div class="lp-grid">'+keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){
       const t=LIFE_TRACKS[k], fresh=practiceNewMinutes(k), total=getLifeBaseMin(k)+fresh, st=trackStage(total,t.realms);
-      return '<div class="lp-card'+(t.paused?' paused':'')+'">'
+      return '<div class="lp-card lp-'+t.a.toLowerCase()+(t.paused?' paused':'')+'">'
         +'<div class="lp-title" ondblclick="editLifeBase(\''+k+'\')" title="双击调整历史基数"><b>'+t.ic+' '+t.n+'</b><span>'+st.n+'</span></div>'
         +'<div class="lp-total">'+(total/60).toFixed(1)+'h <small>'+t.unit+'累计</small></div>'
         +'<div class="lp-bar"><i style="width:'+st.pct+'%"></i></div>'
