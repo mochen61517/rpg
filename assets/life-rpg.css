@@ -1431,7 +1431,18 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .dayun-axis .dy-note{ margin-top:7px; color:var(--txt); font-size:11px; border-top:1px dashed var(--line); padding-top:7px; }
 .tabbar{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
 .tabbar .tab{ padding:7px 15px; border-radius:18px; border:1px solid var(--line); background:var(--panel2); color:var(--dim); cursor:pointer; font-size:13px; transition:all .15s; }
-.tabbar .tab.on{ background:rgba(95,208,160,.14); color:#2e8b6f; border-color:rgba(95,208,160,.5); font-weight:700; box-shadow:none; }
+/* 一级 tab：琥珀实心药丸，15px，左侧白指示条 */
+.st-tabs .tab,
+.jr-tabs .tab,
+#ltTabs .tab{ padding:8px 18px; border-radius:20px; font-size:15px; }
+.st-tabs .tab.on,
+.jr-tabs .tab.on,
+#ltTabs .tab.on{ background:var(--c-tab1); color:var(--c-btn-text); border-color:var(--c-tab1); font-weight:800; position:relative; padding-left:22px; }
+.st-tabs .tab.on::before,
+.jr-tabs .tab.on::before,
+#ltTabs .tab.on::before{ content:''; position:absolute; left:10px; top:50%; transform:translateY(-50%); width:4px; height:16px; border-radius:4px; background:#fff; }
+/* 二级 tab：浅绿底+深绿字小 chip，13px */
+.jh-tabs .tab.on{ background:rgba(47,158,120,.12); color:#237a5c; border-color:rgba(47,158,120,.45); font-weight:700; box-shadow:none; }
 .lt-form{ display:flex; flex-direction:column; gap:4px; }
 .lt-lab{ font-size:12px; color:var(--dim); margin-top:8px; }
 .lt-ta{ width:100%; min-height:60px; resize:vertical; padding:9px 11px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--txt); font-family:inherit; font-size:13px; box-sizing:border-box; }
