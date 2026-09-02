@@ -483,7 +483,8 @@
 
   /* ===== v5.9 小清新主题覆盖 ===== */
   :root{
-    --bg:#f6f4ef; --panel:#ffffff; --panel2:#faf7f1; --line:#ece6db;
+    /* v6.1.8 整体配色层级：页面浅蓝 / 大色块 panel白 / 小区域属性色 */
+    --bg:#e8f3fb; --panel:#ffffff; --panel2:#f3f8fc; --line:#d8e3ee;
     --txt:#3d3a34; --dim:#9a9183; --accent:#e98b8b; --gold:#f0b24c; --warn:#e98b8b;
     --bm:#ff9f6b; --career:#5bbcd6; --body:#7ed3a8; --mind:#a89be6;
     --grw:#5cc9a0;
@@ -1565,10 +1566,11 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .lc-expand-body .lc-min{width:76px}
 .lc-expand-body .lc-unit{font-size:12px;color:var(--dim)}.lc-future{margin-bottom:12px;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(108,197,255,.08),rgba(95,208,160,.06));border:1px solid rgba(108,197,255,.2)}.lc-future-head{display:flex;gap:9px;align-items:baseline;margin-bottom:8px}.lc-future-head b{font-size:13px;color:var(--txt)}.lc-future-head span{color:var(--dim);font-size:11px}.lc-future-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.lc-memory{margin-top:12px;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(244,178,95,.08),rgba(108,197,255,.06));border:1px solid rgba(244,178,95,.18)}.lc-memory>div:first-child{display:flex;gap:9px;align-items:baseline}.lc-memory>div:first-child span{color:var(--dim);font-size:11px}.lc-memory-row{display:grid;grid-template-columns:130px 1fr auto;gap:7px;margin-top:9px}.lp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.lp-card{padding:13px;border:1px solid var(--line);border-radius:12px}.lp-title{display:flex;justify-content:space-between}.lp-title span{color:var(--accent);font-size:11px}.lp-total{font-size:20px;font-weight:750;margin:10px 0 7px}.lp-total small{font-size:10px;font-weight:400;color:var(--dim)}.lp-bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden}.lp-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#5bb6a6,#6cc5ff)}.lp-meta{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:var(--dim);font-size:10px}.lp-note{margin-top:10px;color:var(--dim);font-size:11px;line-height:1.55}
 /* v6.1.6 复利轨道按属性分色：badminton=暖橙 / mind=薰衣草紫 / body=薄荷绿 / career=天蓝 */
-.lp-card.lp-badminton{background:linear-gradient(135deg,rgba(255,159,107,.12),rgba(255,159,107,.03));border-color:rgba(255,159,107,.32)}
-.lp-card.lp-mind{background:linear-gradient(135deg,rgba(168,155,230,.12),rgba(168,155,230,.03));border-color:rgba(168,155,230,.32)}
-.lp-card.lp-body{background:linear-gradient(135deg,rgba(126,211,168,.12),rgba(126,211,168,.03));border-color:rgba(126,211,168,.32)}
-.lp-card.lp-career{background:linear-gradient(135deg,rgba(91,188,214,.12),rgba(91,188,214,.03));border-color:rgba(91,188,214,.32)}
+  /* v6.1.8 加深属性色块 alpha（.12→.22、边框 .32→.45），让色块在浅蓝底白 panel 上更突出 */
+  .lp-card.lp-badminton{background:linear-gradient(135deg,rgba(255,159,107,.22),rgba(255,159,107,.05));border-color:rgba(255,159,107,.5)}
+  .lp-card.lp-mind{background:linear-gradient(135deg,rgba(168,155,230,.22),rgba(168,155,230,.05));border-color:rgba(168,155,230,.5)}
+  .lp-card.lp-body{background:linear-gradient(135deg,rgba(126,211,168,.22),rgba(126,211,168,.05));border-color:rgba(126,211,168,.5)}
+  .lp-card.lp-career{background:linear-gradient(135deg,rgba(91,188,214,.22),rgba(91,188,214,.05));border-color:rgba(91,188,214,.5)}
 .lp-card.lp-badminton .lp-title b,.lp-card.lp-badminton .lp-title span{color:#cc6b2a}
 .lp-card.lp-mind .lp-title b,.lp-card.lp-mind .lp-title span{color:#7c6dc8}
 .lp-card.lp-body .lp-title b,.lp-card.lp-body .lp-title span{color:#3fa578}
