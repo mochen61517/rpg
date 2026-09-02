@@ -2290,7 +2290,7 @@ function renderJianghu(){
     +'<button class="btn xs ghost jh-reroll" onclick="jianghuReroll()" title="换一榜（今天已完成的会保留）">🔄 换榜</button></div>'
     +'<div class="jh-list">'+list.map(function(x,i){
       const a=ATTRS[safeAttr(x.a)]; const accepted=_acc.has(x.id);
-      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+'">'
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+' jh-a-'+x.a.toLowerCase()+'">'
         +'<div class="jh-rank">'+(i+1)+'</div>'
         +'<div class="jh-body"><div class="jh-t">'+escHtml(x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
@@ -2386,7 +2386,7 @@ function renderJianghuPeriod(kind){
     +'<button class="btn xs ghost jh-reroll" onclick="jianghuPeriodReroll(\''+kind+'\')" title="换一榜（本'+(isWeek?'周':'月')+'已完成的会保留）">🔄 换榜</button></div>'
     +'<div class="jh-list">'+list.map(function(x,i){
       const a=ATTRS[safeAttr(x.a)]; const accepted=_acc.has(x.id);
-      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+'">'
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+' jh-a-'+x.a.toLowerCase()+'">'
         +'<div class="jh-rank">'+(i+1)+'</div>'
         +'<div class="jh-body"><div class="jh-t">'+escHtml(jianghuDisplayText(x.id,kind)||x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
