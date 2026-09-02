@@ -3108,6 +3108,12 @@ function showPage(p){
   if(p==='dashboard'){ markSideSeen(); }
   if(p==='data'){ try{ fillProfileInputs(); }catch(e){} try{ syncPageVisibilityUI(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
+  // v6.4.4 切换页面默认回到顶部，避免停留在上一页的滚动位置
+  // 深链锚点跳转（notifGo）时跳过：scrollIntoView 在 showPage 之后执行，应交由它定位
+  if(!_isDeepLink){
+    try{ window.scrollTo(0,0); }catch(e){}
+    const _c=document.querySelector('.content'); if(_c) try{ _c.scrollTop=0; }catch(e){}
+  }
   try{ renderNotifications(); renderNavBadges(); }catch(e){}
 }
 
