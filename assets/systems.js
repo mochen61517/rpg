@@ -2500,9 +2500,14 @@ function renderLifeFragments(){
       if(!months[ym].days[d])months[ym].days[d]=[];
       months[ym].days[d].push(m);
     });
+    const openSet=window._openFragMonths||(window._openFragMonths=new Set());
     Object.keys(months).sort().reverse().forEach(function(ym){
       const md=months[ym];
-      html+='<div class="lc-month"><div class="lc-month-h">'+escHtml(formatYm(ym))+'</div><div class="lc-daylist">';
+      const isOpen=openSet.has(ym);
+      html+='<div class="lc-month">'
+        +'<div class="lc-month-h" onclick="toggleLifeFragmentMonth(\''+ym+'\')">'
+        +'<span class="lc-month-chevron">'+(isOpen?'▼':'▶')+'</span>'+escHtml(formatYm(ym))+'</div>'
+        +'<div class="lc-daylist" id="lc-daylist-'+ym+'" style="display:'+(isOpen?'block':'none')+'">';
       Object.keys(md.days).sort().reverse().forEach(function(d){
         const items=md.days[d];
         const day=String(d).slice(8,10).replace(/^0/,'');
@@ -2524,6 +2529,15 @@ function renderLifeFragments(){
   el.innerHTML=html;
   el.dataset.fragInit='1';
   el.dataset.fragSig=sig;
+}
+function toggleLifeFragmentMonth(ym){
+  const box=document.getElementById('lc-daylist-'+ym); if(!box) return;
+  const isOpen=box.style.display!=='none';
+  box.style.display=isOpen?'none':'block';
+  const set=window._openFragMonths||(window._openFragMonths=new Set());
+  if(isOpen) set.delete(ym); else set.add(ym);
+  const h=box.previousElementSibling;
+  if(h){ const ch=h.querySelector('.lc-month-chevron'); if(ch) ch.textContent=isOpen?'▶':'▼'; }
 }
 // ===== v6.0.78 给未来的信：月初写月底信 / 季初写季末信，到期提示读取 =====
 function futureLetterState(){
