@@ -1731,15 +1731,14 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fo-wx-d{font-size:11px;color:var(--dim)}
 .fo-wx-sub{font-size:10px;color:var(--dim);margin-top:3px;white-space:nowrap}
 .fo-wx-load{font-size:11px;color:var(--dim);line-height:1.5}
-.fo-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 16px 0}
+.fo-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
   .fo-col{padding:12px 16px 13px;border-radius:10px}
-  .fo-col+.fo-col{border-left:none}
-  /* v6.1.9 宜/忌两列做单独色块（宜=淡绿渐变 / 忌=淡红渐变） */
+  /* v6.4.1 宜/忌两列保持 gap 与 panel 内部卡片层级（忌列保留淡红警示语义） */
   .fo-col.fo-yi{background:linear-gradient(180deg,rgba(126,196,143,.10),rgba(126,196,143,.02))}
   .fo-col.fo-ji{background:linear-gradient(180deg,rgba(214,120,106,.10),rgba(214,120,106,.02))}
   .fo-col-h{font-size:13px;font-weight:800;width:24px;height:24px;line-height:24px;text-align:center;border-radius:6px;margin-bottom:9px}
   .fo-yi .fo-col-h{background:rgba(126,196,143,.32);color:#3fa578;border:1px solid rgba(126,196,143,.55)}
-  .fo-yi-travel{margin:10px 16px 0;padding:9px 12px;border-radius:9px;background:rgba(240,178,76,.1);border:1px solid rgba(240,178,76,.35);color:var(--gold);font-size:12px;line-height:1.6}
+  .fo-yi-travel{margin:12px 16px 0;padding:9px 12px;border-radius:9px;background:rgba(240,178,76,.1);border:1px solid rgba(240,178,76,.35);color:var(--gold);font-size:12px;line-height:1.6}
   .fo-ji .fo-col-h{background:rgba(214,120,106,.28);color:#d8554a;border:1px solid rgba(214,120,106,.55)}
 .fo-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
 .fo-col li{font-size:12px;line-height:1.55;padding-left:13px;position:relative;color:var(--txt)}
@@ -1751,8 +1750,8 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .fo-top{grid-template-columns:auto 1fr;gap:10px;row-gap:10px}
   .fo-wx{grid-column:1/-1;text-align:left;border-top:1px solid var(--line);padding-top:9px}
   .fo-wx-main{justify-content:flex-start}
-  .fo-cols{grid-template-columns:1fr;gap:12px;padding:16px 16px 0}
-  .fo-col+.fo-col{border-left:none;border-top:none}
+  .fo-cols{grid-template-columns:1fr;gap:16px;padding:16px}
+  .fo-col+.fo-col{border-top:none}
 }
 
 
@@ -1898,7 +1897,7 @@ body[data-season="火"]::after{background:linear-gradient(90deg,#ff9f6b,#e98b8b)
 body[data-season="土"]::after{background:linear-gradient(90deg,#e0b15a,#caa15a)}
 body[data-season="金"]::after{background:linear-gradient(90deg,#cfd8e3,#9bb6cc)}
 body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)}
-#fortuneBox .fo-season{font-size:12px;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6}
+#fortuneBox .fo-season{font-size:12px;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:12px 16px 0;line-height:1.6}
 #fortuneBox .fo-season-act{color:var(--grw);font-weight:700}
 .ach .htag{font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(126,211,168,.16);border:1px solid rgba(126,211,168,.4);color:var(--grw);margin-left:6px;vertical-align:middle}
 /* ===== v6.0.33 人生收集册 ===== */
