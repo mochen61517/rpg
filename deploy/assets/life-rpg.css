@@ -1400,26 +1400,26 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .life-banner .lb-poem{ font-size:12px; color:var(--txt); line-height:1.7; }
   .life-banner .lb-poem .lb-name{ color:var(--dim); margin:0 2px; }
   .life-banner .lb-poem .lb-num{ font-size:16px; font-weight:700; color:var(--gold); font-variant-numeric:tabular-nums; margin:0 2px; }
-  .life-banner .lb-bar-wrap{ margin-top:4px; }
+  .life-banner .lb-bar-wrap{ margin-top:16px; }
   .life-banner .lb-bar{ height:6px; border-radius:6px; background:rgba(212,168,75,.16); overflow:hidden; }
   .life-banner .lb-bar i{ display:block; height:100%; background:linear-gradient(90deg,var(--gold),#ffd98a); border-radius:6px; }
-  .life-banner .lb-bar-label{ font-size:11px; color:var(--dim); margin-top:4px; text-align:center; }
+  .life-banner .lb-bar-label{ font-size:11px; color:var(--dim); margin-top:8px; text-align:center; }
   .life-banner .lb-head{ font-size:13px; color:var(--dim); margin-bottom:12px; letter-spacing:.3px; }
   .life-banner .lb-hero{ position:relative; padding:16px 18px; border-radius:14px; background:linear-gradient(135deg, rgba(244,178,95,.12), rgba(108,197,255,.08)); border:1px solid rgba(244,178,95,.22); overflow:hidden; }
   .life-banner .lb-hero-ic{ font-size:12px; color:var(--dim); letter-spacing:1px; }
   .life-banner .lb-hero-num{ font-family:"Noto Serif SC","STKaiti","KaiTi",serif; font-size:40px; font-weight:800; line-height:1.05; margin:7px 0 9px; color:var(--gold); font-variant-numeric:tabular-nums; letter-spacing:.5px; }
   .life-banner .lb-hero-sentence{ font-size:13px; line-height:1.75; color:var(--txt); }
   .life-banner .lb-hero-sentence b{ color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums; }
-  .life-banner .lb-notes{ margin:13px 0 4px; display:flex; flex-direction:column; gap:9px; }
+  .life-banner .lb-notes{ margin:16px 0 4px; display:flex; flex-direction:column; gap:9px; }
   .life-banner .lb-note{ display:flex; gap:10px; align-items:flex-start; font-size:12px; line-height:1.65; color:var(--dim); }
   .life-banner .lb-note-ic{ flex:none; font-size:15px; line-height:1.4; }
   .life-banner .lb-note-t{ flex:1; }
   .life-banner .lb-note-t b{ color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums; }
-  .life-banner .lb-poem{ display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:14px; background:linear-gradient(135deg, rgba(244,178,95,.10), rgba(108,197,255,.06)); border:1px solid rgba(244,178,95,.18); font-size:13.5px; line-height:1.85; color:var(--txt); }
+  .life-banner .lb-poem{ display:flex; align-items:flex-start; gap:12px; padding:16px 18px; border-radius:14px; background:linear-gradient(135deg, rgba(244,178,95,.10), rgba(108,197,255,.06)); border:1px solid rgba(244,178,95,.18); font-size:13.5px; line-height:1.85; color:var(--txt); }
   .life-banner .lb-poem-ic{ flex:none; font-size:18px; line-height:1.6; }
   .life-banner .lb-poem-t{ flex:1; }
   .life-banner .lb-poem-t b{ color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums; }
-  .life-banner .lb-foot{ margin-top:13px; font-size:12.5px; color:var(--txt); text-align:center; font-style:italic; opacity:.92; }
+  .life-banner .lb-foot{ margin-top:16px; font-size:12.5px; color:var(--txt); text-align:center; font-style:italic; opacity:.92; }
   @media(max-width:720px){ .life-banner .lb-poem-grid{ grid-template-columns:1fr 1fr; } }
 .dayun-axis{ display:flex; gap:10px; overflow-x:auto; padding:6px 2px 12px; }
 .dayun-axis .dy-node{ flex:0 0 152px; border:1px solid var(--line); border-radius:10px; padding:10px 11px; background:var(--panel2); font-size:12px; line-height:1.45; }
