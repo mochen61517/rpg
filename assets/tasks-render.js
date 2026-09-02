@@ -2797,6 +2797,8 @@ function renderHobbies(){
   el.innerHTML=S.hobbies.map((h,i)=>`<span class="hobby ${clsOf(h.st)}" onclick="toggleHobby(${i})" title="点击切换：在玩 / 偶尔 / 暂歇">${h.ic} ${h.n}</span>`).join('');
 }
 
+function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+let _editWishIdx=null, _focusWishEdit=false;
 function renderWishes(){
   const el=document.getElementById('wishGroups');
   if(!el) return;
@@ -2811,8 +2813,41 @@ function renderWishes(){
   const catSlug={人生:'life','羽 · 琴 · 身':'yqs','读万卷书 · 行万里路':'read'};
   el.innerHTML=groups.map(g=>{
     const slug=catSlug[g.g]||'other';
-    return `<div class="wishgroup wg-${slug}"><div class="wish-title">${g.g} <span style="color:var(--dim);font-weight:400">${g.items.filter(x=>x.w.un).length}/${g.items.length}</span></div><div class="wishlist">${g.items.map(({w,i})=>`<span class="wish ${w.un?'reached':''}" onclick="toggleWish(${i})" title="点击点亮 / 取消">${w.un?'<span class="ck">✔</span>':''}${w.t}</span>`).join('')}</div></div>`;
+    const items=g.items.map(({w,i})=>{
+      if(_editWishIdx===i){
+        return `<span class="wish edit${w.un?' reached':''}"><input class="wish-edit" id="wishEdit_${i}" value="${escAttr(w.t)}" placeholder="输入愿望文字" onkeydown="if(event.key==='Enter')saveWishEdit(${i});if(event.key==='Escape'){_editWishIdx=null;renderWishes()}"><button class="wish-ok" onclick="saveWishEdit(${i})" title="保存">✓</button><button class="wish-x" onclick="_editWishIdx=null;renderWishes()" title="取消">×</button></span>`;
+      }
+      return `<span class="wish ${w.un?'reached':''}" onclick="toggleWish(${i})" title="点击点亮 / 取消">${w.un?'<span class="ck">✔</span>':''}${escHtml(w.t)}<span class="wish-act" onclick="event.stopPropagation();editWish(${i})" title="编辑">✎</span><span class="wish-act wish-del" onclick="event.stopPropagation();delWish(${i})" title="删除">×</span></span>`;
+    }).join('');
+    return `<div class="wishgroup wg-${slug}"><div class="wish-title">${escHtml(g.g)} <span style="color:var(--dim);font-weight:400">${g.items.filter(x=>x.w.un).length}/${g.items.length}</span><button class="wish-add" onclick="addWish('${escAttr(g.g)}')" title="新增一条到「${escAttr(g.g)}」">＋</button></div><div class="wishlist">${items}</div></div>`;
   }).join('');
+  if(_editWishIdx!=null && _focusWishEdit){ const inp=document.getElementById('wishEdit_'+_editWishIdx); if(inp){ inp.focus(); inp.select(); } _focusWishEdit=false; }
+}
+function addWish(g){
+  if(!Array.isArray(S.wishes)) S.wishes=defaultWishes();
+  S.wishes.push({g:g, t:'', un:false, custom:true});
+  _editWishIdx=S.wishes.length-1; _focusWishEdit=true; renderWishes();
+}
+function editWish(i){ _editWishIdx=i; _focusWishEdit=true; renderWishes(); }
+function saveWishEdit(i){
+  const inp=document.getElementById('wishEdit_'+i);
+  if(!inp) return;
+  const v=inp.value.trim();
+  if(!v){ inp.focus(); inp.select(); return; }
+  if(!S.wishes[i]){ _editWishIdx=null; renderWishes(); return; }
+  S.wishes[i].t=v; S.wishes[i].custom=true;
+  _editWishIdx=null;
+  save(); renderWishes(); render();
+  celebrateTask('➕ 已保存人生愿望：'+v);
+}
+function delWish(i){
+  if(!S.wishes[i]) return;
+  const t=S.wishes[i].t||'未命名';
+  if(!confirm('删除这条人生愿望「'+t+'」？此操作不可撤销。')) return;
+  S.wishes.splice(i,1);
+  if(_editWishIdx===i) _editWishIdx=null;
+  save(); renderWishes(); render();
+  celebrateTask('🗑️ 已删除人生愿望：'+t);
 }
 
 function toggleWish(i){

@@ -442,6 +442,20 @@
   .wg-yqs .wish.reached{background:var(--grw);border-color:var(--grw);color:#0d2a20}
   .wg-read .wish.reached{background:#ff9f5b;border-color:#ff9f5b;color:#3a1a08}
   .wish .ck{margin-right:4px}
+  /* v6.3.7 人生愿望支持组内新增 / 编辑 / 删除 */
+  .wish{position:relative}
+  .wish-act{display:inline-block;margin-left:4px;font-size:11px;line-height:1;color:var(--dim);opacity:0;transition:opacity .15s;cursor:pointer;user-select:none;vertical-align:1px}
+  .wish:hover .wish-act{opacity:.75}
+  .wish-act:hover{color:var(--accent)}
+  .wish-del:hover{color:var(--warn)}
+  .wish-add{margin-left:8px;font-size:12px;font-weight:700;color:var(--accent);background:transparent;border:1px dashed var(--line);border-radius:6px;padding:1px 8px;cursor:pointer;vertical-align:1px;transition:border-color .15s,background .15s}
+  .wish-add:hover{border-color:var(--accent);background:var(--bg)}
+  .wish.edit{display:inline-flex;align-items:center;gap:4px;background:var(--panel);border-color:var(--accent);cursor:default}
+  .wish-edit{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;min-width:120px;outline:none;background:var(--panel);color:var(--txt)}
+  .wish-edit:focus{border-color:var(--accent)}
+  .wish-ok{font-size:12px;font-weight:700;color:var(--grw);cursor:pointer;border:none;background:transparent;padding:0 1px}
+  .wish-x{font-size:13px;color:var(--dim);cursor:pointer;border:none;background:transparent;padding:0 1px}
+  .wish-x:hover{color:var(--warn)}
 
   /* ===== 账本 ===== */
   .ledger-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px}
