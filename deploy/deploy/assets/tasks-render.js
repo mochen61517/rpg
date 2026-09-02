@@ -1947,7 +1947,7 @@ function focusTrackInput(k){
   setTimeout(function(){
     const el=document.getElementById('lcMin_'+k);
     if(el){ try{ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); el.select&&el.select(); }catch(e){} return; }
-    const box=document.getElementById('lifeBlendBox'); if(box){ try{ box.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
+    const lp=document.getElementById('longPracticeBox'); if(lp){ try{ lp.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} }
   },30);
 }
 function cockpitCandidates(){

@@ -2395,9 +2395,85 @@ function syncLifePracticeFromTask(item,d,min,remove){
   if(remove){if(idx>=0)lc.logs.splice(idx,1);return;}
   min=Math.max(1,+min||+item.rec||+item.min||5);const a=(LIFE_TRACKS[key]&&LIFE_TRACKS[key].a)||'BODY';const row={id:lid,key,d,min,src:'task',a};if(idx>=0)lc.logs[idx]=row;else lc.logs.push(row);
 }
+let _lifeFragmentImg=null;
+function pickLifeFragmentImage(input){
+  const f=input&&input.files&&input.files[0];if(!f)return;
+  if(!f.type.startsWith('image/')){alert('请上传图片文件');if(input)input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=function(e){_lifeFragmentImg=e.target.result;renderLifeFragmentPreview();};
+  reader.readAsDataURL(f);
+}
+function renderLifeFragmentPreview(){
+  const el=document.getElementById('lifeFragmentPreview');if(!el)return;
+  if(!_lifeFragmentImg){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML='<img src="'+escHtml(_lifeFragmentImg)+'" alt=""><span class="lc-preview-x" onclick="clearLifeFragmentImage()" title="移除">×</span>';
+}
+function clearLifeFragmentImage(){
+  _lifeFragmentImg=null;
+  const input=document.getElementById('lifeMemoryFile');if(input)input.value='';
+  renderLifeFragmentPreview();
+}
+function formatYm(s){const p=String(s).split('-');return p[0]+'年'+String(+p[1])+'月';}
+function ensureLifeFragmentModal(){
+  let m=document.getElementById('lifeFragmentModal');
+  if(!m){
+    m=document.createElement('div');m.id='lifeFragmentModal';m.className='modal-mask';m.style.display='none';
+    m.innerHTML='<div class="modal" style="width:min(480px,94vw)"><div class="modal-x" onclick="hideModal(\'lifeFragmentModal\')">×</div><div class="modal-body"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(e){if(e.target===m)hideModal('lifeFragmentModal');});
+  }
+}
+function openLifeFragmentModal(id){
+  const m=(S.lifeCompound.memories||[]).find(x=>x.id===id);if(!m)return;
+  const html='<div class="lc-modal">'
+    +'<div class="lc-modal-date">'+escHtml(m.d)+'</div>'
+    +'<div class="lc-modal-text">'+escHtml(m.text||'')+'</div>'
+    +(m.img?'<img class="lc-modal-img" src="'+escHtml(m.img)+'" alt="">':'')
+    +'<button class="btn sm primary" onclick="hideModal(\'lifeFragmentModal\')">收下这一帧</button>'
+    +'</div>';
+  ensureLifeFragmentModal();showModal('lifeFragmentModal',html);
+}
 function saveLifeMemory(){
-  const input=document.getElementById('lifeMemoryInput'),sel=document.getElementById('lifeMemoryTrack');const textv=(input&&input.value||'').trim();if(!textv)return;
-  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,key:sel&&sel.value||'life'});addSubjectivity(1,'留下一枚生活碎片');if(input)input.value='';save();renderLifeCompound();render();celebrateTask('✨ 一枚生活碎片已被留下 · 主体性 +1');
+  const input=document.getElementById('lifeMemoryInput');const textv=(input&&input.value||'').trim();
+  if(!textv&&!_lifeFragmentImg)return;
+  const lc=ensureLifeCompound();lc.memories.push({id:'mem:'+Date.now(),d:recordDateStr(),text:textv,img:_lifeFragmentImg||null});addSubjectivity(1,'留下一枚生活碎片');if(input)input.value='';clearLifeFragmentImage();save();renderLifeCompound();render();celebrateTask('✨ 一枚生活碎片已被留下 · 主体性 +1');
+}
+function renderLifeFragments(){
+  const el=document.getElementById('lifeBlendBox');if(!el)return;
+  const mems=S.lifeCompound.memories||[];
+  const prompt=LIFE_PROMPTS[seededIndex(todayStr(),LIFE_PROMPTS.length)];
+  let html='<div class="lc-memory-input">'
+    +'<div class="lc-memory-prompt">'+escHtml(prompt)+'</div>'
+    +'<div class="lc-frag-row">'
+    +'<input id="lifeMemoryInput" type="text" maxlength="200" placeholder="一句话就够了…">'
+    +'<input type="file" id="lifeMemoryFile" accept="image/*" hidden onchange="pickLifeFragmentImage(this)">'
+    +'<button class="btn sm" onclick="document.getElementById(\'lifeMemoryFile\').click()">📷</button>'
+    +'<button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button>'
+    +'</div>'
+    +'<div id="lifeFragmentPreview" class="lc-memory-preview" style="display:none"></div>'
+    +'</div>';
+  html+='<div class="lc-memory-list">';
+  if(!mems.length){
+    html+='<div class="hint">还没有生活碎片。一句话、 optionally 一张照片，留下今天的普通瞬间。</div>';
+  }else{
+    const groups={};
+    mems.slice().reverse().forEach(function(m){
+      const ym=String(m.d).slice(0,7);
+      if(!groups[ym])groups[ym]={items:[]};
+      groups[ym].items.push(m);
+    });
+    Object.keys(groups).sort().reverse().forEach(function(ym){
+      const g=groups[ym];
+      html+='<div class="lc-month">'
+        +'<div class="lc-month-h">'+escHtml(formatYm(ym))+'</div>'
+        +'<div class="lc-month-chips">'
+        +g.items.map(function(m){const day=String(m.d).slice(8,10).replace(/^0/,'');return '<span class="lc-chip'+(m.img?' lc-chip-img':'')+'" onclick="openLifeFragmentModal(\''+m.id+'\')">'+day+'日'+(m.img?'📷':'')+'</span>';}).join('')
+        +'</div></div>';
+    });
+  }
+  html+='</div>';
+  el.innerHTML=html;
 }
 // ===== v6.0.78 给未来的信：月初写月底信 / 季初写季末信，到期提示读取 =====
 function futureLetterState(){
@@ -2466,19 +2542,7 @@ function lcClose(){ _lcOpenTrack=null; renderLifeCompound(); }
 function renderLifeCompound(){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
-  const viewDate=recordDateStr();
-  const isViewToday=viewDate===todayStr();
   const mems=S.lifeCompound.memories||[];
-  const prompt=LIFE_PROMPTS[seededIndex(viewDate,LIFE_PROMPTS.length)];
-
-  // v6.0.80：图标行已合并进今日主线（todayDetailCockpit），此处只保留「生活碎片」。
-  const quick=document.getElementById('lifeBlendBox');
-  if(quick) quick.innerHTML=
-    '<div class="lc-memory"><div><b>✨ '+(isViewToday?'今日生活碎片':fmtMD(viewDate)+'生活碎片')+'</b><span>'+prompt+'</span></div>'
-      +'<div class="lc-memory-row"><select id="lifeMemoryTrack"><option value="life">生活本身</option>'
-      +keys.filter(function(k){return !LIFE_TRACKS[k].paused;}).map(function(k){return '<option value="'+k+'">'+LIFE_TRACKS[k].ic+' '+LIFE_TRACKS[k].n+'</option>';}).join('')
-      +'</select><input id="lifeMemoryInput" maxlength="120" placeholder="一句话就够了…">'
-      +'<button class="btn sm primary" onclick="saveLifeMemory()">留下这一帧</button></div></div>';
 
   const detail=document.getElementById('longPracticeBox');
   if(detail) detail.innerHTML=
@@ -2495,6 +2559,7 @@ function renderLifeCompound(){
     }).join('')+'</div>'
     +'<div class="lp-note">羽毛球/力量/冥想/职业沿用真实累计基数；阅读用真实历史 182h。今日行动页填的时间会直接累进这里，每个轨道按总小时自动点亮武侠境界。<br><span class="hint">卡头上双击可调该轨道历史基数（小时）</span></div>';
   renderTodayCockpit();
+  renderLifeFragments();
 }
 
 function setupLifeCompoundUI(){
@@ -2503,7 +2568,6 @@ function setupLifeCompoundUI(){
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
   try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
   try{ migrateBodySplit(); }catch(e){ console.warn('body split migrate',e); }
-  if(!document.getElementById('lifeBlendBox')){const p=document.createElement('div');p.className='panel life-compound';p.id='lifeBlendPanel';p.innerHTML='<div id="lifeBlendBox"></div>';const anchor=document.getElementById('todayDetailCockpit');anchor?.insertAdjacentElement('beforebegin',p);}
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
 }

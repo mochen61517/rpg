@@ -1580,6 +1580,26 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .lc-min{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--txt);font-family:inherit;font-size:13px}
 .lc-expand-body .lc-min{width:76px}
 .lc-expand-body .lc-unit{font-size:12px;color:var(--dim)}.lc-future{margin-bottom:12px;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(108,197,255,.08),rgba(95,208,160,.06));border:1px solid rgba(108,197,255,.2)}.lc-future-head{display:flex;gap:9px;align-items:baseline;margin-bottom:8px}.lc-future-head b{font-size:13px;color:var(--txt)}.lc-future-head span{color:var(--dim);font-size:11px}.lc-future-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.lc-memory{margin-top:12px;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(244,178,95,.08),rgba(108,197,255,.06));border:1px solid rgba(244,178,95,.18)}.lc-memory>div:first-child{display:flex;gap:9px;align-items:baseline}.lc-memory>div:first-child span{color:var(--dim);font-size:11px}.lc-memory-row{display:grid;grid-template-columns:130px 1fr auto;gap:7px;margin-top:9px}.lp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.lp-card{padding:13px;border:1px solid var(--line);border-radius:12px}.lp-title{display:flex;justify-content:space-between}.lp-title span{color:var(--accent);font-size:11px}.lp-total{font-size:20px;font-weight:750;margin:10px 0 7px}.lp-total small{font-size:10px;font-weight:400;color:var(--dim)}.lp-bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden}.lp-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#5bb6a6,#6cc5ff)}.lp-meta{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:var(--dim);font-size:10px}.lp-note{margin-top:10px;color:var(--dim);font-size:11px;line-height:1.55}
+/* v6.2.8 生活碎片：输入区 + 按月聚合 + 弹窗 */
+.lc-memory-input{margin-top:10px;padding:14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.lc-memory-prompt{font-size:12px;color:var(--dim);margin-bottom:10px}
+.lc-frag-row{display:flex;gap:8px;align-items:center}
+.lc-frag-row input[type=text]{flex:1;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--txt);font-family:inherit;font-size:13px}
+.lc-frag-row .btn{white-space:nowrap}
+.lc-memory-preview{position:relative;margin-top:10px;display:inline-block}
+.lc-memory-preview img{max-height:120px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
+.lc-preview-x{position:absolute;top:-8px;right:-8px;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:var(--warn);color:#fff;font-size:12px;cursor:pointer}
+.lc-memory-list{margin-top:14px}
+.lc-month{margin-bottom:14px}
+.lc-month-h{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.lc-month-chips{display:flex;flex-wrap:wrap;gap:7px}
+.lc-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:5px 10px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);cursor:pointer;transition:.15s}
+.lc-chip:hover{border-color:#5ba8e8;color:#4a9bd6;background:rgba(91,168,232,.08)}
+.lc-chip-img{padding-right:7px}
+.lc-modal{padding:4px 2px}
+.lc-modal-date{font-size:12px;color:var(--dim);margin-bottom:10px}
+.lc-modal-text{font-size:14px;line-height:1.7;color:var(--txt);white-space:pre-wrap;margin-bottom:14px}
+.lc-modal-img{max-width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px}
 /* v6.1.6 复利轨道按属性分色：badminton=暖橙 / mind=薰衣草紫 / body=薄荷绿 / career=天蓝 */
   /* v6.1.8 加深属性色块 alpha（.12→.22、边框 .32→.45），让色块在浅蓝底白 panel 上更突出 */
   .lp-card.lp-badminton{background:linear-gradient(135deg,rgba(255,159,107,.22),rgba(255,159,107,.05));border-color:rgba(255,159,107,.5)}
