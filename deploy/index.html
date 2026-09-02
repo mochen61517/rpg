@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.3.8</title>
-<link rel="stylesheet" href="assets/life-rpg.css?v=20260902-2032">
+<title>人生修行录 · v6.3.9</title>
+<link rel="stylesheet" href="assets/life-rpg.css?v=20260902-2036">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-t">人生修行录<span>v6.3.8 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.3.9 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -387,10 +387,10 @@
           <input type="text" id="dayTaskText" placeholder="加一个今日任务…（如 去按摩）">
           <select id="dayTaskAttr" title="经验值归属属性"></select>
           <input type="date" id="dayTaskDue" title="截止日期（可选）">
-          <input type="number" id="dayTaskXp" value="15" min="1" title="完成经验值 XP" style="width:60px">
+          <input type="number" id="dayTaskXp" value="10" min="1" title="完成经验值 XP（默认10）" style="width:60px">
           <button class="btn xs" onclick="addDayTask()">添加</button>
         </div>
-        <div class="hint" style="margin-top:8px">睡前想规划明天的事？直接去上方「今日小习惯」勾选对应项即可。</div>
+        <div class="hint" style="margin-top:8px">睡前想规划明天的事？填一句直接点「添加」即可，默认记到「灵台」+10 XP（可点 ✎ 改分类/经验值）。</div>
       </div>
       <!-- 江湖委托 / WEEKLY CHRONICLE / 周报月报 已移至江湖榜左栏与本周卷册子tab -->
       </div>
@@ -513,7 +513,7 @@
         <div class="achs" id="achsUnlocked"></div>
       </div>
       <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
-      <!-- v6.3.8 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
+      <!-- v6.3.9 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
       <div class="gp-tabs" id="gpTabs">
         <button class="gp-tab on" data-tab="compound" onclick="switchGrowthTab('compound')">🌳 长期复利轨道</button>
         <button class="gp-tab" data-tab="rewards" onclick="switchGrowthTab('rewards')">🎁 嘉奖箱</button>
@@ -771,9 +771,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=20260902-2032"></script>
-<script src="assets/tasks-render.js?v=20260902-2032"></script>
-<script src="assets/npc-stories.js?v=20260902-2032"></script>
-<script src="assets/systems.js?v=20260902-2032"></script>
+<script src="assets/core-state.js?v=20260902-2036"></script>
+<script src="assets/tasks-render.js?v=20260902-2036"></script>
+<script src="assets/npc-stories.js?v=20260902-2036"></script>
+<script src="assets/systems.js?v=20260902-2036"></script>
 </body>
 </html>

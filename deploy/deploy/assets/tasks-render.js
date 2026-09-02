@@ -1015,7 +1015,7 @@ function editDayTaskHtml(x){
     +'<input type="text" id="editDayTaskText" class="dt-edit-text" value="'+escHtml(x.t)+'" placeholder="任务内容">'
     +'<select id="editDayTaskAttr" class="dt-edit-attr" title="经验值归属属性">'+optAttrs(x.a)+'</select>'
     +'<input type="date" id="editDayTaskDue" class="dt-edit-due" title="截止日期（可选）" value="'+(x.due||'')+'">'
-    +'<input type="number" id="editDayTaskXp" class="dt-edit-xp" value="'+(x.xp||15)+'" min="1" title="完成经验值 XP">'
+    +'<input type="number" id="editDayTaskXp" class="dt-edit-xp" value="'+(x.xp||10)+'" min="1" title="完成经验值 XP">'
     +'<button class="btn xs primary" onclick="saveDayTaskEdit(\''+x.id+'\')">保存</button>'
     +'<button class="btn xs ghost" onclick="cancelDayTaskEdit()">取消</button>'
     +'</div></div>';
@@ -1028,10 +1028,10 @@ function addDayTask(){
   const dueEl=document.getElementById('dayTaskDue');
   const due=(dueEl&&dueEl.value)||'';
   const xpEl=document.getElementById('dayTaskXp');
-  const xp=Math.max(1, parseInt((xpEl&&xpEl.value)||'15')||15);
+  const xp=Math.max(1, parseInt((xpEl&&xpEl.value)||'10')||10);
   S.dayTasks=S.dayTasks||[];
   S.dayTasks.push({id:id(), t, a, due, xp, d:todayStr(), done:false, from:'manual'});
-  if(inp) inp.value=''; if(attrEl) attrEl.value='MIND'; if(dueEl) dueEl.value=''; if(xpEl) xpEl.value='15';
+  if(inp) inp.value=''; if(attrEl) attrEl.value='MIND'; if(dueEl) dueEl.value=''; if(xpEl) xpEl.value='10';
   save(); renderDayTasks();
 }
 function toggleDayTask(uid){
