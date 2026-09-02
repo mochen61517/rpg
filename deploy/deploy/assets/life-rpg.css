@@ -1633,14 +1633,17 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 
 /* v5.34 生活复利：长期轨道与当下感受合并为同一日循环。 */
 .lc-head,.lp-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:13px}.lc-head b,.lp-head b{font-size:16px}.lc-head>div>span,.lp-head>div>span{display:block;margin-top:4px;color:var(--dim);font-size:11px}.lc-score,.lp-chapter{padding:6px 9px;border-radius:999px;background:rgba(108,197,255,.09);color:#8fcce8;font-size:11px;white-space:nowrap}.lc-ic-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px;padding-top:2px}
-.lc-ic-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;width:80px;padding:12px 4px 9px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);cursor:pointer;font-family:inherit;color:var(--txt);transition:.18s}
-.lc-ic-btn .lc-ic{font-size:31px;line-height:1;filter:grayscale(1);opacity:.4;transition:.2s}
-.lc-ic-btn .lc-ic-name{font-size:11px;color:var(--dim);transition:.2s}
+.lc-ic-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;width:76px;padding:11px 6px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);cursor:pointer;font-family:inherit;color:var(--txt);transition:.18s}
+.lc-ic-btn .lc-ic{font-size:27px;line-height:1;filter:grayscale(1);opacity:.4;transition:.2s}
+.lc-ic-btn .lc-ic-name{font-size:10px;color:var(--dim);transition:.2s}
 .lc-ic-btn.dim:hover .lc-ic{opacity:.72;filter:grayscale(.55)}
 .lc-ic-btn.dim:hover .lc-ic-name{color:var(--txt)}
 .lc-ic-btn.lit .lc-ic{filter:none;opacity:1}
-.lc-ic-btn.lit{border-color:rgba(95,208,160,.55);background:rgba(95,208,160,.16)}
-.lc-ic-btn.lit .lc-ic-name{color:#bfeede}
+.lc-ic-btn.lit{border-color:rgba(95,208,160,.40);background:rgba(95,208,160,.10)}
+.lc-ic-btn.lit .lc-ic-name{color:#3fa578}
+.lc-ic-btn.on{border-color:rgba(95,208,160,.55);background:linear-gradient(135deg,rgba(154,240,210,.22),rgba(95,208,160,.12));font-weight:600}
+.lc-ic-btn.on .lc-ic{filter:none;opacity:1}
+.lc-ic-btn.on .lc-ic-name{color:var(--txt);font-weight:600}
 .lc-ic-btn.open{border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,178,76,.22)}
 .lc-ic-badge{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--gold);color:#1a1208;font-size:11px;font-weight:700;line-height:20px;text-align:center;box-shadow:0 2px 6px rgba(90,80,60,.25)}
 .lc-expand{margin:16px 0 18px;padding:16px 18px;border:1px solid rgba(240,178,76,.35);border-radius:12px;background:linear-gradient(135deg,rgba(244,178,95,.07),rgba(108,197,255,.05));animation:lcPop .22s ease-out}
@@ -1796,10 +1799,10 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .tm-recbar .recinput{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:4px 8px;font-size:13px;font-family:inherit}
   .tm-recbar .rechint{font-size:12px;color:var(--dim)}
   .tm-light-tip{margin:4px 0 16px;font-size:12px;line-height:1.7;color:var(--dim)}
-  .lc-ic-btn.on{background:linear-gradient(135deg,#9af0d2,#5fd0a0);border-color:#5fd0a0;color:#0d2a20;font-weight:700;box-shadow:0 0 0 2px rgba(95,208,160,.3),0 4px 14px rgba(95,208,160,.25)}
+  .lc-ic-btn.on{background:linear-gradient(135deg,rgba(154,240,210,.28),rgba(95,208,160,.16));border-color:rgba(95,208,160,.55);color:var(--txt);font-weight:600;box-shadow:0 0 0 2px rgba(95,208,160,.18),0 3px 10px rgba(95,208,160,.12)}
   .lc-ic-btn.on .lc-ic{filter:none;opacity:1}
-  .lc-ic-btn.on .lc-ic-name{color:#0d2a20;font-weight:700}
-  .lc-ic-tick{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#9af0d2,#5fd0a0);color:#0d2a20;font-size:12px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 2px 5px rgba(95,208,160,.35)}
+  .lc-ic-btn.on .lc-ic-name{color:var(--txt);font-weight:600}
+  .lc-ic-tick{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(95,208,160,.85);color:#fff;font-size:12px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 2px 5px rgba(95,208,160,.25)}
 
   /* ===== v5.44 江湖任务日榜 jianghu ===== */
   .jianghu-card{padding:14px 16px}
