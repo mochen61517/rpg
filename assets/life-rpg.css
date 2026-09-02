@@ -195,13 +195,13 @@
   .subh{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px}
   .supp-row{display:flex;flex-wrap:wrap;gap:10px}
   .supp-ic{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;width:76px;padding:11px 6px 8px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--dim);cursor:pointer;font-family:inherit;transition:.18s}
-  .supp-ic:hover{border-color:var(--grw);transform:translateY(-2px);box-shadow:0 6px 16px rgba(90,80,60,.1)}
+  .supp-ic:hover{border-color:#5ba8e8;transform:translateY(-2px);box-shadow:0 6px 16px rgba(90,80,60,.1)}
   .supp-em{font-size:27px;line-height:1;filter:grayscale(1);opacity:.4;transition:.18s}
   .supp-nm{font-size:10px;text-align:center;line-height:1.25;max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .supp-ic.done{background:linear-gradient(160deg,rgba(95,208,160,.18),var(--panel2));border-color:var(--grw);color:var(--txt)}
+  .supp-ic.done{background:linear-gradient(160deg,rgba(91,168,232,.18),var(--panel2));border-color:#5ba8e8;color:var(--txt)}
   .supp-ic.done .supp-em{filter:none;opacity:1}
-  .supp-ic.done .supp-nm{color:var(--grw)}
-  .supp-ck{position:absolute;top:5px;right:7px;font-size:12px;color:var(--grw);font-weight:700}
+  .supp-ic.done .supp-nm{color:#5ba8e8}
+  .supp-ck{position:absolute;top:5px;right:7px;font-size:12px;color:#5ba8e8;font-weight:700}
   .supp-del{position:absolute;top:2px;left:5px;font-size:13px;line-height:1;color:var(--dim);opacity:0;transition:.15s}
   .supp-ic:hover .supp-del{opacity:.85}
   .supp-del:hover{color:var(--warn)}
@@ -627,7 +627,7 @@
   .mainq .tag{background:var(--gold);color:#5a4a20;}
   .tier{background:#fff;color:var(--dim);}
   .tier.on{border-color:var(--grw);color:var(--grw);background:var(--mint);}
-  .qitem.done .chk{background:var(--grw);border-color:var(--grw);color:#fff;}
+  .qitem.done .chk{background:var(--gold);border-color:var(--gold);color:#5a4a20;}
   .qdel:hover{color:var(--accent);}
   .ms.reached{background:var(--grw);border-color:var(--grw);color:#fff;}
   .hist{border-color:var(--line);}
@@ -886,7 +886,7 @@ html[data-theme="bing"] .mainq{background:#fff;border:1px solid var(--line);}
 html[data-theme="bing"] .mainq .tag{background:var(--gold);color:#14525e;}
 html[data-theme="bing"] .tier{background:#fff;color:var(--dim);}
 html[data-theme="bing"] .tier.on{border-color:var(--grw);color:var(--grw);background:var(--mint);}
-html[data-theme="bing"] .qitem.done .chk{background:var(--grw);border-color:var(--grw);color:#fff;}
+html[data-theme="bing"] .qitem.done .chk{background:var(--gold);border-color:var(--gold);color:#5a4a20;}
 html[data-theme="bing"] .cat-chip.cat-on{background:var(--grw);color:#fff;}
 html[data-theme="bing"] .cat-chip.cat-wait{background:var(--gold);color:#14525e;}
 html[data-theme="bing"] .cat-chip.cat-idle{background:#fff;color:var(--dim);}
@@ -934,7 +934,7 @@ html[data-theme="dark"] .bmcard{background:linear-gradient(135deg,var(--panel2),
 html[data-theme="dark"] .mainq .tag{background:var(--gold);color:#3a2e10;}
 html[data-theme="dark"] .tier.on{border-color:var(--grw);color:var(--grw);background:var(--mint);}
 html[data-theme="dark"] .pet img{border:2px solid var(--panel);}
-html[data-theme="dark"] .qitem.done .chk{background:var(--grw);border-color:var(--grw);color:#fff;}
+html[data-theme="dark"] .qitem.done .chk{background:var(--gold);border-color:var(--gold);color:#3a2e10;}
 html[data-theme="dark"] .cat-chip.cat-on{background:var(--grw);color:#0f1115;}
 html[data-theme="dark"] .cat-chip.cat-wait{background:var(--gold);color:#3a2e10;}
 html[data-theme="dark"] .levelup-overlay{background:rgba(20,17,15,.92);}
@@ -1656,6 +1656,13 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
   .jh-score{font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;
     padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel2)}
   .jh-score small{display:block;font-size:10px;color:var(--dim);font-weight:400}
+  /* v6.1.1 三榜主题色：日榜=暖橙 / 周榜=天蓝 / 月榜=薰衣草紫 */
+  #jianghuBox .jh-head b{color:#ff9f5b}
+  #jianghuBox .jh-score{color:#ff9f5b;border-color:rgba(255,159,91,.38)}
+  #jianghuWeekBox .jh-head b{color:#5ba8e8}
+  #jianghuWeekBox .jh-score{color:#5ba8e8;border-color:rgba(91,168,232,.38)}
+  #jianghuMonthBox .jh-head b{color:#a58be8}
+  #jianghuMonthBox .jh-score{color:#a58be8;border-color:rgba(165,139,232,.38)}
   .jh-list{display:flex;flex-direction:column;gap:7px}
   .jh-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border:1px solid var(--line);
     border-radius:10px;background:var(--panel2);position:relative;overflow:hidden}
@@ -1687,12 +1694,23 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .top-tabs .tt-main{flex:1;text-align:center;font-weight:700;font-size:15px;border-radius:10px;padding:12px 8px;transition:.15s}
 .top-tabs .tt-main.cur{background:linear-gradient(135deg,#caa45a,#e7c178);color:#1a1206;box-shadow:0 4px 14px rgba(202,164,90,.35)}
 .top-tabs .tt-main .nav-badge{position:static;margin-left:6px;transform:none}
-.myjh-overdue{outline:1px solid #e0625a}
+/* v6.1.1 我的揭榜三态：进行中=天蓝 / 已完成=绿 / 已逾期=红 */
+.myjh-open{border-color:rgba(91,168,232,.45);background:rgba(91,168,232,.07)}
+.myjh-open .jh-xp{color:#5ba8e8}
+.myjh-open .jh-dead{color:#5ba8e8}
+.myjh-done{border-color:rgba(95,208,160,.4);background:rgba(95,208,160,.07);opacity:1}
+.myjh-done .jh-xp{color:#5fd0a0}
+.myjh-done .jh-t{text-decoration:line-through;color:var(--dim)}
+.myjh-overdue{border-color:rgba(224,98,90,.5);background:rgba(224,98,90,.07)}
 .myjh-overdue .jh-over{color:#e0625a;font-weight:700}
+.myjh-overdue .jh-xp{color:#e0625a}
 .jh-expired-tag{display:inline-block;font-size:12px;font-weight:700;color:#e0625a;border:1px dashed #e0625a;border-radius:8px;padding:3px 10px;background:rgba(224,98,90,.08);cursor:not-allowed;user-select:none}
-.myjh-done{opacity:.55}
 .jh-dead{font-size:12px;color:#9aa;margin-top:4px;width:100%;text-align:right}
 .jh-src{background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;font-size:12px;color:#bbb}
+/* 来源标签分色：日榜=暖橙 / 周榜=天蓝 / 月榜=薰衣草紫 */
+.jh-src.src-day{color:#ff9f5b;background:rgba(255,159,91,.12);border:1px solid rgba(255,159,91,.28)}
+.jh-src.src-week{color:#5ba8e8;background:rgba(91,168,232,.12);border:1px solid rgba(91,168,232,.28)}
+.jh-src.src-month{color:#a58be8;background:rgba(165,139,232,.12);border:1px solid rgba(165,139,232,.28)}
 /* ===== v6.0.36 心魔挑战 ===== */
 #demonBox .demon{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
 #demonBox .demon.retreated{opacity:.6;border-style:dashed}

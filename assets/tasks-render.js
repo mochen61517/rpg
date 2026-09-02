@@ -2479,7 +2479,7 @@ function renderMyJianghu(){
       +'<div class="jh-body"><div class="jh-t">'+escHtml(e.t)+'</div>'
       +'<div class="jh-meta"><span class="jh-attr">'+a.icon+' '+a.name+'</span>'
       +'<span class="jh-diff">'+jianghuStars(e.diff)+'</span>'
-      +'<span class="jh-src">'+(e.src==='day'?'日榜':(e.src==='week'?'周榜':'月榜'))+'</span>'
+      +'<span class="jh-src src-'+e.src+'">'+(e.src==='day'?'日榜':(e.src==='week'?'周榜':'月榜'))+'</span>'
       +(overdue?'<span class="jh-over">已逾期</span>':'')+'</div></div>'
       +'<div class="jh-xp">+'+(overdue?e.xp:Math.round(e.xp*1.2))+'</div>'
       +(e.done

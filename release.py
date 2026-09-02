@@ -3,7 +3,7 @@
 import os, shutil, re, datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-VERSION = "6.1.0"  # 人类可读版本（功能版本），新增功能时手动改这里
+VERSION = "6.1.1"  # 人类可读版本（功能版本），新增功能时手动改这里
 CB = datetime.datetime.now().strftime("%Y%m%d-%H%M")  # 缓存破坏符：每次发版唯一，强制浏览器/CDN 拉新 JS
 
 HTMLS = ["life-rpg.html", "deploy/life-rpg.html", "deploy/deploy/life-rpg.html",
@@ -19,8 +19,8 @@ def bump_html(path):
         html = f.read()
     # 1) 缓存破坏符：任意 ?v=... -> ?v=<CB>（先处理，避免被第2步误改）
     html = re.sub(r"(\?v=)[0-9A-Za-z._-]+", r"\g<1>" + CB, html)
-    # 2) 显示版本：title / brand 的 v6.0.X -> v<VERSION>
-    html = re.sub(r"v6\.0\.\d+", "v" + VERSION, html)
+    # 2) 显示版本：title / brand 的 vX.Y.Z -> v<VERSION>
+    html = re.sub(r"v\d+\.\d+\.\d+", "v" + VERSION, html)
     with open(path, "w", encoding="utf-8") as f:
         f.write(html)
     # 校验
