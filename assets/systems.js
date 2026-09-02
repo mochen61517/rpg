@@ -2460,19 +2460,33 @@ function renderLifeFragments(){
   if(!mems.length){
     html+='<div class="hint">还没有生活碎片。一句话、 optionally 一张照片，留下今天的普通瞬间。</div>';
   }else{
-    const groups={};
+    // 先按月聚合，月内再按日期聚合（同一天多条碎片并到一行，避免重复日期标签）
+    const months={};
     mems.slice().reverse().forEach(function(m){
       const ym=String(m.d).slice(0,7);
-      if(!groups[ym])groups[ym]={items:[]};
-      groups[ym].items.push(m);
+      if(!months[ym])months[ym]={days:{}};
+      const d=String(m.d).slice(0,10);
+      if(!months[ym].days[d])months[ym].days[d]=[];
+      months[ym].days[d].push(m);
     });
-    Object.keys(groups).sort().reverse().forEach(function(ym){
-      const g=groups[ym];
-      html+='<div class="lc-month">'
-        +'<div class="lc-month-h">'+escHtml(formatYm(ym))+'</div>'
-        +'<div class="lc-month-chips">'
-        +g.items.map(function(m){const day=String(m.d).slice(8,10).replace(/^0/,'');return '<span class="lc-chip'+(m.img?' lc-chip-img':'')+'" onclick="openLifeFragmentModal(\''+m.id+'\')">'+day+'日'+(m.img?'📷':'')+'</span>';}).join('')
-        +'</div></div>';
+    Object.keys(months).sort().reverse().forEach(function(ym){
+      const md=months[ym];
+      html+='<div class="lc-month"><div class="lc-month-h">'+escHtml(formatYm(ym))+'</div><div class="lc-daylist">';
+      Object.keys(md.days).sort().reverse().forEach(function(d){
+        const items=md.days[d];
+        const day=String(d).slice(8,10).replace(/^0/,'');
+        const entries=items.map(function(m){
+          const txt=(m.text||'').trim();
+          const summary=txt?escHtml(txt.length>14?txt.slice(0,14)+'…':txt):'📷 一张照片';
+          return '<span class="lc-entry'+(m.img?' lc-entry-img':'')+'" onclick="openLifeFragmentModal(\''+m.id+'\')">'
+            +(m.img?'<span class="lc-entry-ic">📷</span>':'<span class="lc-entry-ic">📝</span>')
+            +'<span class="lc-entry-t">'+summary+'</span></span>';
+        }).join('');
+        html+='<div class="lc-day-row">'
+          +'<div class="lc-day">'+day+'<small>日</small></div>'
+          +'<div class="lc-day-entries">'+entries+'</div></div>';
+      });
+      html+='</div></div>';
     });
   }
   html+='</div>';

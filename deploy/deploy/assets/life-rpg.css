@@ -1664,13 +1664,21 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .lc-memory-preview{position:relative;margin-top:10px;display:inline-block}
 .lc-memory-preview img{max-height:120px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
 .lc-preview-x{position:absolute;top:-8px;right:-8px;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:var(--warn);color:#fff;font-size:12px;cursor:pointer}
-.lc-memory-list{margin-top:14px}
-.lc-month{margin-bottom:14px}
-.lc-month-h{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-.lc-month-chips{display:flex;flex-wrap:wrap;gap:7px}
-.lc-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:5px 10px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);cursor:pointer;transition:.15s}
-.lc-chip:hover{border-color:#5ba8e8;color:#4a9bd6;background:rgba(91,168,232,.08)}
-.lc-chip-img{padding-right:7px}
+.lc-memory-list{margin-top:12px}
+.lc-month{margin-bottom:12px}
+.lc-month-h{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.lc-daylist{display:flex;flex-direction:column;gap:4px}
+.lc-day-row{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--line)}
+.lc-day-row:last-child{border-bottom:none}
+.lc-day{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;color:var(--t-note);font-size:14px;font-weight:700}
+.lc-day small{font-size:9px;font-weight:400;color:var(--dim);margin-top:1px}
+.lc-day-entries{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;padding-top:2px}
+.lc-entry{display:inline-flex;align-items:center;gap:6px;min-width:0;padding:6px 10px;border-radius:8px;background:var(--panel);border:1px solid var(--line);
+  color:var(--t-body);font-size:12px;cursor:pointer;transition:.15s}
+.lc-entry:hover{border-color:#5ba8e8;background:rgba(91,168,232,.08);color:#4a9bd6}
+.lc-entry-ic{flex:0 0 auto;font-size:13px}
+.lc-entry-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lc-modal{padding:4px 2px}
 .lc-modal-date{font-size:12px;color:var(--dim);margin-bottom:10px}
 .lc-modal-text{font-size:14px;line-height:1.7;color:var(--txt);white-space:pre-wrap;margin-bottom:14px}
