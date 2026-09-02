@@ -857,14 +857,15 @@ function letterPlaceName(l){
 }
 function letterTotal(){ return LETTER_SEQ.length; }
 function letterCheck(force){
-  if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0};
+  if(!S.letters) S.letters={unlocked:[],pointer:0,wellIdx:0,visitQueue:[],mailedFragIds:[]};
   if(typeof S.letters.wellIdx!=='number') S.letters.wellIdx=0;
   if(!Array.isArray(S.letters.visitQueue)) S.letters.visitQueue=[];
+  if(!Array.isArray(S.letters.mailedFragIds)) S.letters.mailedFragIds=[];
   migrateWishesPre();
   const list=S.letters.unlocked||[];
   const hasUnread=list.some(l=>!l.read);
   if(hasUnread && !force) return;
-  // 回访信：基于「去过但未走全」的脚印（如新疆已去、南疆未去），独立于人生愿望，持续一天一封寄送
+  // 回访信：基于「去过且写了反馈」的脚印，参考你的记录，持续一天一封寄送（不受人生愿望点亮影响）
   if(S.letters.visitQueue.length){
     const q=S.letters.visitQueue.shift();
     const trip=(q.id && S.trips && S.trips.find(function(t){return t.id===q.id;})) || {name:q.name||'那里', refl:''};
@@ -873,10 +874,19 @@ function letterCheck(force){
     addHist('✉️ 远方来信：回访 · '+(q.name||'那里')); save(); renderLetters();
     return;
   }
-  // 常规远方来信（信库 + 回信池）：点亮人生愿望后收束
-  if(anyWishReached()){ return; }
-  // 先寄信库里的（交错去重，忽略回信池）
-  const have=new Set(list.filter(l=>l.place!=='well').map(l=>l.place+'#'+l.idx));
+  // 碎片信：基于生活碎片，引用你留下的文字 / 照片，参考你的记录，持续一天一封寄送
+  const mems=(S.lifeCompound && Array.isArray(S.lifeCompound.memories))?S.lifeCompound.memories:[];
+  const mailed=S.letters.mailedFragIds;
+  const frag=mems.slice().sort(function(a,b){return (a.d||'').localeCompare(b.d||'');}).find(function(m){return m && m.id && mailed.indexOf(m.id)<0;});
+  if(frag){
+    const body=composeFragmentLetter(frag);
+    list.push({place:'frag', kind:'frag', ref:frag.id, read:false, date:todayStr(), title:'记忆 · '+(frag.d||'某日'), body:body, task:null});
+    mailed.push(frag.id);
+    addHist('✉️ 远方来信：记忆 · '+(frag.d||'某日')); save(); renderLetters();
+    return;
+  }
+  // 兜底：预设信库（交错去重）+ 回信池，一直循环寄送（不受人生愿望点亮影响）
+  const have=new Set(list.filter(l=>l.place!=='well'&&l.kind!=='frag'&&l.kind!=='visit').map(l=>l.place+'#'+l.idx));
   let idx=-1;
   for(let k=0;k<LETTER_SEQ.length;k++){ if(!have.has(LETTER_SEQ[k][0]+'#'+LETTER_SEQ[k][1])){ idx=k; break; } }
   if(idx>=0){
@@ -889,7 +899,7 @@ function letterCheck(force){
       return;
     }
   }
-  // 信库寄完 → 从「远方回信」池继续，每天一封，直到人生愿望点亮
+  // 信库寄完 → 从「远方回信」池继续，每天一封，循环不断
   const wm=LETTER_WELL[S.letters.wellIdx % LETTER_WELL.length];
   list.push({place:'well', idx:S.letters.wellIdx, read:false, date:todayStr(), title:wm.t, body:wm.b, task:wm.task?{...wm.task,done:false}:null});
   S.letters.wellIdx++;
@@ -919,22 +929,18 @@ function renderLetters(){
   for(let i=list.length-1;i>=0;i--){
     const l=list[i];
     const placeName=letterPlaceName(l);
-    const kindTag=l.kind==='visit'?' <span class="ltag">回访</span>':'';
+    const kindTag=l.kind==='visit'?' <span class="ltag">回访</span>':(l.kind==='frag'?' <span class="ltag">记忆</span>':'');
     h+='<div class="letter-item'+(l.read?' read':'')+(l.kind==='visit'?' visit':'')+'" onclick="openLetter('+i+')">'
       +'<span class="lt">'+l.title+kindTag+'</span><span class="lp">'+placeName+'</span>'
       +'<span class="ls">'+(l.read?'已读':'未读')+'</span></div>';
   }
   h+='</div>';
-  if(anyWishReached()){
-    const vq=(S.letters.visitQueue||[]).length;
-    if(vq){
-      h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，常规远方来信已收束；但「走过的、未走全的地方」回访仍会一天一封慢慢寄来（还有 '+vq+' 封在排队，如新疆已去、南疆未去）。</div>';
-    }else{
-      h+='<div class="hint" style="margin-top:10px">🌟 你点亮了一个人生愿望，远方的信就此收束。地图与脚印会一直在，信箱留着你来时的路。</div>';
-    }
-  }else{
-    h+='<div class="hint" style="margin-top:10px">✉️ 远方来信会一直寄来，直到你点亮一个人生愿望。已寄达 '+list.length+' 封。</div>';
-  }
+  const pending=(S.letters.visitQueue||[]).length + (function(){
+    const ms=(S.lifeCompound&&Array.isArray(S.lifeCompound.memories))?S.lifeCompound.memories:[];
+    const ml=S.letters.mailedFragIds||[];
+    return ms.filter(function(m){return m&&m.id&&ml.indexOf(m.id)<0;}).length;
+  })();
+  h+='<div class="hint" style="margin-top:10px">✉️ 远方来信会一直寄来：去过的地方会回访、生活碎片会被重新读起，其余日子由预设信慢慢抵达（还有 '+pending+' 封在排队）。</div>';
   el.innerHTML=h;
 }
 function openLetter(i){
@@ -1032,6 +1038,31 @@ function composeVisitLetter(trip){
     text=reflHeads[seed % reflHeads.length]+text;
   }
   return text;
+}
+// 生活碎片 → 远方来信：引用用户留下的文字 / 照片，让信内容来自真实记录。
+function composeFragmentLetter(mem){
+  const d=mem.d||'某日';
+  const text=(mem.text||'').trim();
+  const hasImg=!!mem.img;
+  const heads=[
+    '你留过一枚生活碎片，我替你收着：',
+    '有一天的普通瞬间，你记了下来：',
+    '你写过的一段此刻：',
+    '翻到你留下的一枚碎片：'
+  ];
+  const closings=[
+    '普通的一天，因为被你看见，就成了去处。',
+    '远方不远，它就在你愿意停下的那一刻。',
+    '这些碎片拼起来，就是你走过的路。',
+    '记下来，它就不再只是流逝。'
+  ];
+  const seed=function(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))&0x7fffffff;return h;};
+  let body=heads[seed(d)%heads.length];
+  if(text) body+='\n\n「'+text+'」'+(hasImg?'（你还附了张照片）':'');
+  else if(hasImg) body+='\n\n（你附了张照片，没写什么，但那一帧被留下了）';
+  else body+='\n\n（这一枚只有日期，但那一天也值得被记着）';
+  body+='\n\n'+closings[seed(d+(text||''))%closings.length];
+  return body;
 }
 // 去过 + 写了反馈 → 排入回访信队列（每天只寄一封，避免一次性涌出）。
 function maybeSendVisitLetter(trip){

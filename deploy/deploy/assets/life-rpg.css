@@ -429,18 +429,18 @@
   .arc-step.reached{background:var(--grw);border-color:var(--grw);color:#0f1115;font-weight:600}
   /* ===== 愿望清单 ===== */
   .wishgroups{display:flex;flex-direction:column;gap:14px}
-  .wishgroup .wish-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:8px}
+  .wishgroup .wish-title{font-size:13px;font-weight:600;color:var(--t-sub);margin-bottom:8px}
   .wishlist{display:flex;flex-wrap:wrap;gap:7px}
   .wish{font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:4px 11px;border-radius:20px;cursor:pointer;user-select:none;transition:transform .08s ease,background .15s ease,border-color .15s ease;white-space:nowrap}
   .wish:hover{transform:translateY(-1px);border-color:var(--accent)}
-  .wish.reached{background:var(--grw);border-color:var(--grw);color:#0f1115;font-weight:600}
+  .wish.reached{background:var(--grw);border-color:var(--grw);color:var(--t-title);font-weight:600}
   /* v6.1.3 人生愿望三组主题色：人生=薰衣草紫 / 羽·琴·身=薄荷绿 / 读万卷书=暖橙 */
-  .wg-life .wish-title{color:#a58be8}
-  .wg-yqs .wish-title{color:#5fd0a0}
-  .wg-read .wish-title{color:#ff9f5b}
-  .wg-life .wish.reached{background:#a58be8;border-color:#a58be8;color:#1a1342}
-  .wg-yqs .wish.reached{background:var(--grw);border-color:var(--grw);color:#0d2a20}
-  .wg-read .wish.reached{background:#ff9f5b;border-color:#ff9f5b;color:#3a1a08}
+  .wg-life .wish-title{color:var(--t-sub)}
+  .wg-yqs .wish-title{color:var(--t-sub)}
+  .wg-read .wish-title{color:var(--t-sub)}
+  .wg-life .wish.reached{background:#a58be8;border-color:#a58be8;color:var(--t-title)}
+  .wg-yqs .wish.reached{background:var(--grw);border-color:var(--grw);color:var(--t-title)}
+  .wg-read .wish.reached{background:#ff9f5b;border-color:#ff9f5b;color:var(--t-title)}
   .wish .ck{margin-right:4px}
   /* v6.3.7 人生愿望支持组内新增 / 编辑 / 删除 */
   .wish{position:relative}
@@ -694,7 +694,7 @@
   .lvtag{font-size:10px;background:var(--gold);color:#5a4a20;padding:1px 6px;border-radius:10px;font-weight:700;}
   /* 标签 */
   .wish{font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:4px 11px;border-radius:20px;}
-  .wish.reached{background:var(--grw);border-color:var(--grw);color:#0f1115;font-weight:600;}
+  .wish.reached{background:var(--grw);border-color:var(--grw);color:var(--t-title);font-weight:600;}
   .wish .ck{margin-right:4px;}
   /* 兴趣爱好标签（江湖名帖） */
   .hobby{cursor:pointer;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:4px 11px;border-radius:20px;transition:.15s;user-select:none;display:inline-flex;align-items:center;gap:4px}
@@ -1909,12 +1909,12 @@ body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)
 #codexBox .codex-h.codex-fold::first-letter{font-size:11px;color:var(--dim);width:12px;display:inline-block}
 #codexBox .codex-n{font-size:11px;color:var(--dim);font-weight:400}
 #codexBox .codex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-#codexBox .codex-chip{font-size:12px;padding:3px 10px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+#codexBox .codex-chip{font-size:12px;padding:3px 10px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);color:var(--t-body)}
 /* v6.2.5 人生收集册：分类标题统一颜色，标签按分类分色（沿用 v6.1.3 四组主题色） */
-#codexBox .codex-chips-visited .codex-chip{background:rgba(255,159,91,.12);border-color:rgba(255,159,91,.35);color:#e07d3a}
-#codexBox .codex-chips-wishes .codex-chip{background:rgba(240,178,76,.12);border-color:rgba(240,178,76,.35);color:#c98b28}
-#codexBox .codex-chips-badges .codex-chip{background:rgba(165,139,232,.12);border-color:rgba(165,139,232,.35);color:#8b6fd4}
-#codexBox .codex-chips-jq .codex-chip{background:rgba(224,98,90,.12);border-color:rgba(224,98,90,.35);color:#c85a4f}
+#codexBox .codex-chips-visited .codex-chip{background:rgba(255,159,91,.12);border-color:rgba(255,159,91,.35)}
+#codexBox .codex-chips-wishes .codex-chip{background:rgba(240,178,76,.12);border-color:rgba(240,178,76,.35)}
+#codexBox .codex-chips-badges .codex-chip{background:rgba(165,139,232,.12);border-color:rgba(165,139,232,.35)}
+#codexBox .codex-chips-jq .codex-chip{background:rgba(224,98,90,.12);border-color:rgba(224,98,90,.35)}
 /* ===== v6.0.32 时间胶囊 ===== */
 #capsuleBox .cap-write{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 #capsuleBox textarea{width:100%;min-height:60px;max-height:240px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px;font-family:inherit;font-size:13px;resize:none;overflow-y:auto;transition:height .12s}
