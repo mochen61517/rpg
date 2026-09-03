@@ -972,7 +972,7 @@ function renderDailyIcons(){
   el.innerHTML='<div class="supp-row">'+S.daily.map(x=>{
     const done=isDone(x,d);
     const ic=DAILY_ICON[x.t]||'📌';
-    return '<button type="button" class="supp-ic daily-ic'+(done?' done':'')+'" title="'+escHtml((done?'已完成：':'待完成：')+x.t+'（+'+x.xp+' XP）')+'" onclick="toggle(S.daily,\''+x.id+'\')">'
+    return '<button type="button" class="supp-ic daily-ic a-'+(x.a||'MIND').toLowerCase()+(done?' done':'')+'" title="'+escHtml((done?'已完成：':'待完成：')+x.t+'（+'+x.xp+' XP）')+'" onclick="toggle(S.daily,\''+x.id+'\')">'
       +'<span class="supp-em">'+ic+'</span>'
       +'<span class="supp-nm">'+escHtml(x.t)+'</span>'
       +(done?'<span class="supp-ck">✔</span>':'')
@@ -1000,7 +1000,7 @@ function renderDayTasks(){
     if(x.xp) meta.push(ao.icon+' +'+(x.xp)+' XP · '+ao.name);
     if(due) meta.push('⏰ 截止 '+fmtMD(due));
     if(overdue) meta.push('已逾期');
-    return '<div class="daytask'+(overdue?' overdue':'')+'" onclick="toggleDayTask(\''+x.id+'\')">'
+    return '<div class="daytask a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'" onclick="toggleDayTask(\''+x.id+'\')">'
       +'<span class="dt-chk">○</span>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
       +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
@@ -1010,7 +1010,7 @@ function renderDayTasks(){
   }).join('');
 }
 function editDayTaskHtml(x){
-  return '<div class="daytask editing">'
+  return '<div class="daytask editing a-'+(x.a||'MIND').toLowerCase()+'">'
     +'<div class="dt-edit-form">'
     +'<input type="text" id="editDayTaskText" class="dt-edit-text" value="'+escHtml(x.t)+'" placeholder="任务内容">'
     +'<select id="editDayTaskAttr" class="dt-edit-attr" title="经验值归属属性">'+optAttrs(x.a)+'</select>'
@@ -2351,7 +2351,7 @@ function renderJianghu(){
     +'<button class="btn xs ghost jh-reroll" onclick="jianghuReroll()" title="换一榜（今天已完成的会保留）">🔄 换榜</button></div>'
     +'<div class="jh-list">'+list.map(function(x,i){
       const a=ATTRS[safeAttr(x.a)]; const accepted=_acc.has(x.id);
-      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+' jh-a-'+x.a.toLowerCase()+'">'
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+' a-'+x.a.toLowerCase()+'">'
         +'<div class="jh-rank">'+(i+1)+'</div>'
         +'<div class="jh-body"><div class="jh-t">'+escHtml(x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'
@@ -2447,7 +2447,7 @@ function renderJianghuPeriod(kind){
     +'<button class="btn xs ghost jh-reroll" onclick="jianghuPeriodReroll(\''+kind+'\')" title="换一榜（本'+(isWeek?'周':'月')+'已完成的会保留）">🔄 换榜</button></div>'
     +'<div class="jh-list">'+list.map(function(x,i){
       const a=ATTRS[safeAttr(x.a)]; const accepted=_acc.has(x.id);
-      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+' jh-a-'+x.a.toLowerCase()+'">'
+      return '<div class="jh-row d'+x.diff+(x.done?' done':'')+(accepted?' accepted':'')+' a-'+x.a.toLowerCase()+'">'
         +'<div class="jh-rank">'+(i+1)+'</div>'
         +'<div class="jh-body"><div class="jh-t">'+escHtml(jianghuDisplayText(x.id,kind)||x.t)+'</div>'
         +'<div class="jh-meta"><span class="jh-diff">'+jianghuStars(x.diff)+'</span>'

@@ -245,7 +245,7 @@
   .daytask:hover .dt-edit{opacity:.8}
   .dt-edit:hover{color:var(--c-btn)}
   .daytask.editing{display:block;cursor:default;margin-top:7px;padding:11px}
-  .daytask.editing:hover{background:var(--panel2);border-color:var(--line)}
+  .daytask.editing:hover{border-color:rgba(var(--a-base-rgb),.55)}
   .dt-edit-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .dt-edit-form input,.dt-edit-form select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 10px;font-size:13px}
   .dt-edit-form input[type=text]{flex:1 1 160px}
@@ -1429,6 +1429,36 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .dayun-axis .dy-yi{ color:var(--grw); margin-bottom:3px; }
 .dayun-axis .dy-ji{ color:#ff9a9a; }
 .dayun-axis .dy-note{ margin-top:7px; color:var(--txt); font-size:11px; border-top:1px dashed var(--line); padding-top:7px; }
+/* v6.4.11 属性色统一体系：羽道/业道/体道/灵台，背景/边框/文字/色条统一 */
+.a-badminton{--a-base:#ff9f6b;--a-base-rgb:255,159,107;--a-dark:#cc6b2a}
+.a-career{--a-base:#5bbcd6;--a-base-rgb:91,188,214;--a-dark:#3a93b0}
+.a-body{--a-base:#7ed3a8;--a-base-rgb:126,211,168;--a-dark:#3fa578}
+.a-mind{--a-base:#a89be6;--a-base-rgb:168,155,230;--a-dark:#7c6dc8}
+/* 属性卡片：淡色背景+同色边框+左侧3px色条 */
+.jh-row.a-badminton,.jh-row.a-career,.jh-row.a-body,.jh-row.a-mind,
+.daytask.a-badminton,.daytask.a-career,.daytask.a-body,.daytask.a-mind,
+.daily-ic.a-badminton,.daily-ic.a-career,.daily-ic.a-body,.daily-ic.a-mind{
+  background:linear-gradient(135deg,rgba(var(--a-base-rgb),.10),rgba(var(--a-base-rgb),.04));
+  border-color:rgba(var(--a-base-rgb),.40)}
+.jh-row.a-badminton::before,.jh-row.a-career::before,.jh-row.a-body::before,.jh-row.a-mind::before,
+.daytask.a-badminton::before,.daytask.a-career::before,.daytask.a-body::before,.daytask.a-mind::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--a-base)}
+.daytask.a-badminton,.daytask.a-career,.daytask.a-body,.daytask.a-mind{position:relative;overflow:hidden}
+.daytask.a-badminton:hover,.daytask.a-career:hover,.daytask.a-body:hover,.daytask.a-mind:hover{background:linear-gradient(135deg,rgba(var(--a-base-rgb),.14),rgba(var(--a-base-rgb),.06));border-color:rgba(var(--a-base-rgb),.55)}
+/* 属性文字色 */
+.jh-row.a-badminton .jh-attr,.daytask.a-badminton .dt-meta,.daily-ic.a-badminton .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-career .jh-attr,.daytask.a-career .dt-meta,.daily-ic.a-career .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-body .jh-attr,.daytask.a-body .dt-meta,.daily-ic.a-body .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-mind .jh-attr,.daytask.a-mind .dt-meta,.daily-ic.a-mind .supp-nm{color:var(--a-dark);font-weight:600}
+/* 保持旧类名兼容（jh-a-*） */
+.jh-row.jh-a-badminton::before{background:#ff9f5b}
+.jh-row.jh-a-mind::before{background:#a58be8}
+.jh-row.jh-a-body::before{background:#5fd0a0}
+.jh-row.jh-a-career::before{background:#5ba8e8}
+.jh-row.jh-a-badminton .jh-attr{color:#cc6b2a;font-weight:600}
+.jh-row.jh-a-mind .jh-attr{color:#7c6dc8;font-weight:600}
+.jh-row.jh-a-body .jh-attr{color:#3fa578;font-weight:600}
+.jh-row.jh-a-career .jh-attr{color:#3a93b0;font-weight:600}
 .tabbar{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
 .tabbar .tab{ padding:7px 15px; border-radius:18px; border:1px solid var(--line); background:var(--panel2); color:var(--dim); cursor:pointer; font-size:13px; transition:all .15s; }
 /* 一级 tab：琥珀实心药丸，15px，左侧白指示条 */
@@ -1701,6 +1731,20 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .lc-modal-img{max-width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px}
 /* v6.1.6 复利轨道按属性分色：badminton=暖橙 / mind=薰衣草紫 / body=薄荷绿 / career=天蓝 */
   /* v6.1.8 加深属性色块 alpha（.12→.22、边框 .32→.45），让色块在浅蓝底白 panel 上更突出 */
+  /* v6.4.11 统一改用 .a-* 属性色体系 */
+  .lp-card.a-badminton{background:linear-gradient(135deg,rgba(var(--a-base-rgb),.12),rgba(var(--a-base-rgb),.03));border-color:rgba(var(--a-base-rgb),.35)}
+  .lp-card.a-mind{background:linear-gradient(135deg,rgba(var(--a-base-rgb),.12),rgba(var(--a-base-rgb),.03));border-color:rgba(var(--a-base-rgb),.35)}
+  .lp-card.a-body{background:linear-gradient(135deg,rgba(var(--a-base-rgb),.12),rgba(var(--a-base-rgb),.03));border-color:rgba(var(--a-base-rgb),.35)}
+  .lp-card.a-career{background:linear-gradient(135deg,rgba(var(--a-base-rgb),.12),rgba(var(--a-base-rgb),.03));border-color:rgba(var(--a-base-rgb),.35)}
+.lp-card.a-badminton .lp-title b,.lp-card.a-badminton .lp-title span{color:var(--a-dark)}
+.lp-card.a-mind .lp-title b,.lp-card.a-mind .lp-title span{color:var(--a-dark)}
+.lp-card.a-body .lp-title b,.lp-card.a-body .lp-title span{color:var(--a-dark)}
+.lp-card.a-career .lp-title b,.lp-card.a-career .lp-title span{color:var(--a-dark)}
+.lp-card.a-badminton .lp-bar i{background:linear-gradient(90deg,rgba(var(--a-base-rgb),.55),var(--a-base))}
+.lp-card.a-mind .lp-bar i{background:linear-gradient(90deg,rgba(var(--a-base-rgb),.55),var(--a-base))}
+.lp-card.a-body .lp-bar i{background:linear-gradient(90deg,rgba(var(--a-base-rgb),.55),var(--a-base))}
+.lp-card.a-career .lp-bar i{background:linear-gradient(90deg,rgba(var(--a-base-rgb),.55),var(--a-base))}
+  /* 旧类名兼容 */
   .lp-card.lp-badminton{background:linear-gradient(135deg,rgba(255,159,107,.12),rgba(255,159,107,.03));border-color:rgba(255,159,107,.35)}
   .lp-card.lp-mind{background:linear-gradient(135deg,rgba(168,155,230,.12),rgba(168,155,230,.03));border-color:rgba(168,155,230,.35)}
   .lp-card.lp-body{background:linear-gradient(135deg,rgba(126,211,168,.12),rgba(126,211,168,.03));border-color:rgba(126,211,168,.35)}
@@ -1735,9 +1779,9 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .fo-stars{font-size:12px;letter-spacing:1px;font-weight:400}
 .fo-tone-d{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.5}
 .fo-tone.lv5 .fo-tone-t,.fo-tone.lv5 .fo-stars{color:var(--grw)}
-.fo-tone.lv4 .fo-tone-t,.fo-tone.lv4 .fo-stars{color:var(--mint)}
+.fo-tone.lv4 .fo-tone-t,.fo-tone.lv4 .fo-stars{color:var(--gold)}
 .fo-tone.lv3 .fo-tone-t,.fo-tone.lv3 .fo-stars{color:var(--txt)}
-.fo-tone.lv2 .fo-tone-t,.fo-tone.lv2 .fo-stars{color:var(--gold)}
+.fo-tone.lv2 .fo-tone-t,.fo-tone.lv2 .fo-stars{color:var(--dim)}
 .fo-tone.lv1 .fo-tone-t,.fo-tone.lv1 .fo-stars{color:var(--warn)}
 .fo-wx{flex:0 0 auto;text-align:right;min-width:118px}
 .fo-wx-city{font-size:10px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 4px;margin-bottom:4px;cursor:pointer;outline:none}
