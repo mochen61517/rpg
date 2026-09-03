@@ -4,6 +4,10 @@ function toggle(list,idv){
   const d=REC_DATE||todayStr();
   const was=isDone(item,d);
   const nowDone=!was;
+  // 睡前 todo 习惯：完成时固定灵台 +10 XP
+  if(nowDone && item.t==='记录明日todo before sleep'){
+    item.a='MIND'; item.mode='fixed'; item.xp=10;
+  }
   // 低频疗愈类（头疗/按摩/康复理疗）：间隔至少 21 天，不连续两周
   if(nowDone){
     const left=lfDaysLeft(item,d);
