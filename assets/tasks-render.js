@@ -34,7 +34,7 @@ function toggle(list,idv){
   if(nowDone){ if(lfGapDays(item)>0){ item.lfDates=item.lfDates||[]; if(!item.lfDates.includes(d)) item.lfDates.push(d);
       const _lg=lfGroupOf(item);
       if(_lg){ const L=lfLogOf(_lg.g); if(!L.includes(d)){ L.push(d); L.sort(); if(L.length>60) S.lfLog[_lg.g]=L.slice(-60); } } }
-    newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.a); if(_cm) celebrateTask(_cm);
+    newlyDone.push(idv); floatXP('+'+weightedXpAt(item,d)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.a); if(_cm) celebrateTask(_cm, item.a);
     if(Math.random()<0.03){ const drp=dropReward(Math.random()<0.3?'small':'micro','完成：'+item.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
     // 补剂不弹全屏结算，只留上面一句轻量庆祝 toast
     const isSupp=S.supps && S.supps.some(x=>x.id===idv);
@@ -210,7 +210,7 @@ function toggleSide(kind,idv){
     touchActivity(todayStr());
     addHist((item.mandatory?'✔【强制】':'✔ ')+'[轶事]'+item.t+' +'+(item.xp||0)+' XP', item.xp||0);
     const b=S.sideBank.find(x=>x.id===item.bid); if(b) b.w=Math.min(5,(b.w||1)+0.5);
-    newlyDone.push(idv); floatXP('+'+(item.xp||0)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.cat); if(_cm) celebrateTask(_cm);
+    newlyDone.push(idv); floatXP('+'+(item.xp||0)+' XP','qi_'+idv); const _cm=findCelebrate(item.t,item.cat); if(_cm) celebrateTask(_cm, item.a||'MIND');
     setTimeout(()=>showQuestSettlement({id:item.id,text:item.t,attr:item.a||'MIND',mins:item.min||0,xp:item.xp||0,focusDone:wasTodayFocus}),180);
   } else {
     S.bonusXP=Math.max(0,(S.bonusXP||0)-(item.xp||0));
@@ -1535,7 +1535,7 @@ function toggleChecklistItem(kind,i,ii){
     grant(x.a, xp, !nowDone);
   }
   addHist((nowDone?'✔ ':'✘ ')+'['+kind+']'+x.t+(c.paused?'（休眠·不计入进度）':'')+(x.mode==='time'&&x.mins&&x.mins[d]?(' '+h(x.mins[d])):''), c.paused?0:(nowDone?xp:-xp), d);
-  if(nowDone && !c.paused){ newlyDone.push(x.id); floatXP('+'+weightedXpAt(x,d)+' XP','qi_'+x.id); const _cm=findCelebrate(x.t,x.a); if(_cm) celebrateTask(_cm);
+  if(nowDone && !c.paused){ newlyDone.push(x.id); floatXP('+'+weightedXpAt(x,d)+' XP','qi_'+x.id); const _cm=findCelebrate(x.t,x.a); if(_cm) celebrateTask(_cm, x.a);
     if(Math.random()<0.04){ const drp=dropReward(Math.random()<0.35?'big':'medium','完成大项：'+x.t); if(drp) setTimeout(()=>celebrateTask('🎁 嘉奖掉落：'+findReward(drp.rewardId).name),120); }
   }
   save();checkAch();render();
@@ -2369,7 +2369,7 @@ function jianghuToggle(idv){
   const x=arr[0], a=safeAttr(x.a);
   if(!x.done){
     x.done=true; grant(a,x.xp); addHist('✔【江湖日榜】'+x.t+' +'+x.xp+' XP',x.xp); save(); render(); syncMyJianghu('day', idv, true);
-    try{ celebrateTask('🗡️ '+x.t+' · +'+x.xp+' XP'); }catch(e){}
+    try{ celebrateTask('🗡️ '+x.t+' · +'+x.xp+' XP', a); }catch(e){}
     try{ showQuestSettlement({id:x.id,text:x.t,attr:a,mins:0,xp:x.xp,force:x.diff>=4}); }catch(e){}
   }else{
     x.done=false; grant(a,x.xp,true); addHist('✘【江湖日榜】'+x.t,-x.xp); save(); render(); syncMyJianghu('day', idv, false);
@@ -2466,7 +2466,7 @@ function jianghuPeriodToggle(kind, idv){
   const txt=jianghuDisplayText(x.id,kind)||x.t;
   if(!x.done){
     x.done=true; grant(a,x.xp); addHist('✔【江湖'+(kind==='week'?'周榜':'月榜')+'】'+txt+' +'+x.xp+' XP',x.xp); save(); render(); syncMyJianghu(kind, idv, true);
-    try{ celebrateTask('🗡️ '+txt+' · +'+x.xp+' XP'); }catch(e){}
+    try{ celebrateTask('🗡️ '+txt+' · +'+x.xp+' XP', a); }catch(e){}
   }else{
     x.done=false; grant(a,x.xp,true); addHist('✘【江湖'+(kind==='week'?'周榜':'月榜')+'】'+txt,-x.xp); save(); render(); syncMyJianghu(kind, idv, false);
   }
@@ -2517,7 +2517,7 @@ function jianghuMyToggle(uid){
     x.done=true; e.done=true; const award=Math.round(e.xp*1.2);
     grant(a,award); addHist('✔【揭榜·准时】'+e.t+' +'+award+' XP（准时 +'+(award-e.xp)+'）',award);
     addSubjectivity(3, '揭榜完成·准时');
-    save(); render(); try{ celebrateTask('🗡️ '+e.t+' · +'+award+' XP'); }catch(err){}
+    save(); render(); try{ celebrateTask('🗡️ '+e.t+' · +'+award+' XP', a); }catch(err){}
   }else{
     x.done=false; e.done=false; grant(a,e.xp,true); addHist('✘【揭榜】'+e.t,-e.xp); addSubjectivity(-3,'揭榜撤销'); save(); render();
   }
@@ -2569,6 +2569,7 @@ function showQuestSettlement(info){
   p.settled.push(info.id); save();
   const body=document.getElementById('settleBody'), mask=document.getElementById('settleMask'); if(!body||!mask) return;
   const attr=safeAttr(info.attr), a=ATTRS[attr], mins=Math.max(0,Math.round(info.mins||0)), xp=Math.max(0,Math.round(info.xp||0));
+  body.className='st-attr a-'+attr.toLowerCase();
   const focusDone=!!info.focusDone || onMain;
   body.innerHTML='<div class="st-kicker">QUEST CLEAR · 行动结算</div><div class="st-title">'+(focusDone?'今日主线推进':'一程已落定')+'</div>'
     +'<div class="st-quest">'+a.icon+' '+escHtml(info.text||'今日行动')+'</div>'
@@ -3034,16 +3035,16 @@ function findCelebrate(t, key){
   return '✔ 又完成一项，今日修行 +1';
 }
 let rewardQueue=[],rewardQueueTimer=null;
-function celebrateTask(msg){
+function celebrateTask(msg, attr){
   if(!msg||((S.uiPrefs||{}).quiet))return;rewardQueue.push(String(msg));
-  if(rewardQueueTimer)return;rewardQueueTimer=setTimeout(flushRewardQueue,520);
+  if(rewardQueueTimer)return;rewardQueueTimer=setTimeout(function(){flushRewardQueue(attr);},520);
 }
-function flushRewardQueue(){
+function flushRewardQueue(attr){
   rewardQueueTimer=null;const items=rewardQueue.splice(0);if(!items.length)return;
   let stack=document.getElementById('toastStack');
   if(!stack){ stack=document.createElement('div'); stack.id='toastStack'; document.body.appendChild(stack); }
   const uniq=[...new Set(items)];
-  if(uniq.length===1){ buildToast(uniq[0], uniq[0].length>30); return; }
+  if(uniq.length===1){ buildToast(uniq[0], uniq[0].length>30, attr); return; }
   const show=uniq.slice(0,3);
   const el=document.createElement('div');el.className='toast toast-batch';
   el.innerHTML='<div class="toast-ic toast-reward">✦</div><div class="toast-body"><div class="toast-title">本轮收获 · '+uniq.length+' 项</div>'+show.map(function(x){return '<div class="toast-line">'+escHtml(x)+'</div>';}).join('')+(uniq.length>3?'<div class="toast-more">另有 '+(uniq.length-3)+' 项已合并</div>':'')+'</div>';
@@ -3056,9 +3057,9 @@ function toastCat(m){
   if(/^🎤|^菲式/.test(m)) return {kind:'add',ic:'🎤'};
   return {kind:'done',ic:'✔'};
 }
-function buildToast(m,wide){
+function buildToast(m,wide,attr){
   const c=toastCat(m),el=document.createElement('div');
-  el.className='toast'+(wide?' toast-wide':'');
+  el.className='toast'+(wide?' toast-wide':'')+(attr?' toast-a-'+String(attr).toLowerCase():'');
   el.innerHTML='<div class="toast-ic toast-'+c.kind+'">'+c.ic+'</div><div class="toast-body"><div class="toast-line">'+escHtml(m)+'</div></div>';
   document.getElementById('toastStack').appendChild(el);autoToast(el);return el;
 }

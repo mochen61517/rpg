@@ -1459,6 +1459,19 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .jh-row.jh-a-mind .jh-attr{color:#7c6dc8;font-weight:600}
 .jh-row.jh-a-body .jh-attr{color:#3fa578;font-weight:600}
 .jh-row.jh-a-career .jh-attr{color:#3a93b0;font-weight:600}
+/* v6.4.12 任务结算弹窗 + 完成 toast 按属性着色（与卡片色块体系一致） */
+#settleBody.st-attr .st-kicker{color:var(--a-dark)}
+#settleBody.st-attr .st-stat b{color:var(--a-dark)}
+#settleBody.st-attr .st-story{border-left-color:var(--a-base);background:rgba(var(--a-base-rgb),.08)}
+.toast-a-badminton{border-left:4px solid #cc6b2a}
+.toast-a-badminton .toast-ic{background:linear-gradient(135deg,#ff9f6b,#ff8a5b)}
+.toast-a-career{border-left:4px solid #3a93b0}
+.toast-a-career .toast-ic{background:linear-gradient(135deg,#5bbcd6,#3d8fd0)}
+.toast-a-body{border-left:4px solid #3fa578}
+.toast-a-body .toast-ic{background:linear-gradient(135deg,#7ed3a8,#5ec78c)}
+.toast-a-mind{border-left:4px solid #7c6dc8}
+.toast-a-mind .toast-ic{background:linear-gradient(135deg,#a89be6,#8a6fd4)}
+.daytask.editing.a-badminton,.daytask.editing.a-career,.daytask.editing.a-body,.daytask.editing.a-mind{border-left:4px solid var(--a-dark);background:linear-gradient(135deg,rgba(var(--a-base-rgb),.10),rgba(var(--a-base-rgb),.03))}
 .tabbar{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
 .tabbar .tab{ padding:7px 15px; border-radius:18px; border:1px solid var(--line); background:var(--panel2); color:var(--dim); cursor:pointer; font-size:13px; transition:all .15s; }
 /* 一级 tab：琥珀实心药丸，15px，左侧白指示条 */
