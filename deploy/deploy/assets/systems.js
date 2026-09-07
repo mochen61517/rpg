@@ -90,7 +90,7 @@ const TITLES=[
 ];
 function seasonStats(key){
   const {start,end}=seasonRange(key);
-  const attr={BADMINTON:0,CAREER:0,BODY:0,MIND:0};
+  const attr={BADMINTON:0,CAREER:0,BODY:0,MIND:0,LIFE:0};
   let done=0, sleep=0;
   allTaskLists().forEach(list=>list.forEach(x=>{
     (x.donedates||[]).forEach(d=>{ if(d>=start&&d<=end){ done++; if(/睡觉|早睡/.test(x.t||'')) sleep++; } });
@@ -2031,7 +2031,7 @@ function reportWindow(kind){
   return {start,end};
 }
 function windowAttrMinutes(list, start, end){
-  const hrs={BADMINTON:0,CAREER:0,BODY:0,MIND:0}; let count=0; const names=[];
+  const hrs={BADMINTON:0,CAREER:0,BODY:0,MIND:0,LIFE:0}; let count=0; const names=[];
   (list||[]).forEach(x=>{
     const ds=(x.donedates||[]).filter(d=>d>=start&&d<=end);
     if(ds.length){ count++; names.push(x.t);
@@ -2050,7 +2050,8 @@ function buildReport(kind, start, end){
   const hrs={BADMINTON:daily.hrs.BADMINTON+weekly.hrs.BADMINTON+sd.hrs.BADMINTON+sw.hrs.BADMINTON+sm.hrs.BADMINTON,
              CAREER:daily.hrs.CAREER+weekly.hrs.CAREER+sd.hrs.CAREER+sw.hrs.CAREER+sm.hrs.CAREER,
              BODY:daily.hrs.BODY+weekly.hrs.BODY+sd.hrs.BODY+sw.hrs.BODY+sm.hrs.BODY,
-             MIND:daily.hrs.MIND+weekly.hrs.MIND+sd.hrs.MIND+sw.hrs.MIND+sm.hrs.MIND};
+             MIND:daily.hrs.MIND+weekly.hrs.MIND+sd.hrs.MIND+sw.hrs.MIND+sm.hrs.MIND,
+             LIFE:daily.hrs.LIFE+weekly.hrs.LIFE+sd.hrs.LIFE+sw.hrs.LIFE+sm.hrs.LIFE};
   const totalMin=Object.values(hrs).reduce((a,b)=>a+b,0);
   // 一次性步骤（月/年主线）按是否做过统计
   const monthDone=(S.month.items||[]).filter(x=>isDoneEver(x)).map(x=>x.t);

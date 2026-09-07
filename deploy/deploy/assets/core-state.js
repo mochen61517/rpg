@@ -109,6 +109,7 @@ const ATTRS = {
   CAREER:{name:'业道',color:'var(--career)',icon:'💼',desc:'术法修行 · 海外增长 / 市场 / AI'},
   BODY:{name:'体道',color:'var(--body)',icon:'💪',desc:'根基修行 · 力量 / 规律 / 早睡'},
   MIND:{name:'灵台',color:'var(--mind)',icon:'🎹',desc:'心性修行 · 琴歌 / 阅读 / 沉浸'},
+  LIFE:{name:'生活',color:'var(--life)',icon:'🏠',desc:'烟火日常 · 家务 / 收纳 / 琐事 / 生活小确幸'},
 };
 const BADMINTON_LIFETIME_HOURS = 1649;
 // v5.49 羽毛球按「打球 / 基本功」拆分历史 1649h：26 年前约一周基本功 2h、其余打球（用户口述），按 2/3 · 1/3 拆。
@@ -594,8 +595,8 @@ function defaultState(){
     avatar:'',                                // 用户上传头像（base64 dataURL）；空则使用 HTML 默认头像
     lfLog:{},        // 低频疗愈组冷却日志：{heal:[日期...], eye:[...]}，跨任务对象持久
     migLf211:false,  // 必须为 false：load() 用 Object.assign(defaultState(), 老存档)，若默认 true 会覆盖掉老存档的缺失值，迁移将永不执行
-    weights:{BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0},
-    attrs:{BADMINTON:0,CAREER:0,BODY:0,MIND:0},
+    weights:{BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0,LIFE:1.0},
+    attrs:{BADMINTON:0,CAREER:0,BODY:0,MIND:0,LIFE:0},
     // v5.39 计时型日课全部搬进「复利轨道」（羽毛球/力量/拉伸/精神充电/职业行动），
     // 那边可直接填分钟并标记完成，此处只留没有时长、纯打勾的小习惯，避免同一件事记两遍。
     // v6.0.77 固定小习惯横排小图标化（像补剂）：喝8杯水 / 饮食少油少盐 / 早睡早起 / 做面部操 / 不要久坐
@@ -770,8 +771,13 @@ function migrate(){
     for(const k in map) merged[map[k]] += (S.attrs[k]||0);
     S.attrs = Object.assign(merged, S.attrs); // 保留新键若已存在
     for(const k of ['VIT','FLOW','GRW','CON','ORD']) delete S.attrs[k];
-    if(S.weights && ('VIT' in S.weights)) S.weights = {BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0};
+    if(S.weights && ('VIT' in S.weights)) S.weights = {BADMINTON:1.3,CAREER:1.5,BODY:1.1,MIND:1.0,LIFE:1.0};
     if(Array.isArray(S.history)) S.history.push({ts:new Date().toISOString().slice(0,16).replace('T',' '),text:'存档迁移：五维属性 → 四大领域',xp:0});
+  }
+  // 确保 attrs / weights 含全部属性键（含后续新增的 LIFE），老存档缺键时补 0 / 1
+  for(const k of Object.keys(ATTRS)){
+    if(!(k in (S.attrs||{}))) (S.attrs=S.attrs||{})[k]=0;
+    if(!(k in (S.weights||{}))) (S.weights=S.weights||{})[k]=1;
   }
   // 兼容旧存档：任务 a 字段（五维键 → 四大领域）。每次加载都跑但幂等：已是新键则原样保留。
   const AXMAP={VIT:'BODY',FLOW:'MIND',GRW:'CAREER',CON:'MIND',ORD:'BODY'};
