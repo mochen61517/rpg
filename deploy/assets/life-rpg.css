@@ -271,6 +271,10 @@
   .hist .ts{color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
   .hist .ht{flex:1}
   .hist .xp{color:var(--gold);white-space:nowrap}
+  .hist{position:relative}
+  .hist-del{margin-left:6px;flex:none;align-self:center;width:18px;height:18px;line-height:16px;text-align:center;border:1px solid var(--line);border-radius:50%;background:var(--panel2);color:var(--dim);font-size:13px;cursor:pointer;opacity:0;transition:.15s;padding:0}
+  .hist:hover .hist-del{opacity:.85}
+  .hist-del:hover{color:#fff;background:var(--warn);border-color:var(--warn)}
   /* ---------- 移动端响应式（手机竖屏优先） ---------- */
   @media(max-width:640px){
     .wrap{padding:14px 12px 56px}

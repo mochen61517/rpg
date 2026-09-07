@@ -864,6 +864,19 @@ function toggleHistory(){
   const b=document.getElementById('histBox');
   b.style.display = b.style.display==='none'?'block':'none';
 }
+function delHistory(idx){
+  if(typeof idx!=='number' || !S.history[idx]) return;
+  if(!confirm('删除这条历史记录？此操作不可撤销。')) return;
+  S.history.splice(idx,1);
+  save();
+  const b=document.getElementById('histBox');
+  if(b) b.innerHTML = S.history.length
+    ? S.history.slice(-50).reverse().map(e=>{
+        const i=S.history.indexOf(e);
+        return `<div class="hist"><span class="ts">${e.ts}</span><span class="ht">${e.text}</span>${e.xp?'<span class="xp">'+(e.xp>0?'+':'')+e.xp+'XP</span>':''}<button type="button" class="hist-del" title="删除这条记录" onclick="delHistory(${i})">×</button></div>`;
+      }).join('')
+    : '<div style="color:var(--dim);font-size:13px">还没有记录，打卡后这里会显示历史。</div>';
+}
 function pushWechat(){
   let token=S.pushToken || prompt('输入 pushplus token（一次填入即记住）：');
   if(!token) return;
@@ -2761,7 +2774,10 @@ function render(){
   document.getElementById('pushToken').value=S.pushToken||'';
   const hb=document.getElementById('histBox');
   if(S.history.length){
-    hb.innerHTML=S.history.slice(-50).reverse().map(e=>`<div class="hist"><span class="ts">${e.ts}</span><span class="ht">${e.text}</span>${e.xp?'<span class="xp">'+(e.xp>0?'+':'')+e.xp+'XP</span>':''}</div>`).join('');
+    hb.innerHTML=S.history.slice(-50).reverse().map(e=>{
+      const idx=S.history.indexOf(e);
+      return `<div class="hist"><span class="ts">${e.ts}</span><span class="ht">${e.text}</span>${e.xp?'<span class="xp">'+(e.xp>0?'+':'')+e.xp+'XP</span>':''}<button type="button" class="hist-del" title="删除这条记录" onclick="delHistory(${idx})">×</button></div>`;
+    }).join('');
   } else { hb.innerHTML='<div style="color:var(--dim);font-size:13px">还没有记录，打卡后这里会显示历史。</div>'; }
   renderHobbies();
   renderLongterm();
