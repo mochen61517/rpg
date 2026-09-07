@@ -1642,15 +1642,13 @@ function notifList(){
   if(_unclaim>0){
     arr.push({page:'growth', ic:'🎁', t:'嘉奖箱有 '+_unclaim+' 个未享用', d:'去翻翻看 · 点选「我享用啦」封存', key:'reward', scroll:'rewardList'});
   }
-  // 我的揭榜：未完成任务只在「待你回应」展示一条汇总入口，统一跳「我的揭榜」
+  // 我的揭榜：仅「正常进行中（未过期）」的未完成任务才在「待你回应」提醒；已过期的不算
   try{
-    const _mj=(S.myJianghu||[]).filter(function(e){return !e.done;});
+    const _now=Date.now();
+    const _mj=(S.myJianghu||[]).filter(function(e){return !e.done && (e.deadline>=_now);});
     if(_mj.length){
       _mj.sort(function(a,b){ return (a.deadline<b.deadline?-1:1); });
-      const _late=_mj.filter(function(e){return e.deadline<Date.now();}).length;
-      let _d='去「我的揭榜」查看与完成';
-      if(_late>0) _d='其中 '+_late+' 项已逾期 · 去「我的揭榜」处理';
-      arr.push({page:'action', tab:'my', ic:'🗡️', t:'揭榜待完成 · 共 '+_mj.length+' 项', d:_d, key:'myjianghu', scroll:'myJianghuBox'});
+      arr.push({page:'action', tab:'my', ic:'🗡️', t:'揭榜待完成 · 共 '+_mj.length+' 项', d:'去「我的揭榜」查看与完成', key:'myjianghu', scroll:'myJianghuBox'});
     }
   }catch(e){}
   // 生日来信：临近窗口内未读的提醒进通知中心
