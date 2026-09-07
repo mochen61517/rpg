@@ -1438,7 +1438,7 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 /* 属性卡片：淡色背景+同色边框+左侧3px色条 */
 .jh-row.a-badminton,.jh-row.a-career,.jh-row.a-body,.jh-row.a-mind,.jh-row.a-life,
 .daytask.a-badminton,.daytask.a-career,.daytask.a-body,.daytask.a-mind,.daytask.a-life,
-.daily-ic.a-badminton,.daily-ic.a-career,.daily-ic.a-body,.daily-ic.a-mind,.daily-ic.a-life{
+.daily-ic.a-badminton.done,.daily-ic.a-career.done,.daily-ic.a-body.done,.daily-ic.a-mind.done,.daily-ic.a-life.done{
   background:linear-gradient(135deg,rgba(var(--a-base-rgb),.10),rgba(var(--a-base-rgb),.04));
   border-color:rgba(var(--a-base-rgb),.40)}
 .jh-row.a-badminton::before,.jh-row.a-career::before,.jh-row.a-body::before,.jh-row.a-mind::before,.jh-row.a-life::before,
@@ -1447,11 +1447,11 @@ html[data-theme="dark"] .ledger-cat-bar div{background:var(--career);}
 .daytask.a-badminton,.daytask.a-career,.daytask.a-body,.daytask.a-mind,.daytask.a-life{position:relative;overflow:hidden}
 .daytask.a-badminton:hover,.daytask.a-career:hover,.daytask.a-body:hover,.daytask.a-mind:hover,.daytask.a-life:hover{background:linear-gradient(135deg,rgba(var(--a-base-rgb),.14),rgba(var(--a-base-rgb),.06));border-color:rgba(var(--a-base-rgb),.55)}
 /* 属性文字色 */
-.jh-row.a-badminton .jh-attr,.daytask.a-badminton .dt-meta,.daily-ic.a-badminton .supp-nm{color:var(--a-dark);font-weight:600}
-.jh-row.a-career .jh-attr,.daytask.a-career .dt-meta,.daily-ic.a-career .supp-nm{color:var(--a-dark);font-weight:600}
-.jh-row.a-body .jh-attr,.daytask.a-body .dt-meta,.daily-ic.a-body .supp-nm{color:var(--a-dark);font-weight:600}
-.jh-row.a-mind .jh-attr,.daytask.a-mind .dt-meta,.daily-ic.a-mind .supp-nm{color:var(--a-dark);font-weight:600}
-.jh-row.a-life .jh-attr,.daytask.a-life .dt-meta,.daily-ic.a-life .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-badminton .jh-attr,.daytask.a-badminton .dt-meta,.daily-ic.a-badminton.done .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-career .jh-attr,.daytask.a-career .dt-meta,.daily-ic.a-career.done .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-body .jh-attr,.daytask.a-body .dt-meta,.daily-ic.a-body.done .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-mind .jh-attr,.daytask.a-mind .dt-meta,.daily-ic.a-mind.done .supp-nm{color:var(--a-dark);font-weight:600}
+.jh-row.a-life .jh-attr,.daytask.a-life .dt-meta,.daily-ic.a-life.done .supp-nm{color:var(--a-dark);font-weight:600}
 /* 保持旧类名兼容（jh-a-*） */
 .jh-row.jh-a-badminton::before{background:#ff9f5b}
 .jh-row.jh-a-mind::before{background:#a58be8}
