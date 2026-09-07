@@ -2800,6 +2800,8 @@ function render(){
   try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); renderDemons(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
+  // v6.4.18 每日有用感
+  try{ renderUsefulLog(); }catch(e){ console.warn('v6.4.18 useful log render',e); }
   // v6.0.37 板块显隐（默认隐藏钱庄等）
   try{ applyPageVisibility(); }catch(e){ console.warn('v6.0.37 page visibility',e); }
   // v6.0.38 角色设定页三合一 tab：首次渲染把版块移入对应 pane

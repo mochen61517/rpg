@@ -2022,6 +2022,54 @@ function fillProfileInputs(){
   if(b) b.value=S.profile.lifeExpect||85;
 }
 
+// ===== v6.4.18 每日有用感（主体性修行 · 阿德勒「贡献感」落地）=====
+// 睡前 3 行：今天哪刻「我觉得这事儿值了 / 时间过得快 / 帮到了什么」。只记不分析。记录即 +1 主体性。
+function renderUsefulLog(){
+  const el=document.getElementById('usefulLogBox'); if(!el) return;
+  const today=todayStr();
+  const log=S.usefulLog||[];
+  const todayEntry=log.find(e=>e.d===today);
+  const lines=todayEntry?todayEntry.lines:['','',''];
+  const recent=log.slice().reverse().slice(0,7);
+  const wkStart=monday(), wkEnd=todayStr();
+  const weekCount=log.filter(e=>e.d>=wkStart&&e.d<=wkEnd).length;
+  const area='<div style="margin:2px 0 8px;color:var(--muted,#9aa);font-size:12px">本周已记录 '+weekCount+'/7 天 · 记录即 +1 主体性</div>';
+  const ta=(i)=>'<textarea id="usefulLine'+(i+1)+'" rows="2" maxlength="200" placeholder="第'+(i+1)+'行…" style="width:100%;margin:3px 0;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:inherit;font:inherit;resize:vertical">'+escHtml(lines[i]||'')+'</textarea>';
+  const recentHtml=recent.length?('<div style="margin-top:10px"><div class="hint">最近记录</div>'+recent.map(e=>{
+      const txt=(e.lines||[]).filter(Boolean).join(' · ');
+      return '<div style="padding:5px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px"><b style="color:var(--grw,#7fd)">'+escHtml(e.d)+'</b> '+escHtml(txt)+'</div>';
+    }).join('')+'</div>'):'<div class="hint" style="margin-top:10px">还没有记录。今晚睡前写 3 行吧。</div>';
+  el.innerHTML=area+ta(0)+ta(1)+ta(2)
+    +'<button onclick="saveUsefulLog()" style="margin-top:6px;padding:6px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:inherit;cursor:pointer;font:inherit">保存今日有用感</button>'
+    +recentHtml;
+}
+function saveUsefulLog(){
+  const today=todayStr();
+  const ls=[1,2,3].map(i=>{const v=(document.getElementById('usefulLine'+i)||{}).value||'';return v.trim();});
+  if(ls.every(x=>!x)){ alert('三行都空，先写点什么再保存～'); return; }
+  S.usefulLog=S.usefulLog||[];
+  const ex=S.usefulLog.find(e=>e.d===today);
+  if(ex){ ex.lines=ls; }
+  else { S.usefulLog.push({d:today, lines:ls, subj:1}); addSubjectivity(1,'每日有用感记录'); }
+  save(); render();
+  if(!ex) try{ celebrateTask('🌟 今日有用感已记录 · 主体性 +1'); }catch(e){}
+  addHist('记录每日有用感');
+}
+// 周报里的「有用感」聚合（仅 weekly）：天数、主体性累计、轻量主题词探测
+function usefulWeekAgg(start,end){
+  const log=(S.usefulLog||[]).filter(e=>e.d>=start&&e.d<=end);
+  if(!log.length) return null;
+  const days=new Set(log.map(e=>e.d)).size;
+  const subj=log.reduce((a,e)=>a+(e.subj||0),0);
+  const bg={};
+  log.forEach(e=>(e.lines||[]).forEach(t=>{
+    const s=t.replace(/[\s，。、！？!?；;：:""''（）()【】\[\]·\-—]/g,'');
+    for(let i=0;i+1<s.length;i++){ const g=s.slice(i,i+2); if(/[一-龥]{2}/.test(g)) bg[g]=(bg[g]||0)+1; }
+  }));
+  const top=Object.entries(bg).filter(([k,v])=>v>=2).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
+  return {count:log.length, days, subj, top};
+}
+
 // ---- 周报 / 月报 ----
 function reportWindow(kind){
   const end=todayStr();
@@ -2076,6 +2124,8 @@ function buildReport(kind, start, end){
   if(newVisits.length) lines.push('🌍 新到访：'+newVisits.join('、'));
   if(drops.length) lines.push('🛡️ 嘉奖掉落：'+drops.join(' · '));
   if(ups.length) lines.push('⭐ 突破：'+ups.join('；'));
+  const ua = kind==='week'? usefulWeekAgg(start,end):null;
+  if(ua) lines.push('🌟 有用感记录：'+ua.days+' 天 · 主体性 +'+ua.subj+(ua.top.length?' · 主题词「'+ua.top.join('、')+'」':''));
   lines.push('📈 当前 Lv.'+gL+'（加权经验 '+Math.round(gxp)+'）');
   lines.push('💡 一句话：这'+(kind==='week'?'周':'月')+'把节奏稳住，'+ (totalMin>0?'有在持续投入。':'可以再往前推一步。'));
   // —— 结构化可读卡片（屏幕展示用，与上方纯文本推送内容同源）——
@@ -2091,6 +2141,7 @@ function buildReport(kind, start, end){
   if(newVisits.length) hi.push(['🌍 新到访', newVisits.join('、')]);
   if(drops.length) hi.push(['🛡️ 嘉奖掉落', drops.join(' · ')]);
   if(ups.length) hi.push(['⭐ 突破', ups.join('；')]);
+  if(ua) hi.push(['🌟 每日有用感', ua.days+'天 · 主体性+'+ua.subj+(ua.top.length?' · 主题「'+ua.top.join('、')+'」':'')]);
   const hiHtml=hi.length? '<div class="rep-hi">'+hi.map(x=>'<div class="rep-hi-row"><span class="rep-hi-k">'+x[0]+'</span><span class="rep-hi-v">'+x[1]+'</span></div>').join('')+'</div>' : '';
   const html='<div class="rep-card">'
     +'<div class="rep-top"><span class="rep-title">'+(kind==='week'?'📅 本周报':'🌕 本月报')+'</span><span class="rep-range">'+start+' ~ '+end+'</span></div>'

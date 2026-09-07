@@ -740,6 +740,7 @@ function defaultState(){
     subjectivityLog: [],           // 分值变化记录：{d,delta,reason,score}
     openerMode: 'mindful',         // 今日一句风格：mindful(正念) | faye(菲式)
     feiTrials: {},                 // 王菲·菲式历练完成标记：trialId -> true
+    usefulLog: [],                 // v6.4.18 每日有用感：[{d:'YYYY-MM-DD', lines:[s,s,s], subj:n}]
   };
 }
 
@@ -761,6 +762,7 @@ function migrate(){
   if(typeof S.subjectivity!=='number' || isNaN(S.subjectivity)) S.subjectivity=0;
   if(!Array.isArray(S.subjectivityLog)) S.subjectivityLog=[];
   if(typeof S.openerMode!=='string' || (S.openerMode!=='mindful'&&S.openerMode!=='faye')) S.openerMode='mindful';
+  if(!Array.isArray(S.usefulLog)) S.usefulLog=[];
   if(typeof S.feiTrials!=='object' || !S.feiTrials) S.feiTrials={};
   // v5.21 曾误把长期投入 goals 的默认值写成旅行目标对象；旅行目标已有独立 travelGoals 字段。
   if(!Array.isArray(S.goals)) S.goals=defaultGoals();
