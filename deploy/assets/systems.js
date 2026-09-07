@@ -2033,27 +2033,31 @@ function renderUsefulLog(){
   const recent=log.slice().reverse().slice(0,7);
   const wkStart=monday(), wkEnd=todayStr();
   const weekCount=log.filter(e=>e.d>=wkStart&&e.d<=wkEnd).length;
-  const area='<div style="margin:2px 0 8px;color:var(--muted,#9aa);font-size:12px">本周已记录 '+weekCount+'/7 天 · 记录即 +1 主体性</div>';
+  const area='<div style="margin:2px 0 8px;color:var(--muted,#9aa);font-size:12px">本周已记录 '+weekCount+'/7 天 · 每条 +1 主体性，每日最多 3 条</div>';
   const ta=(i)=>'<textarea id="usefulLine'+(i+1)+'" rows="2" maxlength="200" placeholder="第'+(i+1)+'行…" style="width:100%;margin:3px 0;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:inherit;font:inherit;resize:vertical">'+escHtml(lines[i]||'')+'</textarea>';
-  const recentHtml=recent.length?('<div style="margin-top:10px"><div class="hint">最近记录</div>'+recent.map(e=>{
+  const recentHtml=recent.length?('<details style="margin-top:10px"><summary class="hint" style="cursor:pointer;user-select:none">最近记录（'+recent.length+' 天）</summary>'+recent.map(e=>{
       const txt=(e.lines||[]).filter(Boolean).join(' · ');
       return '<div style="padding:5px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px"><b style="color:var(--grw,#7fd)">'+escHtml(e.d)+'</b> '+escHtml(txt)+'</div>';
-    }).join('')+'</div>'):'<div class="hint" style="margin-top:10px">还没有记录。今晚睡前写 3 行吧。</div>';
+    }).join('')+'</details>'):'<div class="hint" style="margin-top:10px">还没有记录。今晚睡前写 3 行吧。</div>';
   el.innerHTML=area+ta(0)+ta(1)+ta(2)
-    +'<button onclick="saveUsefulLog()" style="margin-top:6px;padding:6px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:inherit;cursor:pointer;font:inherit">保存今日有用感</button>'
+    +'<button class="btn" onclick="saveUsefulLog()" style="margin-top:10px;width:100%">保存今日有感</button>'
     +recentHtml;
 }
 function saveUsefulLog(){
   const today=todayStr();
   const ls=[1,2,3].map(i=>{const v=(document.getElementById('usefulLine'+i)||{}).value||'';return v.trim();});
-  if(ls.every(x=>!x)){ alert('三行都空，先写点什么再保存～'); return; }
+  if(ls.every(x=>!x)){ alert('先写点什么再保存～'); return; }
   S.usefulLog=S.usefulLog||[];
-  const ex=S.usefulLog.find(e=>e.d===today);
-  if(ex){ ex.lines=ls; }
-  else { S.usefulLog.push({d:today, lines:ls, subj:1}); addSubjectivity(1,'每日有用感记录'); }
+  let ex=S.usefulLog.find(e=>e.d===today);
+  if(!ex){ ex={d:today,lines:['','',''],subj:0}; S.usefulLog.push(ex); }
+  const before=ex.lines.filter(Boolean).length;
+  ex.lines=ls;
+  const now=ls.filter(Boolean).length;
+  let added=Math.min(Math.max(0, now-before), 3-ex.subj);
+  if(added>0){ ex.subj+=added; addSubjectivity(added,'每日有感·每条+1'); }
   save(); render();
-  if(!ex) try{ celebrateTask('🌟 今日有用感已记录 · 主体性 +1'); }catch(e){}
-  addHist('记录每日有用感');
+  if(added>0) try{ celebrateTask('🌟 今日有感 +'+added+' 主体性'); }catch(e){}
+  addHist('记录每日有感');
 }
 // 周报里的「有用感」聚合（仅 weekly）：天数、主体性累计、轻量主题词探测
 function usefulWeekAgg(start,end){
