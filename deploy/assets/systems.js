@@ -1738,7 +1738,9 @@ function renderNavBadges(){
 }
 function shortTaskBadgeData(){
   const hasNpc = !!(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length);
-  const myUndone = (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
+  const now = Date.now();
+  // 只有未过期且未完成的揭榜才计入 badge/通知提示
+  const myUndone = (S.myJianghu||[]).filter(function(e){return !e.done && (e.deadline>=now);}).length;
   return {hasNpc:hasNpc?1:0, myUndone:myUndone, total:(hasNpc?1:0)+myUndone};
 }
 function renderShortTaskBadges(){
