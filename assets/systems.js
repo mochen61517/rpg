@@ -2616,20 +2616,26 @@ var FUTURE_LETTER_XP=10; // 每次封存固定经验值
 function sealFutureLetter(){
   const t=document.getElementById('flEditText'); if(!t) return;
   const text=t.value.trim(); if(!text){ alert('先写点什么给未来的自己'); return; }
+  const dateEl=document.getElementById('flOpenDate');
+  const openAt=(dateEl&&dateEl.value)?dateEl.value:todayStr();
+  if(openAt<todayStr()){ alert('开启时间不能早于今天'); return; }
   S.futureLetters=S.futureLetters||[];
   const now=new Date(), mo=now.getMonth()+1;
   const key=now.getFullYear()+'-'+String(mo).padStart(2,'0');
-  S.futureLetters.push({id:id(),cycle:'free',writeFor:key,writeDate:todayStr(),text,readDate:null});
+  S.futureLetters.push({id:id(),cycle:'free',writeFor:key,writeDate:todayStr(),openAt,text,readDate:null});
   S.bonusXP=(S.bonusXP||0)+FUTURE_LETTER_XP;
-  addHist('✉️ 封存一封信给未来的自己 +'+FUTURE_LETTER_XP+' XP',FUTURE_LETTER_XP);
+  addHist('✉️ 封存一封信给未来的自己（'+openAt+' 开启）+'+FUTURE_LETTER_XP+' XP',FUTURE_LETTER_XP);
   save(); render();
-  try{ celebrateTask('✉️ 一封信已封存 · 给未来的自己 +'+FUTURE_LETTER_XP+' XP'); }catch(e){}
+  try{ celebrateTask('✉️ 一封信已封存 · '+openAt+' 开启 · +'+FUTURE_LETTER_XP+' XP'); }catch(e){}
 }
 let _flOpenId=null;
 function toggleFutureLetter(uid){
+  const t=(S.futureLetters||[]).find(x=>x.id===uid); if(!t) return;
+  const today=todayStr();
+  const openAt=t.openAt || t.writeDate || today;
+  if(openAt>today){ alert('这封信要到 '+openAt+' 才能开启'); return; }
   _flOpenId=(_flOpenId===uid)?null:uid;
-  const t=(S.futureLetters||[]).find(x=>x.id===uid);
-  if(t && !t.readDate){ t.readDate=todayStr(); addHist('📨 读了一封写给未来的信',0); save(); }
+  if(!t.readDate){ t.readDate=todayStr(); addHist('📨 读了一封写给未来的信',0); save(); }
   renderCapsule();
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}

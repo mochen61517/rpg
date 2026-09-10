@@ -3928,13 +3928,26 @@ function autoResizeCapText(el){
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight,240)+'px';
 }
+function flDefaultOpenDate(offsetMonths){
+  const d=new Date();
+  if(!offsetMonths) offsetMonths=1;
+  d.setMonth(d.getMonth()+offsetMonths);
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function setFlOpenPreset(v){
+  const dateEl=document.getElementById('flOpenDate'); if(!dateEl) return;
+  if(v==='custom') return;
+  const map={'1m':1,'3m':3,'1y':12};
+  dateEl.value=flDefaultOpenDate(map[v]||1);
+}
 function renderCapsule(){
   const el=document.getElementById('capsuleBox'); if(!el) return;
   const today=todayStr();
   const sealed=S.capsules.filter(c=>!c.opened && c.unlockOn>today);
   const ready=S.capsules.filter(c=>!c.opened && c.unlockOn<=today);
   const opened=S.capsules.filter(c=>c.opened);
-  // v6.0.88 给未来的信：时间胶囊区内联编辑 + 封存，不弹窗、不区分月/季，随时可写
+  // v6.0.89 给未来的信：可设置开启时间；未到期锁定，到期后方可阅读
   let notice='';
   {
     const fl=(S.futureLetters||[]).slice().reverse().slice(0,6);
@@ -3942,15 +3955,30 @@ function renderCapsule(){
     if(fl.length){
       list='<div class="cap-future-list">'+fl.map(function(x){
         const open=_flOpenId===x.id;
-        const badge=x.readDate?'':' <span class="fl-unread">未读</span>';
+        const openAt=x.openAt || x.writeDate || today; // 兼容旧数据：未设开启时间视为已可开启
+        const isOpen=openAt<=today;
+        const status=isOpen?(x.readDate?' <span class="fl-unread">已读</span>':' <span class="fl-unread">未读</span>'):' <span class="fl-unread">🔒 将于 '+openAt+' 开启</span>';
+        const cursor=isOpen?'cursor:pointer':'cursor:not-allowed;opacity:.75';
+        const arrow=open?' ▴':' ▾';
         return '<div class="fl-item'+(x.readDate?' read':'')+'">'
-          +'<div class="fl-item-head" onclick="toggleFutureLetter(\''+x.id+'\')">📨 写给 '+escHtml(x.writeFor)+'（'+x.writeDate+'）'+badge+(open?' ▴':' ▾')+'</div>'
+          +'<div class="fl-item-head" style="'+cursor+'" onclick="'+(isOpen?('toggleFutureLetter(\''+x.id+'\')'):('alert(\'这封信要到 '+openAt+' 才能开启\')'))+'">📨 写给 '+escHtml(x.writeFor)+'（'+x.writeDate+'）'+status+(isOpen?arrow:'')+'</div>'
           +(open?'<div class="fl-item-body">'+escHtml(x.text)+'</div>':'')
           +'</div>';
       }).join('')+'</div>';
     }
+    const defaultOpen=flDefaultOpenDate(1);
     notice='<div class="cap-future"><div class="cap-future-head"><b>✉️ 给未来的信</b><span>想写就写 · 点封存即留档（每次 +'+FUTURE_LETTER_XP+' XP）</span></div>'
       +'<textarea id="flEditText" class="fl-ta" placeholder="写点什么给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
+      +'<div class="cap-future-row" style="align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<span style="font-size:12px;color:var(--dim)">开启时间：</span>'
+        +'<select id="flOpenPreset" class="btn xs ghost" style="font-size:12px;padding:3px 8px" onchange="setFlOpenPreset(this.value)">'
+          +'<option value="1m">1 个月后</option>'
+          +'<option value="3m">3 个月后</option>'
+          +'<option value="1y">1 年后</option>'
+          +'<option value="custom">自定义</option>'
+        +'</select>'
+        +'<input type="date" id="flOpenDate" value="'+defaultOpen+'" min="'+today+'" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)">'
+      +'</div>'
       +'<div class="cap-future-row"><button class="btn xs primary" onclick="sealFutureLetter()">📩 封存这封信 · +'+FUTURE_LETTER_XP+' XP</button></div>'
       +list
       +'</div>';
