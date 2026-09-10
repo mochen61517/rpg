@@ -23,6 +23,8 @@ life-rpg.pre-*.html
 life-rpg_v5.7.html
 life-rpg_v5.7.zip
 assets/archive/
+deploy/assets/archive/
+deploy/deploy/assets/archive/
 
 # --- agent runtime + private dev logs (do NOT publish: contain personal profile/job info) ---
 .workbuddy/automations/
