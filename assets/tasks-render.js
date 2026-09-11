@@ -2480,12 +2480,12 @@ function jianghuPeriodKey(kind){
   return thisMonth()+'-01';
 }
 /* 周/月榜任务池版本：升级后旧榜单（含进行中的本周/本月）立即换新池任务 */
-const JIANGHU_PERIOD_POOL_VER=4;
-/* 周/月榜常驻榜首：关系类任务每期必见（复用日榜 pin 机制，diff3 居中但不参与随机） */
+const JIANGHU_PERIOD_POOL_VER=5;
+/* 周/月榜常驻榜首：用户固定习惯，每期必见（复用日榜 pin 机制，不参与随机 shuffle） */
 function jianghuPeriodPin(kind){
   return kind==='week'
-    ? {id:'jh_w_family',t:'本周陪父母 / 家人吃一顿饭',a:'MIND',diff:3,xp:20}
-    : {id:'jh_m_family',t:'本月陪父母 / 家人吃饭 2 次',a:'MIND',diff:3,xp:20};
+    ? {id:'jh_w_movie',t:'每周看完一部经典电影',a:'MIND',diff:2,xp:15}
+    : {id:'jh_m_book',t:'每月看完一本书',a:'MIND',diff:3,xp:20};
 }
 function ensureJianghuPeriod(kind, force){
   const key=jianghuPeriodKey(kind);
