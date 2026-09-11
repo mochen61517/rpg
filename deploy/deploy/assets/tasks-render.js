@@ -1042,27 +1042,59 @@ let _editingDayTask=null;
 function renderDayTasks(){
   const el=document.getElementById('dayTaskList'); if(!el) return;
   const d=todayStr();
-  const list=(S.dayTasks||[]).filter(x=>!x.done);   // 完成即隐藏；未完成的持续显示（含跨天/逾期）
-  if(!list.length){ el.innerHTML='<div class="hint">今日暂无临时任务。下面加一个，完成后自动隐藏。</div>'; return; }
-  el.innerHTML=list.map(x=>{
+  const tasks=S.dayTasks||[];
+  const active=tasks.filter(x=>!x.done);   // 未完成：持续显示（含跨天/逾期）
+  const done=tasks.filter(x=>x.done).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
+  const yesterday=addDays(d,-1);
+  const doneToday=done.filter(x=>(x.doneDate||d)===d);
+  const doneYesterday=done.filter(x=>(x.doneDate||'')===yesterday);
+  const doneOlder=done.filter(x=>x.doneDate && x.doneDate!==d && x.doneDate!==yesterday);
+
+  function dtRow(x, isDone){
     if(_editingDayTask===x.id) return editDayTaskHtml(x);
     const due=x.due||'';
-    const overdue=due && due<d;
+    const overdue=!isDone && due && due<d;
     const a=x.a||'MIND';
     const ao=ATTRS[a]||ATTRS.MIND;
     const meta=[];
     if(x.xp) meta.push(ao.icon+' +'+(x.xp)+' XP · '+ao.name);
     if(due) meta.push('⏰ 截止 '+fmtMD(due));
     if(overdue) meta.push('已逾期');
-    return '<div class="daytask a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'" onclick="toggleDayTask(\''+x.id+'\')">'
-      +'<span class="dt-chk">○</span>'
+    if(isDone && x.doneDate) meta.push('完成于 '+fmtMD(x.doneDate));
+    return '<div class="daytask'+(isDone?' done':'')+' a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'" onclick="'+(isDone?'':'toggleDayTask(\''+x.id+'\')')+'">'
+      +'<span class="dt-chk">'+(isDone?'✓':'○')+'</span>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
       +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
-      +'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>'
+      +(isDone?'':'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>')
       +'<span class="dt-x" onclick="event.stopPropagation();delDayTask(\''+x.id+'\')" title="删除">×</span>'
       +'</div>';
-  }).join('');
+  }
+
+  let html='';
+  if(active.length){
+    html+=active.map(x=>dtRow(x,false)).join('');
+  } else {
+    html+='<div class="hint">今日暂无临时任务。下面加一个，完成后自动归档。</div>';
+  }
+
+  if(done.length){
+    const fold=!!(S._dayTaskDoneFold);
+    const arrow=fold?'▸':'▾';
+    let doneHtml='';
+    if(!fold){
+      if(doneToday.length) doneHtml+='<div class="dt-done-subh">今天</div>'+doneToday.map(x=>dtRow(x,true)).join('');
+      if(doneYesterday.length) doneHtml+='<div class="dt-done-subh">昨天</div>'+doneYesterday.map(x=>dtRow(x,true)).join('');
+      if(doneOlder.length) doneHtml+='<div class="dt-done-subh">更早</div>'+doneOlder.map(x=>dtRow(x,true)).join('');
+    }
+    html+='<div class="dt-done-sec">'
+      +'<div class="dt-done-head" onclick="toggleDayTaskDoneFold()">'+arrow+' 已完成（'+done.length+'）'+(doneToday.length?' · 今天 '+doneToday.length:'')+'</div>'
+      +(doneHtml?'<div class="dt-done-body">'+doneHtml+'</div>':'')
+      +'</div>';
+  }
+
+  el.innerHTML=html;
 }
+function toggleDayTaskDoneFold(){ S._dayTaskDoneFold=!S._dayTaskDoneFold; save(); renderDayTasks(); }
 function editDayTaskHtml(x){
   return '<div class="daytask editing a-'+(x.a||'MIND').toLowerCase()+'">'
     +'<div class="dt-edit-form">'
