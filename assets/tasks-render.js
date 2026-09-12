@@ -1078,7 +1078,7 @@ function renderDayTasks(){
   }
 
   if(done.length){
-    const fold=!!(S._dayTaskDoneFold);
+    const fold = S._dayTaskDoneFold !== false; // 默认折叠；用户点开后显式设为 false
     const arrow=fold?'▸':'▾';
     let doneHtml='';
     if(!fold){
@@ -1094,7 +1094,7 @@ function renderDayTasks(){
 
   el.innerHTML=html;
 }
-function toggleDayTaskDoneFold(){ S._dayTaskDoneFold=!S._dayTaskDoneFold; save(); renderDayTasks(); }
+function toggleDayTaskDoneFold(){ S._dayTaskDoneFold = (S._dayTaskDoneFold === false) ? true : false; save(); renderDayTasks(); }
 function editDayTaskHtml(x){
   return '<div class="daytask editing a-'+(x.a||'MIND').toLowerCase()+'">'
     +'<div class="dt-edit-form">'
