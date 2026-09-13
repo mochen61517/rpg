@@ -877,7 +877,7 @@ function letterCheck(force){
   // 碎片信：基于生活碎片，引用你留下的文字 / 照片，参考你的记录，持续一天一封寄送
   const mems=(S.lifeCompound && Array.isArray(S.lifeCompound.memories))?S.lifeCompound.memories:[];
   const mailed=S.letters.mailedFragIds;
-  const frag=mems.slice().sort(function(a,b){return (a.d||'').localeCompare(b.d||'');}).find(function(m){return m && m.id && mailed.indexOf(m.id)<0;});
+  const frag=mems.slice().sort(function(a,b){return (a.d||'').localeCompare(b.d||'');}).find(function(m){return m && m.id && !m.usefulOnly && mailed.indexOf(m.id)<0;});
   if(frag){
     const body=composeFragmentLetter(frag);
     list.push({place:'frag', kind:'frag', ref:frag.id, read:false, date:todayStr(), title:'记忆 · '+(frag.d||'某日'), body:body, task:null});
@@ -2024,21 +2024,23 @@ function fillProfileInputs(){
   if(b) b.value=S.profile.lifeExpect||85;
 }
 
-// ===== v6.4.18 每日有用感（主体性修行 · 阿德勒「贡献感」落地）=====
-// 睡前 3 行：今天哪刻「我觉得这事儿值了 / 时间过得快 / 帮到了什么」。只记不分析。记录即 +1 主体性。
+// ===== v6.4.20 每日有用感（已并入「生活碎片」：同一面板内记录，一次输入同时喂远方来信 + 周报聚合）=====
+// 睡前 3 行：今天哪刻「我觉得这事儿值了 / 时间过得快 / 帮到了什么」。只记不分析。记录即 +1 主体性（每日上限 3）。
+// 数据落到 S.lifeCompound.memories 中 id='mem:useful:日期' 的有用记忆（usefulOnly），与瞬间碎片共存一处。
 function renderUsefulLog(){
   const el=document.getElementById('usefulLogBox'); if(!el) return;
   const today=todayStr();
-  const log=S.usefulLog||[];
-  const todayEntry=log.find(e=>e.d===today);
-  const lines=todayEntry?todayEntry.lines:['','',''];
-  const recent=log.slice().reverse().slice(0,7);
+  const lc=ensureLifeCompound();
+  const todayMem=lc.memories.find(m=>m.id==='mem:useful:'+today);
+  const lines=todayMem?(todayMem.useful||['','','']):['','',''];
+  const allUseful=(lc.memories||[]).filter(m=>m.useful && m.useful.some(x=>x));
+  const recent=allUseful.slice().reverse().slice(0,7);
   const wkStart=monday(), wkEnd=todayStr();
-  const weekCount=log.filter(e=>e.d>=wkStart&&e.d<=wkEnd).length;
+  const weekCount=allUseful.filter(m=>m.d>=wkStart&&m.d<=wkEnd).length;
   const area='<div style="margin:2px 0 8px;color:var(--muted,#9aa);font-size:12px">本周已记录 '+weekCount+'/7 天 · 每条 +1 主体性，每日最多 3 条</div>';
   const ta=(i)=>'<textarea id="usefulLine'+(i+1)+'" rows="2" maxlength="200" placeholder="第'+(i+1)+'行…" style="width:100%;margin:3px 0;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:inherit;font:inherit;resize:vertical">'+escHtml(lines[i]||'')+'</textarea>';
   const recentHtml=recent.length?('<details style="margin-top:10px"><summary class="hint" style="cursor:pointer;user-select:none">最近记录（'+recent.length+' 天）</summary>'+recent.map(e=>{
-      const txt=(e.lines||[]).filter(Boolean).join(' · ');
+      const txt=(e.useful||[]).filter(Boolean).join(' · ');
       return '<div style="padding:5px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px"><b style="color:var(--grw,#7fd)">'+escHtml(e.d)+'</b> '+escHtml(txt)+'</div>';
     }).join('')+'</details>'):'<div class="hint" style="margin-top:10px">还没有记录。今晚睡前写 3 行吧。</div>';
   el.innerHTML=area+ta(0)+ta(1)+ta(2)
@@ -2049,31 +2051,37 @@ function saveUsefulLog(){
   const today=todayStr();
   const ls=[1,2,3].map(i=>{const v=(document.getElementById('usefulLine'+i)||{}).value||'';return v.trim();});
   if(ls.every(x=>!x)){ alert('先写点什么再保存～'); return; }
-  S.usefulLog=S.usefulLog||[];
-  let ex=S.usefulLog.find(e=>e.d===today);
-  if(!ex){ ex={d:today,lines:['','',''],subj:0}; S.usefulLog.push(ex); }
-  const before=ex.lines.filter(Boolean).length;
-  ex.lines=ls;
+  const lc=ensureLifeCompound();
+  let mem=lc.memories.find(m=>m.id==='mem:useful:'+today);
+  if(!mem){ mem={id:'mem:useful:'+today,d:today,text:'',useful:[],usefulSubj:0,usefulOnly:true}; lc.memories.push(mem); }
+  const before=(mem.useful||[]).filter(Boolean).length;
+  mem.useful=ls;
   const now=ls.filter(Boolean).length;
-  let added=Math.min(Math.max(0, now-before), 3-ex.subj);
-  if(added>0){ ex.subj+=added; addSubjectivity(added,'每日有感·每条+1'); }
+  // 每日最多 3 主体性（跨当天所有有用记忆）
+  const dayAlready=(lc.memories.filter(m=>m.d===today && m.id!==mem.id)).reduce((a,m)=>a+(m.usefulSubj||0),0);
+  const room=Math.max(0,3-dayAlready);
+  let added=Math.min(Math.max(0, now-before), room);
+  if(added>0){ mem.usefulSubj=(mem.usefulSubj||0)+added; addSubjectivity(added,'每日有感·每条+1'); }
   save(); render();
   if(added>0) try{ celebrateTask('🌟 今日有感 +'+added+' 主体性'); }catch(e){}
   addHist('记录每日有感');
 }
-// 周报里的「有用感」聚合（仅 weekly）：天数、主体性累计、轻量主题词探测
+// 周报里的「有用感」聚合（仅 weekly）：天数、主体性累计（按日封顶 3）、轻量主题词探测
 function usefulWeekAgg(start,end){
-  const log=(S.usefulLog||[]).filter(e=>e.d>=start&&e.d<=end);
-  if(!log.length) return null;
-  const days=new Set(log.map(e=>e.d)).size;
-  const subj=log.reduce((a,e)=>a+(e.subj||0),0);
+  const mems=(S.lifeCompound&&S.lifeCompound.memories)||[];
+  const inWin=mems.filter(function(m){ return m.useful && m.useful.some(function(x){return x;}) && m.d>=start && m.d<=end; });
+  if(!inWin.length) return null;
+  const byDay={};
+  inWin.forEach(function(m){ const d=m.d; if(!byDay[d]) byDay[d]=0; byDay[d]+=(m.useful||[]).filter(Boolean).length; });
+  const days=Object.keys(byDay).length;
+  let subj=0; Object.keys(byDay).forEach(function(d){ subj+=Math.min(3,byDay[d]); });
   const bg={};
-  log.forEach(e=>(e.lines||[]).forEach(t=>{
+  inWin.forEach(function(m){ (m.useful||[]).forEach(function(t){
     const s=t.replace(/[\s，。、！？!?；;：:""''（）()【】\[\]·\-—]/g,'');
     for(let i=0;i+1<s.length;i++){ const g=s.slice(i,i+2); if(/[一-龥]{2}/.test(g)) bg[g]=(bg[g]||0)+1; }
-  }));
-  const top=Object.entries(bg).filter(([k,v])=>v>=2).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
-  return {count:log.length, days, subj, top};
+  }); });
+  const top=Object.entries(bg).filter(function(x){return x[1]>=2;}).sort(function(a,b){return b[1]-a[1];}).slice(0,5).map(function(x){return x[0];});
+  return {count:inWin.length, days:days, subj:subj, top:top};
 }
 
 // ---- 周报 / 月报 ----
@@ -2353,6 +2361,20 @@ function ensureLifeCompound(){
   });
   return S.lifeCompound;
 }
+// 真实「生活碎片」：排除仅承载有用感、无正文/无图的有用记忆（它们不该出现在瞬间列表 / 远方来信 / 碎片计数里）
+function realMemories(){ return (S.lifeCompound.memories||[]).filter(function(m){ return !(m && m.usefulOnly); }); }
+// v6.4.20 合并：把旧「每日有用感」(S.usefulLog) 迁移进生活碎片记忆，保留周报主题词历史
+function migrateUsefulIntoFragments(){
+  if(!Array.isArray(S.usefulLog) || !S.usefulLog.length) return;
+  const lc=ensureLifeCompound();
+  S.usefulLog.forEach(function(e){
+    const lines=(e.lines||[]).filter(Boolean);
+    if(!lines.length) return;
+    lc.memories.push({id:'mem:useful-mig:'+e.d, d:e.d, text:'', useful:lines, usefulSubj:e.subj||0, usefulOnly:true, mig:true});
+  });
+  S.usefulLog=[];
+  try{ save(); }catch(_){}
+}
 // 取得轨道当前基数（小时→分钟）：用户自定义优先 → LIFE_TRACKS 默认
 function getLifeBaseMin(key){
   ensureLifeCompound();
@@ -2528,7 +2550,7 @@ function saveLifeMemory(){
 }
 function renderLifeFragments(){
   const el=document.getElementById('lifeBlendBox');if(!el)return;
-  const mems=S.lifeCompound.memories||[];
+  const mems=realMemories();
   // 增量：内容签名未变则跳过整体重建，避免每次 render 重绘造成的闪动
   const sig=mems.length+(mems[0]?'|'+mems[0].id:'')+(mems.length&&mems[mems.length-1]?'|'+mems[mems.length-1].id:'');
   if(el.dataset.fragInit==='1' && el.dataset.fragSig===sig) return;
@@ -2688,7 +2710,7 @@ function updateLpGrid(mems){
 function renderLifeCompound(force){
   ensureLifeCompound();
   const keys=Object.keys(LIFE_TRACKS);
-  const mems=S.lifeCompound.memories||[];
+  const mems=realMemories();
   const detail=document.getElementById('longPracticeBox');
   // 增量更新：DOM 已初始化且非结构变更时，只更新数值，避免整体重绘造成的闪动
   if(detail && detail.dataset.lcInit==='1' && !force){
@@ -2721,6 +2743,7 @@ function setupLifeCompoundUI(){
   try{ migrateBmSplit(); }catch(e){ console.warn('bm split migrate',e); }
   try{ migrateBmMerge(); }catch(e){ console.warn('bm merge migrate',e); }
   try{ migrateBodySplit(); }catch(e){ console.warn('body split migrate',e); }
+  try{ migrateUsefulIntoFragments(); }catch(e){ console.warn('useful->fragments migrate',e); }
   if(!document.getElementById('longPracticeBox')){const p=document.createElement('div');p.className='panel long-practice';p.id='longPracticePanel';p.innerHTML='<div id="longPracticeBox"></div>';const xp=document.querySelector('#page-growth .xp-ledger');xp?.insertAdjacentElement('afterend',p);}
   renderLifeCompound();
 }
