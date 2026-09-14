@@ -1061,11 +1061,12 @@ function renderDayTasks(){
     if(due) meta.push('⏰ 截止 '+fmtMD(due));
     if(overdue) meta.push('已逾期');
     if(isDone && x.doneDate) meta.push('完成于 '+fmtMD(x.doneDate));
-    return '<div class="daytask'+(isDone?' done':'')+' a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'" onclick="'+(isDone?'':'toggleDayTask(\''+x.id+'\')')+'">'
+    const clickAction=isDone?('undoDoneDayTask(\''+x.id+'\')'):('toggleDayTask(\''+x.id+'\')');
+    return '<div class="daytask'+(isDone?' done':'')+' a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'" onclick="'+clickAction+'">'
       +'<span class="dt-chk">'+(isDone?'✓':'○')+'</span>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
       +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
-      +(isDone?'':'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>')
+      +(isDone?'<span class="dt-undo" onclick="event.stopPropagation();undoDoneDayTask(\''+x.id+'\')" title="恢复未完成">↩</span>':'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>')
       +'<span class="dt-x" onclick="event.stopPropagation();delDayTask(\''+x.id+'\')" title="删除">×</span>'
       +'</div>';
   }
@@ -1132,6 +1133,7 @@ function toggleDayTask(uid){
     addHist('✔ 今日任务：'+t.t, xp);
     try{ floatXP('+'+xp+' XP · '+ao.name,'dt_'+uid); }catch(e){}
   } else {
+    t.doneDate=null;
     grant(a, xp, true);
     addHist('✘ 今日任务：'+t.t, -xp);
   }
@@ -1141,6 +1143,18 @@ function delDayTask(uid){
   if(!Array.isArray(S.dayTasks)) return;
   S.dayTasks=S.dayTasks.filter(x=>x.id!==uid);
   save(); renderDayTasks();
+}
+function undoDoneDayTask(uid){
+  const t=(S.dayTasks||[]).find(x=>x.id===uid); if(!t || !t.done) return;
+  const xp=t.xp||15;
+  const a=t.a||'MIND';
+  const ao=ATTRS[a]||ATTRS.MIND;
+  t.done=false;
+  t.doneDate=null;
+  grant(a, xp, true);
+  addHist('↩ 恢复今日任务：'+t.t, -xp);
+  save(); renderDayTasks();
+  try{ floatXP('-'+xp+' XP · '+ao.name,'dt_'+uid); }catch(e){}
 }
 function editDayTask(uid){
   if(!(S.dayTasks||[]).some(x=>x.id===uid)) return;
