@@ -3684,174 +3684,113 @@ const GARDEN_STAGES=[
 ];
 // v6.0.45 同时生长上限（可被 S.garden.maxGrowing 覆盖）
 const GARDEN_MAX_GROWING=3;
-// ===== v6.0.47 灵圃植物改手绘风 SVG（非 emoji）=====
+// Botanical illustrations: deterministic geometry, local gradients and species-specific silhouettes.
 let _gpid=0;
-function _petal(cx,cy,len,w,fill,rot){
-  const tipY=cy-len;
-  const d='M'+cx+' '+cy+' C '+(cx-w)+' '+(cy-len*0.45)+' '+(cx-w*0.55)+' '+tipY+' '+cx+' '+tipY+' C '+(cx+w*0.55)+' '+tipY+' '+(cx+w)+' '+(cy-len*0.45)+' '+cx+' '+cy+' Z';
-  return '<g transform="rotate('+rot.toFixed(1)+' '+cx+' '+cy+')"><path d="'+d+'" fill="'+fill+'"/></g>';
-}
-function _ring(cx,cy,n,len,w,fill,rot0){let s='';for(let i=0;i<n;i++)s+=_petal(cx,cy,len,w,fill,rot0+i*360/n);return s;}
-function _center(cx,cy,r,c,seeds){
-  let s='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+c+'"/>';
-  if(seeds){for(let i=0;i<10;i++){const a=i*36;const rr=r*0.62;const x=cx+rr*Math.sin(a*Math.PI/180);const y=cy-rr*Math.cos(a*Math.PI/180);s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.4" fill="#4a2f1a"/>';}}
-  return s;
-}
-// 径向花瓣花卉配置（rings: [瓣数, 长, 宽, 色, 起始角]；c: [中心半径, 色]）
-const GFX={
-  rose:{rings:[[8,26,9,'#e0689a',0],[7,18,7,'#d44f86',22],[6,11,5,'#c23e74',11]],c:[5,'#a82f60']},
-  peony:{rings:[[10,30,11,'#f2a6c4',0],[9,21,8,'#ec84ac',18],[7,13,6,'#e26f9c',9]],c:[6,'#d65c8e']},
-  gardenia:{rings:[[7,22,9,'#ffffff',0],[6,13,6,'#eaf1ff',20]],c:[5,'#ffd866']},
-  sunflower:{rings:[[14,30,7,'#ffc62e',0]],c:[13,'#6b4423'],seeds:true},
-  chrys:{rings:[[16,28,4,'#ffd24d',0],[12,18,3,'#ffe89a',11]],c:[7,'#c98a2b']},
-  lotus:{rings:[[9,30,8,'#f7a8c4',0],[8,20,6,'#ef7fae',18]],c:[6,'#f6d65b']},
-  waterlily:{rings:[[11,24,7,'#f4b8d6',0],[8,15,5,'#ef9ac4',16]],c:[6,'#ffe08a']},
-  orchid:{rings:[[5,22,6,'#c9a3e6',0],[3,12,5,'#b07fd6',40]],c:[4,'#ffd24d']}
-};
-function headRadial(key,cx,cy,sc){
-  const g=GFX[key]; if(!g) return '';
-  let s=''; g.rings.forEach(function(r){ s+=_ring(cx,cy,r[0],r[1]*sc,r[2]*sc,r[3],r[4]); });
-  s+=_center(cx,cy,g.c[0]*sc,g.c[1],g.seeds);
-  return s;
-}
-function headLily(cx,cy,sc){
-  let s='';
-  for(let i=0;i<6;i++){ s+=_petal(cx,cy,30*sc,7*sc, i%2?'#ffe3ec':'#fff4f7', i*60); }
-  for(let i=0;i<6;i++){ const a=i*60+30; const x=cx+14*sc*Math.sin(a*Math.PI/180); const y=cy-14*sc*Math.cos(a*Math.PI/180); s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.6" fill="#e58aa8"/>'; }
-  for(let i=0;i<6;i++){ const a=i*60; const x=cx+10*sc*Math.sin(a*Math.PI/180); const y=cy-10*sc*Math.cos(a*Math.PI/180); s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#caa23a" stroke-width="1.3"/><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.2" fill="#ffd24d"/>'; }
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="2.4" fill="#e9b84a"/>';
-  return s;
-}
-function headTulip(cx,cy,sc){
-  const w=16*sc,h=26*sc;
-  let s='<path d="M'+(cx-w)+' '+cy+' Q '+(cx-w)+' '+(cy-h)+' '+cx+' '+(cy-h)+' Q '+(cx+w)+' '+(cy-h)+' '+(cx+w)+' '+cy+' Q '+cx+' '+(cy-h*0.4)+' '+(cx-w)+' '+cy+' Z" fill="#e0556f"/>';
-  s+='<path d="M'+cx+' '+cy+' Q '+(cx-6*sc)+' '+(cy-h*0.7)+' '+cx+' '+(cy-h)+' Q '+(cx+6*sc)+' '+(cy-h*0.7)+' '+cx+' '+cy+' Z" fill="#d23b5b"/>';
-  return s;
-}
-function headTree(key,cx,cy,sc){
-  if(key==='pine'){
-    // 多层针叶塔，层与层错落，更自然
-    let s=''; const tiers=[[0,30],[-3,22],[4,15],[-1,8]];
-    tiers.forEach(function(t){ const w=t[1]*sc, top=cy-(t[2]*sc)-(8*sc), base=cy-(t[2]*sc)+(6*sc);
-      s+='<path d="M'+cx+' '+top.toFixed(1)+' L'+(cx-w).toFixed(1)+' '+base.toFixed(1)+' L'+(cx+w).toFixed(1)+' '+base.toFixed(1)+' Z" fill="#2f7d4f"/>';
-      s+='<path d="M'+cx+' '+top.toFixed(1)+' L'+(cx-w*0.55).toFixed(1)+' '+(base-5*sc).toFixed(1)+' L'+(cx+w*0.55).toFixed(1)+' '+(base-5*sc).toFixed(1)+' Z" fill="#3a9160"/>'; });
-    return s;
-  }
-  if(key==='willow'){
-    // 垂下的柳枝 + 细柳叶（带旋转）；落地后垂得更长更自然
-    let s=''; const branches=[[-22,28],[-8,38],[10,32],[22,26],[0,34]];
-    branches.forEach(function(b){ const x=cx+b[0]*sc, len=b[1]*sc;
-      s+='<path d="M'+cx+' '+cy+' Q '+x.toFixed(1)+' '+(cy+len*0.35).toFixed(1)+' '+x.toFixed(1)+' '+(cy+len).toFixed(1)+'" stroke="#6fae6a" stroke-width="'+(2.3*sc).toFixed(1)+'" fill="none" stroke-linecap="round"/>';
-      for(let i=1;i<=4;i++){ const yy=cy+len*i/5, xx=x+(i%2?3:-3)*sc;
-        s+='<ellipse cx="'+xx.toFixed(1)+'" cy="'+yy.toFixed(1)+'" rx="'+(2.6*sc).toFixed(1)+'" ry="'+(1.2*sc).toFixed(1)+'" fill="#8ccb86" transform="rotate('+(i%2?35:-35)+' '+xx.toFixed(1)+' '+yy.toFixed(1)+')"/>'; } });
-    return s;
-  }
-  // 花树：寒梅 / 桃树 / 丹桂 —— 枝干骨架 + 花
-  let s=''; const twig=[[-15,-3,-24,-16],[13,-1,22,-14],[-6,7,-15,-3],[9,5,19,1],[0,-11,1,-24]];
-  twig.forEach(function(t){ s+='<path d="M'+cx+' '+cy+' L'+(cx+t[0]*sc).toFixed(1)+' '+(cy+t[1]*sc).toFixed(1)+' Q '+(cx+t[2]*0.6*sc).toFixed(1)+' '+(cy+t[3]*0.6*sc).toFixed(1)+' '+(cx+t[2]*sc).toFixed(1)+' '+(cy+t[3]*sc).toFixed(1)+'" stroke="#5b3a28" stroke-width="'+(1.6*sc).toFixed(1)+'" fill="none" stroke-linecap="round"/>'; });
-  if(key==='osmanthus'){
-    const gx=[[0,-15],[7,-13],[-8,-12],[13,-8],[-14,-5],[4,-4],[-4,0],[10,1],[-10,3],[15,4],[-16,6],[6,7],[-6,10],[12,9],[-12,12],[1,12],[8,13],[-8,15],[3,16],[-2,-17],[16,-11],[-17,-14],[18,-3],[-18,0],[11,-15],[-11,17]];
-    gx.forEach(function(p){ s+='<circle cx="'+(cx+p[0]*sc).toFixed(1)+'" cy="'+(cy+p[1]*sc).toFixed(1)+'" r="'+(1.6*sc).toFixed(1)+'" fill="#ffba4d"/>'; });
-  } else {
-    const bc=key==='peach'?'#ffc2d6':'#f7a8c4';
-    const pts=[[0,-14],[-13,-2],[13,-4],[-8,9],[9,7],[-18,-12],[18,-10],[1,3],[-4,-19],[15,-16],[-16,14]];
-    pts.forEach(function(p){ const fx=cx+p[0]*sc, fy=cy+p[1]*sc;
-      for(let i=0;i<5;i++){ const a=i*72-90, px=fx+4.3*sc*Math.cos(a*Math.PI/180), py=fy+4.3*sc*Math.sin(a*Math.PI/180);
-        s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(2.5*sc).toFixed(1)+'" fill="'+bc+'" opacity="0.92"/>'; }
-      s+='<circle cx="'+fx.toFixed(1)+'" cy="'+fy.toFixed(1)+'" r="'+(1.7*sc).toFixed(1)+'" fill="#ffe08a"/>'; });
-  }
-  return s;
-}
-function buildHead(key,cx,cy,sc){
-  if(GFX[key]) return headRadial(key,cx,cy,sc);
-  if(key==='lily') return headLily(cx,cy,sc);
-  if(key==='tulip') return headTulip(cx,cy,sc);
-  if(key==='pine'||key==='willow'||key==='plum'||key==='peach'||key==='osmanthus') return headTree(key,cx,cy,sc);
-  return headRadial('rose',cx,cy,sc);
-}
-function _bud(cx,cy,fill,sc){ const r=5.5*sc; return '<path d="M'+cx+' '+(cy+r)+' C '+(cx-r)+' '+cy+' '+(cx-r*0.5)+' '+(cy-r*1.6)+' '+cx+' '+(cy-r*1.6)+' C '+(cx+r*0.5)+' '+(cy-r*1.6)+' '+(cx+r)+' '+cy+' '+cx+' '+(cy+r)+' Z" fill="'+fill+'"/>'; }
-function _tint(key){ const m={rose:'#e0689a',peony:'#ec84ac',gardenia:'#cfe0ff',sunflower:'#ffc62e',chrys:'#ffd24d',lotus:'#ef7fae',waterlily:'#ef9ac4',orchid:'#c9a3e6',lily:'#ffe3ec',tulip:'#e0556f'}; return m[key]||'#6aa86a'; }
-// 组合一株植物：盆/水钵 + 茎 + 叶 + 生长阶段（种子→茎→叶→花苞→盛放）
 function gardenPlantSVG(sp, frac){
-  _gpid++; const W=120,H=165, cx=60; let inner='';
-  const water = (sp.key==='lotus'||sp.key==='waterlily');
-  const isTree = (sp.kind==='tree');
-  let baseY; // 茎/干从这里冒出
-  if(water){
-    // 浅口水钵 + 水面
-    inner+='<path d="M14 118 Q60 130 106 118 L98 142 Q60 152 22 142 Z" fill="#356b80"/>';
-    inner+='<ellipse cx="60" cy="118" rx="46" ry="9" fill="#2f5d72"/>';
-    inner+='<ellipse cx="60" cy="117" rx="46" ry="7" fill="#3f7d96"/>';
-    baseY=117;
-  } else if(isTree){
-    // 地面：土堆 + 草皮 + 几丛草，树直接种在地上（不进花盆）
-    inner+='<path d="M8 140 Q60 153 112 140 L106 156 Q60 164 14 156 Z" fill="#7a5a3a"/>';
-    inner+='<ellipse cx="60" cy="140" rx="52" ry="9" fill="#6f9a52"/>';
-    inner+='<ellipse cx="60" cy="139" rx="52" ry="6" fill="#7fae60"/>';
-    for(let gi=-2; gi<=2; gi++){ const gx=cx+gi*15;
-      inner+='<path d="M'+gx+' 140 Q '+(gx-3)+' 132 '+gx+' 128" stroke="#5f8f48" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
-      inner+='<path d="M'+(gx+2)+' 140 Q '+(gx+5)+' 133 '+(gx+2)+' 129" stroke="#6fa056" stroke-width="1.5" fill="none" stroke-linecap="round"/>'; }
-    baseY=139;
-  } else {
-    // 陶盆（盆沿 + 盆身，带暗部与高光，偏真实）
-    inner+='<path d="M24 112 L96 112 L88 150 L32 150 Z" fill="#c46a44"/>';
-    inner+='<path d="M24 112 L96 112 L93 124 L27 124 Z" fill="#a8542f" opacity="0.5"/>';
-    inner+='<path d="M19 102 L101 102 L96 114 L24 114 Z" fill="#b5623f"/>';
-    inner+='<ellipse cx="60" cy="106" rx="41" ry="5.5" fill="#3a2a1e"/>';
-    inner+='<path d="M32 117 L36 147" stroke="#e6a981" stroke-width="3" opacity="0.3" fill="none" stroke-linecap="round"/>';
-    baseY=105;
+  const f=Math.max(0,Math.min(1,Number(frac)||0)), id='gp'+(++_gpid)+'-';
+  const water=sp.kind==='water', tree=sp.kind==='tree', k=sp.key;
+  const n=v=>Number(v.toFixed(2));
+  const ref=s=>'url(#'+id+s+')';
+  const path=(d,fill,stroke,w=1,extra='')=>'<path d="'+d+'" fill="'+fill+'"'+(stroke?' stroke="'+stroke+'" stroke-width="'+w+'"':'')+' '+extra+'/>';
+  const ellipse=(x,y,rx,ry,fill,extra='')=>'<ellipse cx="'+n(x)+'" cy="'+n(y)+'" rx="'+n(rx)+'" ry="'+n(ry)+'" fill="'+fill+'" '+extra+'/>';
+  const line=(d,c,w=1)=>path(d,'none',c,w,'stroke-linecap="round" stroke-linejoin="round"');
+  const palettes={rose:['#ffbdc4','#d94d6b','#842c49'],peony:['#fff0ef','#ee9fb6','#b95078'],gardenia:['#fffef4','#eee8cf','#abae8a'],sunflower:['#fff3a0','#f3bd38','#c77d19'],chrys:['#fff5b5','#e5b946','#b58126'],lotus:['#fff4ef','#eeb1c3','#bb658f'],waterlily:['#fcf2ff','#c9a4df','#835aac'],orchid:['#fff0fa','#d49bc9','#924784'],lily:['#fff9f3','#f1ccd2','#cb8c9e'],tulip:['#ffe4cb','#ed9a95','#bf596b'],plum:['#ffd9de','#db657d','#9c354d'],peach:['#fff1ee','#f3b6c6','#d47e9c'],osmanthus:['#ffe8a6','#e8ac48','#be7828']};
+  const colors=palettes[k]||palettes.peach;
+  function grad(name,a,b,c){return '<linearGradient id="'+id+name+'" x1="0" y1="0" x2="1" y2="0.8"><stop stop-color="'+a+'"/><stop offset=".48" stop-color="'+b+'"/><stop offset="1" stop-color="'+c+'"/></linearGradient>';}
+  let defs=grad('leaf','#9aa96a','#54784f','#294e42')+grad('petal',...colors)+grad('pot','#d9b99a','#b58769','#76594b')+grad('bark','#b09b7b','#796b54','#4c493b')+grad('water','#91b7b1','#59888a','#395f6c');
+  defs+='<radialGradient id="'+id+'soil"><stop stop-color="#87725b"/><stop offset="1" stop-color="#463e33"/></radialGradient>';
+  function leaf(x,y,len,angle,width=.29,tone){
+    let s=path('M0 0 C'+n(-len*width)+' '+n(-len*.3)+' '+n(-len*width)+' '+n(-len*.76)+' 0 '+(-len)+' C'+n(len*width*.9)+' '+n(-len*.76)+' '+n(len*width)+' '+n(-len*.24)+' 0 0',tone||ref('leaf'));
+    s+=line('M0 -1 Q-1 '+n(-len*.5)+' 0 '+n(-len*.94),'#d1d8a0',.45);
+    for(let j=1;j<4;j++){let y1=-len*j/4;s+=line('M0 '+n(y1)+' l'+n(-len*width*.5)+' '+n(-len*.13)+' M0 '+n(y1)+' l'+n(len*width*.48)+' '+n(-len*.13),'#bcc990',.24);}
+    return '<g transform="translate('+n(x)+' '+n(y)+') rotate('+n(angle)+')">'+s+'</g>';
   }
-  if(isTree){
-    const trunkTop=baseY-(20+60*frac);
-    // 主干（略弯、下粗上细）+ 暗部，比光杆梯形更真实
-    inner+='<path d="M'+(cx-4)+' '+baseY+' Q '+(cx-2)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx-2)+' '+trunkTop+' L'+(cx+2)+' '+trunkTop+' Q '+(cx+2)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx+4)+' '+baseY+' Z" fill="#6b4a32"/>';
-    inner+='<path d="M'+(cx+0.5)+' '+baseY+' Q '+(cx+1)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx+1.5)+' '+trunkTop+' L'+(cx+3)+' '+trunkTop+' Q '+(cx+3)+' '+((baseY+trunkTop)/2).toFixed(1)+' '+(cx+4)+' '+baseY+' Z" fill="#543620" opacity="0.55"/>';
-    if(frac>=1) inner+=buildHead(sp.key,cx,trunkTop-6,0.95);
-    else if(frac>=0.7){ const rr=10+10*(frac-0.7)/0.3; inner+='<ellipse cx="'+cx+'" cy="'+(trunkTop-8).toFixed(1)+'" rx="'+(rr*1.15).toFixed(1)+'" ry="'+rr.toFixed(1)+'" fill="#5f9a5f" opacity="0.85"/><ellipse cx="'+(cx-rr*0.55).toFixed(1)+'" cy="'+(trunkTop-3).toFixed(1)+'" rx="'+(rr*0.7).toFixed(1)+'" ry="'+(rr*0.6).toFixed(1)+'" fill="#6fae6a" opacity="0.8"/>'; }
-    else if(frac>=0.2) inner+='<circle cx="'+cx+'" cy="'+(trunkTop-5)+'" r="6" fill="#6aa86a"/>';
-  } else if(water){
-    if(frac>=0.2){
-      if(sp.key==='waterlily') inner+='<ellipse cx="'+(cx-16)+'" cy="120" rx="28" ry="8" fill="#3f8a5a" opacity="0.9"/><ellipse cx="'+(cx+18)+'" cy="123" rx="22" ry="6" fill="#357a4e" opacity="0.85"/>';
-      if(sp.key==='lotus') inner+='<ellipse cx="'+(cx-20)+'" cy="121" rx="17" ry="5" fill="#3f8a5a" opacity="0.85"/><ellipse cx="'+(cx+18)+'" cy="123" rx="15" ry="4" fill="#357a4e" opacity="0.85"/>';
+  function flower(x,y,r,key=k,angle=0){
+    let s='', count=key==='sunflower'?22:key==='chrys'?29:key==='orchid'?5:key==='lily'?6: key==='plum'||key==='peach'?5:9;
+    let layers=['rose','peony','gardenia','chrys','lotus','waterlily'].includes(key)?3:1;
+    if(key==='tulip'){
+      s+=path('M-13 -15 Q-18 12 0 14 Q18 12 13 -15 Q5 -10 0 -18 Q-6 -11 -13 -15',ref('petal'),'#c98583',.4);
+      s+=path('M-11 -12 Q-5 1 0 14 Q6 0 11 -12 Q3 -7 -1 -11 Q-6 -8 -11 -12',ref('petal'),'#f8c9b8',.6);
+      s+=line('M-7 -9 Q-5 4 0 12 M6 -8 Q4 4 1 11','#fff0d9',.55);
+      return '<g transform="translate('+n(x)+' '+n(y)+') rotate('+angle+') scale('+n(r/17)+')">'+s+'</g>';
     }
-    if(frac>=1){ inner+=buildHead(sp.key, cx-12, 108, 0.82); inner+=buildHead(sp.key, cx+16, 111, 0.6); }
-    else if(frac>=0.7){ inner+=_bud(cx-12,108,_tint(sp.key),0.82); inner+=_bud(cx+16,111,_tint(sp.key),0.6); }
-    else if(frac>=0.2){ inner+=_bud(cx,116,'#6aa86a',0.6); }
-  } else {
-    // 多枝盆栽：7 根错落茎，高度/大小/出茎点都拉开，形成明显层次
-    const reach=60;
-    const stems=[
-      {dx:0,   tf:1.0,  sc:1.06, thr:0.18, lean:0},
-      {dx:-13, tf:0.85, sc:0.82, thr:0.30, lean:-1.3},
-      {dx:13,  tf:0.85, sc:0.82, thr:0.30, lean:1.3},
-      {dx:-22, tf:0.68, sc:0.64, thr:0.46, lean:-2.0},
-      {dx:22,  tf:0.68, sc:0.64, thr:0.46, lean:2.0},
-      {dx:-29, tf:0.52, sc:0.54, thr:0.60, lean:-1.5},
-      {dx:29,  tf:0.52, sc:0.54, thr:0.60, lean:1.5}
-    ];
-    function leafAt(x,y,side,sc){
-      const dir=side?1:-1;
-      const d='M'+x+' '+y+' Q '+(x+dir*14*sc)+' '+(y-3*sc)+' '+(x+dir*16*sc)+' '+(y-13*sc)+' Q '+(x+dir*6*sc)+' '+(y-9*sc)+' '+x+' '+y+' Z';
-      return '<path d="'+d+'" fill="'+(side?'#57a85a':'#4f9a52')+'"/>';
+    for(let layer=0;layer<layers;layer++){
+      let radius=r*(1-layer*.23), num=count-layer*2;
+      for(let j=0;j<num;j++){
+        const a=j*360/num+layer*23+Math.sin(j*4.7)*5, len=radius*(.92+.09*Math.sin(j*2.3+layer));
+        const width=len*(key==='chrys'?.13:key==='sunflower'?.22:key==='lily'?.32:key==='orchid'?.4:key==='lotus'||key==='waterlily'?.3:.58);
+        let d='M-1 2 C'+n(-width)+' '+n(-len*.17)+' '+n(-width)+' '+n(-len*.85)+' '+n(Math.sin(j)*len*.08)+' '+n(-len)+' C'+n(width)+' '+n(-len*.94)+' '+n(width*.82)+' '+n(-len*.2)+' 1 2Z';
+        s+='<g transform="rotate('+n(a)+')">'+path(d,ref('petal'),colors[2],.28)+line('M0 0 Q'+n(width*.23)+' '+n(-len*.45)+' 0 '+n(-len*.83),colors[0],.5)+'</g>';
+      }
     }
-    let drew=false;
-    stems.forEach(function(st){
-      if(frac<st.thr) return; drew=true;
-      const topX=cx+st.dx+st.lean*8;
-      const topY=baseY-(reach*st.tf*frac);
-      const midX=cx+st.dx*0.5+st.lean*4;
-      inner+='<path d="M'+(cx+st.dx)+' '+baseY+' Q '+midX.toFixed(1)+' '+((baseY+topY)/2).toFixed(1)+' '+topX.toFixed(1)+' '+topY.toFixed(1)+'" stroke="#4f8a4f" stroke-width="'+(2.2+1.6*frac*st.sc).toFixed(1)+'" fill="none" stroke-linecap="round"/>';
-      const ly1=baseY-(reach*st.tf*frac)*0.45, ly2=baseY-(reach*st.tf*frac)*0.7;
-      if(frac>=0.4){ inner+=leafAt(cx+st.dx*0.6, ly1, -1, 0.9*st.sc); inner+=leafAt(cx+st.dx*0.6, ly1+3, 1, 0.9*st.sc); }
-      if(frac>=0.6){ inner+=leafAt(midX, ly2, st.lean<0?-1:1, 0.75*st.sc); }
-      if(frac>=1) inner+=buildHead(sp.key, topX, topY, st.sc);
-      else if(frac>=0.7) inner+=_bud(topX, topY, _tint(sp.key), 0.9*st.sc);
-      else if(frac>=0.2) inner+=_bud(topX, topY, '#6aa86a', 0.6*st.sc);
+    if(key==='rose'||key==='peony'||key==='gardenia'){
+      s+=path('M-4 1 C-8 -7 4 -8 5 -2 C7 4 -3 7 -4 1 C-4 -3 2 -3 2 0',ref('petal'),colors[2],.6);
+    }else if(key==='orchid'){
+      s+=path('M-2 -1 C-14 4 -6 15 0 10 C7 14 12 3 2 -1',ref('petal'),'#884475',.5)+ellipse(0,3,2,3,'#d3ae63');
+    }else if(key==='lily'){
+      for(let j=0;j<6;j++){let a=j*Math.PI/3,xx=Math.cos(a)*r*.3,yy=Math.sin(a)*r*.3;s+=line('M0 2 Q'+n(xx*.4)+' '+n(yy-2)+' '+n(xx)+' '+n(yy),'#85935a',.6)+ellipse(xx,yy,1.1,.65,'#a77739');}
+    }else{
+      const rr=key==='sunflower'?r*.43:key==='chrys'?r*.13:r*.16;
+      s+=ellipse(0,0,rr,rr,key==='sunflower'?'#574431':'#d8b655');
+      const dots=key==='sunflower'?95:13;
+      for(let j=0;j<dots;j++){const a=j*2.39996, dist=rr*Math.sqrt((j+.5)/dots)*.9;s+=ellipse(Math.cos(a)*dist,Math.sin(a)*dist,key==='sunflower'?.48:.38,key==='sunflower'?.6:.38,j%3?'#bba16a':'#f3d689');}
+    }
+    return '<g transform="translate('+n(x)+' '+n(y)+') rotate('+angle+')">'+s+'</g>';
+  }
+  const base=water?139:tree?151:137;
+  let s=ellipse(80,174,tree?58:43,5,'#253b32','opacity=".1"');
+  if(tree){s+=ellipse(80,154,59,10,'#819276','opacity=".2"')+ellipse(80,153,48,6,'#6f805a','opacity=".28"');}
+  else if(water){s+=path('M22 139 Q25 169 48 173 Q80 181 112 173 Q135 169 138 139Z',ref('pot'))+ellipse(80,139,58,12,'#c4c5a4')+ellipse(80,139,54,9,ref('water'))+line('M38 141 Q60 147 89 144','#c5dbcb',.7);}
+  else{s+=path('M46 137 L52 170 Q80 179 108 170 L114 137Z',ref('pot'))+path('M44 132 Q80 125 116 132 L114 141 Q80 148 46 141Z',ref('pot'))+ellipse(80,133,35,6,'#d6b796')+ellipse(80,133,31,4.6,ref('soil'))+line('M54 148 L58 166 M61 151 L63 168','#e8ceb0',.6);}
+  if(f<.2){s+=ellipse(80,base-2,4.5,2.8,'#9a7951')+line('M78 '+(base-4)+' q3 1 3 4','#d1b487',.6);}
+  else if(tree){
+    const scale=.32+.68*f;
+    let t='';
+    t+=path('M74 153 C83 130 74 119 81 101 C88 82 80 68 86 47 L88 46 C86 73 94 88 87 108 C82 126 86 141 89 153 Q82 150 74 153',ref('bark'));
+    t+=line('M78 151 Q83 133 81 120 M85 103 Q91 81 86 61','#c1aa83',.7);
+    const branches=[[83,116,47,84,30,76],[85,99,111,70,127,67],[85,79,63,52,49,47],[86,65,106,47,116,38],[81,130,108,107,126,104]];
+    branches.forEach((b,i)=>{t+=line('M'+b[0]+' '+b[1]+' Q'+b[2]+' '+b[3]+' '+b[4]+' '+b[5],ref('bark'),3-i*.3);});
+    if(k==='pine'){
+      const clusters=[[83,39,18],[58,56,23],[109,53,22],[34,79,24],[69,84,24],[111,78,25],[123,103,20],[54,107,23]];
+      clusters.forEach(([x,y,r],ci)=>{t+=line('M'+(x-12)+' '+(y+5)+' Q'+x+' '+(y-1)+' '+(x+15)+' '+(y+2),'#645e45',1.4);for(let j=0;j<52;j++){const a=j*2.399,dist=r*Math.sqrt((j+.5)/52),xx=x+Math.cos(a)*dist,yy=y+Math.sin(a)*dist*.44; const len=4+j%4;t+=line('M'+n(xx)+' '+n(yy+3)+' l'+n(Math.sin(j)*len)+' '+(-len),['#345c4e','#507762','#769072'][j%3],.7);}});
+    }else if(k==='willow'){
+      for(let j=0;j<18;j++){const x=26+j*6.3,y=61+Math.sin(j*.75)*12,len=42+(j*17%30);t+=line('M86 59 Q'+n(x)+' 34 '+n(x)+' '+n(y)+' Q'+n(x-6)+' '+n(y+len*.55)+' '+n(x-3)+' '+n(y+len),'#7b8c58',.7);for(let h=0;h<10;h++){const yy=y+h*len/11,xx=x-3*Math.sin(h/10*Math.PI);t+=leaf(xx,yy,7.5,h%2?155:205,.14,h%3?'#6e8f59':'#9da969');}}
+    }else{
+      for(let j=0;j<(k==='osmanthus'?105:57);j++){
+        const a=j*2.39996,dist=Math.sqrt((j+.5)/(k==='osmanthus'?105:57)),x=82+Math.cos(a)*dist*52,y=73+Math.sin(a)*dist*39;
+        t+=line('M'+n(x)+' '+n(y+7)+' l'+n(Math.sin(a)*7)+' -12','#867355',.55);
+        if(k==='osmanthus'||k==='peach')t+=leaf(x,y+7,k==='osmanthus'?13:9,j*137,.25);
+        if(f>=1){if(k==='osmanthus'){for(let q=0;q<3;q++)t+=flower(x+q*3-3,y+(q%2)*3,2.4,k);}else t+=flower(x,y,4.2+(j%3)*.7,k,j*41);}
+        else if(f>=.7)t+=ellipse(x,y,1.5,2,colors[1]);
+        else t+=leaf(x,y,7,j*71,.22);
+      }
+    }
+    s+='<g transform="translate('+n(80*(1-scale))+' '+n(153*(1-scale))+') scale('+n(scale)+')">'+t+'</g>';
+    for(let j=0;j<16;j++){let x=39+j*5.3;s+=line('M'+n(x)+' 155 q-3 -4 '+(j%2?2:-4)+' '+(-4-j%5),'#758761',.6);}
+  }else if(water){
+    const pads=[[54,138,25],[102,141,23],[85,130,19]];
+    pads.forEach(([x,y,r],i)=>{if(f<.45&&i>0)return;s+=path('M'+x+' '+y+' l'+r+' -2 A'+r+' '+n(r*.3)+' 0 1 0 '+n(x+r*.8)+' '+n(y+r*.18)+' Z',ref('leaf'));for(let j=0;j<7;j++){let a=j*Math.PI/3.5;s+=line('M'+x+' '+y+' l'+n(Math.cos(a)*r*.85)+' '+n(Math.sin(a)*r*.23),'#a3b58a',.4);}});
+    const heads=k==='lotus'?[[78,74,24],[111,106,12]]:[[76,122,23],[113,133,12]];
+    heads.forEach(([x,y,r],i)=>{if(f<.7&&i)return;const yy=base-(base-y)*f;s+=line('M'+(x-5)+' 140 Q'+(x+3)+' 110 '+x+' '+n(yy),'#5f7d59',1.4);if(f>=1)s+='<g transform="translate('+x+' '+y+') scale(1 .67)">'+flower(0,0,r,k)+'</g>';else s+=leaf(x,yy+4,10,0,.4,f>=.7?ref('petal'):ref('leaf'));});
+    if(k==='lotus'&&f>=.45){s+=line('M60 139 Q50 110 42 102','#70845c',1.2)+ellipse(42,101,20,6,ref('leaf'));for(let j=0;j<9;j++)s+=line('M42 101 l'+n(Math.cos(j*.7)*18)+' '+n(Math.sin(j*.7)*5),'#bcc694',.4);}
+  }else{
+    const tall=k==='sunflower'||k==='lily'||k==='tulip', orchid=k==='orchid';
+    const stems=orchid?[[93,57,16],[112,80,13],[79,91,10]]:tall?[[78,49,24],[108,80,17]]:[[62,71,23],[108,88,18],[83,52,25]];
+    stems.forEach(([x,y,r],i)=>{
+      if(f<.45&&i>0)return;
+      const yy=base-(base-y)*f,xx=80+(x-80)*f;
+      s+=line('M80 134 Q'+(xx-9)+' '+n((base+yy)/2)+' '+n(xx)+' '+n(yy),'#56794b',k==='sunflower'?2.5:1.5);
+      if(f>=.45){s+=leaf(xx-4,yy+(base-yy)*.66,tall?25:20,-57,k==='sunflower'?.43:.26);s+=leaf(xx-1,yy+(base-yy)*.43,tall?23:18,54,k==='sunflower'?.43:.26);}
+      if(f>=1)s+=flower(x,y,r,k,i?14:-8);
+      else if(f>=.7){s+=leaf(xx,yy+3,12,0,.43,ref('petal'))+leaf(xx,yy+5,8,-24,.2)+leaf(xx,yy+5,7,24,.2);}
+      else{s+=leaf(xx,yy+3,11,-48,.3)+leaf(xx,yy+3,9,48,.3);}
     });
-    if(!drew) inner+='<ellipse cx="'+cx+'" cy="'+(baseY-3)+'" rx="6" ry="4" fill="#7a5a3a"/>';
+    if((orchid||k==='tulip'||k==='lily')&&f>=.45){for(let j=0;j<5;j++)s+=leaf(78+j,135,(orchid?56:37)*f,-48+j*23,.09);}
+    if(k==='rose'&&f>=.7)s+=line('M78 114 l4 -3 M75 102 l-3 -3','#887552',.8);
   }
-  return '<svg viewBox="0 0 '+W+' '+H+'" width="96" height="132" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+  return '<svg class="garden-botanical" viewBox="0 0 160 188" width="136" height="160" role="img" aria-label="'+sp.name+'" xmlns="http://www.w3.org/2000/svg"><defs>'+defs+'</defs>'+s+'</svg>';
 }
+
 function gardenStageOf(frac){ let s=GARDEN_STAGES[0]; for(const st of GARDEN_STAGES){ if(frac>=st.min) s=st; } return s; }
 // 某项目在 [from,to] 区间内累计的分钟（任务 mins + 复利轨道 logs）
 function gardenProjMinutes(proj, from, to){

@@ -2068,3 +2068,7 @@ body[data-season="水"]::after{background:linear-gradient(90deg,#5bbcd6,#7fb0d8)
 #gardenPanel .garden-card .btn.sm{margin-top:8px}
 #gardenPanel .garden-card .hint.sm{font-size:11px;margin-top:8px}
 #gardenPanel .garden-grid.mine .garden-card{background:rgba(125,211,168,.06)}
+
+/* Botanical illustrations */
+#gardenPanel .gc-plant{display:flex;align-items:center;justify-content:center;min-height:168px;margin:4px 0 8px;filter:none;background:radial-gradient(ellipse at 50% 68%,rgba(164,180,140,.10),transparent 68%)}
+#gardenPanel .gc-plant .garden-botanical{display:block;width:136px;max-width:100%;height:auto;overflow:visible}
