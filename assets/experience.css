@@ -1,0 +1,88 @@
+/* Consistent visual hierarchy across existing themes, without moving features. */
+:root{--ux-radius:12px;--ux-control:8px;--ux-gap:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
+html[data-theme] body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+.phead{font-size:24px;line-height:1.35;margin-bottom:20px}
+.phead .psub{font-size:13px;line-height:1.6}
+.panel,html[data-theme] .panel{border-radius:var(--ux-radius);padding:20px;margin-bottom:var(--ux-gap);box-shadow:0 2px 9px rgba(0,0,0,.035)}
+.panel:before{display:none}
+.panel h2,html[data-theme] .panel h2{font-size:17px;color:var(--txt);line-height:1.4;letter-spacing:0;text-transform:none}
+.hint,.note,.rechint,.fo-note,.lp-note,.tm-light-tip{font-size:12px;line-height:1.65}
+.panel .panel{box-shadow:none}
+.tabbar,.gp-tabs{display:flex;gap:6px;padding:4px;background:var(--panel2);border-radius:10px;margin:0 0 16px;flex-wrap:wrap}
+.tabbar .tab,.gp-tabs .gp-tab{font:inherit;font-size:14px;min-height:40px;padding:8px 14px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--dim);box-shadow:none}
+.tabbar .tab.on,.gp-tabs .gp-tab.on{background:var(--panel);color:var(--txt);border-color:var(--line);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.jh-tabs{background:transparent;border-radius:0;border-bottom:1px solid var(--line);padding:0 0 8px}
+.jh-tabs .tab.on{background:var(--panel2);box-shadow:none}
+.btn,html[data-theme] .btn{font-family:inherit;border-radius:var(--ux-control);min-height:36px;padding:7px 12px;box-shadow:none}
+.btn.ghost,html[data-theme] .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+input,select,textarea{font:inherit;max-width:100%;border-radius:var(--ux-control)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--career);outline-offset:3px}
+.daytask{display:flex;align-items:center;gap:12px;border-left-width:2px;background:var(--panel);padding:12px;cursor:default}
+.daytask .dt-t{flex:1;min-width:0;font-size:14px;overflow-wrap:anywhere}
+.daytask .dt-meta{font-size:12px;line-height:1.5;color:var(--dim)}
+.dt-chk,.dt-edit,.dt-x,.dt-undo{border:0;background:transparent;color:var(--txt);min-width:36px;min-height:36px;cursor:pointer;font:inherit}
+.daytask.done .dt-t{text-decoration:line-through;color:var(--dim)}
+.lc-track-choice{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.lc-priority{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--dim);padding:5px;cursor:pointer}
+.lc-priority[aria-pressed="true"]{background:var(--panel2);color:var(--txt);font-weight:600}
+.lc-ic-row{align-items:stretch;gap:12px;flex-wrap:wrap}
+.lc-expand-body{flex-wrap:wrap;gap:8px}
+.ux-record-notice{position:sticky;top:0;z-index:40;display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:var(--panel);border:2px solid var(--gold);padding:10px 14px;border-radius:10px;margin-bottom:16px;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.ux-record-notice[hidden]{display:none}
+.ux-record-notice span{flex:1;font-size:12px}
+.ux-inline-editor{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;min-width:0}
+.ux-inline-editor input{flex:1;min-width:140px;padding:8px;background:var(--panel);color:var(--txt);border:1px solid var(--line)}
+.ux-dialog{border:1px solid var(--line);border-radius:16px;padding:24px;background:var(--panel);color:var(--txt);width:min(560px,94vw);max-height:90vh;overflow:auto}
+.ux-dialog::backdrop{background:rgba(12,24,32,.4)}
+.ux-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.ux-dialog h2{font-size:20px;margin:0}
+.ux-dialog label{display:flex;flex-direction:column;gap:6px;font-size:13px;margin-bottom:12px}
+.ux-dialog input,.ux-dialog select{width:100%;min-height:40px;padding:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
+.ux-dialog input[type="checkbox"]{width:18px;min-height:18px}
+.ux-dialog .cal-check{flex-direction:row;align-items:center;gap:8px}
+.ux-dialog .cal-time-field[hidden]{display:none}
+.ux-dialog-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.ux-error{color:var(--warn);font-size:13px}
+.cal-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.cal-toolbar,.cal-nav,.cal-views{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cal-toolbar{justify-content:space-between;margin-bottom:12px}
+.cal-nav h2{margin:0;font-family:inherit;font-weight:600;font-size:17px;line-height:1.4;min-width:100px}
+.cal-datebar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;font-size:12px;color:var(--dim)}
+.cal-datebar input{padding:6px;background:var(--panel);color:var(--txt);border:1px solid var(--line)}
+.cal-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:600px}
+.cal-month{min-width:600px}
+.cal-weekdays,.cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-weekdays{background:var(--panel2);text-align:center;padding:10px 0;font-size:12px;color:var(--dim)}
+.cal-cell{min-height:90px;border-top:1px solid var(--line);border-right:1px solid var(--line);padding:5px;background:var(--panel)}
+.cal-cell:nth-child(7n){border-right:0}
+.cal-cell.outside{background:var(--panel2)}
+.cal-cell.selected{box-shadow:inset 0 0 0 2px var(--career)}
+.cal-cell-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.cal-date,.cal-add,.cal-more{border:0;background:transparent;color:var(--txt);font:inherit;cursor:pointer;padding:5px;min-height:30px;border-radius:6px}
+.cal-cell.today .cal-date,.cal-date.today{background:var(--career);color:var(--panel);font-weight:700}
+.cal-add{color:var(--dim)}
+.cal-event{display:flex;gap:4px;text-align:left;width:100%;border:0;border-left:3px solid var(--career);border-radius:4px;background:var(--panel2);color:var(--txt);padding:5px;margin:3px 0;cursor:pointer;font-size:11px}
+.cal-event b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;flex:1}
+.cal-event span{flex:none}
+.cal-event.is-done{opacity:.6;border-left-color:var(--dim)}
+.cal-event.is-done b,.cal-done-text{text-decoration:line-through}
+.cal-more{font-size:11px;color:var(--career)}
+.cal-time-grid{min-width:640px}
+.cal-time-head,.cal-time-row{display:grid;grid-template-columns:52px repeat(var(--cal-cols),minmax(0,1fr))}
+.cal-time-head{position:sticky;top:0;z-index:1;background:var(--panel2);align-items:center;text-align:center;padding:6px 0;font-size:12px}
+.cal-time-row{border-top:1px solid var(--line)}
+.cal-hour{font-size:11px;color:var(--dim);padding:8px 4px;text-align:center}
+.cal-slot{min-height:44px;border-left:1px solid var(--line);padding:3px;position:relative}
+.cal-slot-add{width:100%;min-height:28px;background:transparent;color:var(--dim);border:0;cursor:pointer;font-size:12px;border-radius:4px}
+.cal-slot-add:hover{background:var(--panel2);color:var(--txt)}
+.cal-agenda{margin-top:20px}
+.cal-agenda h3{font-size:15px;margin:0 0 8px}
+.cal-agenda-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.cal-agenda-row>div,.cal-agenda-row>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.cal-agenda-row small{display:block;color:var(--dim);font-size:12px;margin-top:4px}
+.cal-loose{margin-top:20px}
+.cal-loose summary{cursor:pointer;font-size:13px;color:var(--dim)}
+@media(max-width:760px){.phead{font-size:21px}.panel,html[data-theme] .panel{padding:16px}.panel h2,html[data-theme] .panel h2{font-size:16px}.btn,html[data-theme] .btn{min-height:40px}.daytask{flex-wrap:wrap;gap:6px}.daytask .dt-meta{flex-basis:100%;order:5;padding-left:42px}.cal-toolbar{gap:12px}.cal-views{margin-left:auto}.cal-form-grid{gap:0 8px}.cal-time-grid:has(.cal-time-head>button:only-of-type){min-width:0}.cal-event{min-height:28px}.ux-dialog{padding:18px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+html[data-theme] .panel.fortune-panel,html[data-theme] .panel.ia-detail-group{padding:0}

@@ -2493,6 +2493,7 @@ function trackStage(totalMin, realms){
 function practiceDays(key){return new Set(practiceLogs(key).map(x=>x.d)).size;}
 function lifeVariant(key){const t=LIFE_TRACKS[key];return t.variants[seededIndex(recordDateStr()+key,t.variants.length)];}
 function addLifePractice(key,min){
+  trackUsage('action','记录练习:'+key);
   const t=LIFE_TRACKS[key];if(!t)return;min=Math.max(1,+min||5);const d=recordDateStr(),lc=ensureLifeCompound();
   const yiBonus=(key==='travel'&&yiTravelActive());
   const effMin=yiBonus?Math.round(min*1.2):min;
@@ -2919,20 +2920,25 @@ function writeUsage(v){try{localStorage.setItem(USAGE_KEY,JSON.stringify(v));}ca
 function trackUsage(kind,key){
   if(!kind||!key)return;const u=readUsage(),id=kind+':'+key,now=new Date().toISOString();
   u.first=u.first||now;u.last=now;u.events=u.events||{};
-  const row=u.events[id]||{kind,key,count:0,last:''};row.count++;row.last=now;u.events[id]=row;writeUsage(u);
+  const row=u.events[id]||{kind,key,count:0,last:''};row.count++;row.last=now;u.events[id]=row;
+  u.daily=u.daily||{};const day=todayStr();u.daily[day]=u.daily[day]||{};u.daily[day][id]=(u.daily[day][id]||0)+1;
+  u.dailySince=u.dailySince||day;Object.keys(u.daily).sort().slice(0,-90).forEach(d=>delete u.daily[d]);writeUsage(u);
   if(location.hash==='#data')renderUsageInsights();
 }
 function usageLabel(row){
-  const names={page:'页面',group:'展开',action:'操作'};
+  const names={page:'页面',group:'展开',action:'操作',tab:'子页'};
   const pages={dashboard:'仪表盘',energy:'精力恢复',action:'短期任务',current:'短期任务',week:'本周卷册',longterm:'长期主线',ledger:'钱庄',journey:'角色设定',growth:'修行成长',data:'设置'};
   return (names[row.kind]||row.kind)+' · '+(row.kind==='page'?(pages[row.key]||row.key):row.key);
 }
 function renderUsageInsights(){
-  const box=document.getElementById('usageInsightsBox');if(!box)return;const u=readUsage(),rows=Object.values(u.events||{}).sort((a,b)=>b.count-a.count),pages=rows.filter(x=>x.kind==='page'),groups=rows.filter(x=>x.kind==='group');
-  if(!rows.length){box.innerHTML='<div class="hint">还没有使用记录。之后打开页面、展开低频模块和执行关键操作时，会仅在本机累计次数。</div>';return;}
-  const top=rows.slice(0,8).map(x=>'<div class="usage-row"><span>'+escHtml(usageLabel(x))+'</span><b>'+x.count+' 次</b></div>').join('');
-  const cold=pages.filter(x=>x.count<=1).slice(0,4).map(x=>escHtml(usageLabel(x).replace('页面 · ',''))).join('、');
-  box.innerHTML='<div class="usage-summary"><span>已记录 '+rows.reduce((n,x)=>n+x.count,0)+' 次交互</span><span>'+pages.length+' 个页面 · '+groups.length+' 个折叠区</span></div>'+top+(cold?'<div class="hint" style="margin-top:10px">低频候选：'+cold+'。建议至少观察两周后再决定删除。</div>':'');
+  const box=document.getElementById('usageInsightsBox');if(!box)return;
+  const u=readUsage(),rows=Object.values(u.events||{}).sort((a,b)=>b.count-a.count);
+  if(!rows.length){box.innerHTML='<p class="hint">还没有本机使用记录。不会把缺失记录视为没有使用。</p>';return;}
+  const daily=u.daily||{},cut=calAdd(todayStr(),-13),recent={};
+  Object.keys(daily).filter(d=>d>=cut).forEach(d=>Object.entries(daily[d]).forEach(([k,v])=>recent[k]=(recent[k]||0)+v));
+  box.innerHTML='<p class="hint">累计记录 '+escHtml((u.first||'').slice(0,10))+' 至 '+escHtml((u.last||'').slice(0,10))+'。旧版只覆盖页面和少数操作，次数不等于真实使用率，不据此自动判断功能去留。近14天数据从 '+escHtml(u.dailySince||'本次更新')+' 起采集，缺失日期不补记。</p>'+
+    '<div class="usage-row"><b>页面 / 操作</b><b>累计 / 近14天</b></div>'+rows.map(r=>'<div class="usage-row"><span>'+escHtml(usageLabel(r))+'</span><b>'+r.count+' / '+(recent[r.kind+':'+r.key]||0)+'</b></div>').join('')+
+    '<button class="btn ghost" onclick="usageExport()">导出本机统计</button>';
 }
 function clearUsageInsights(){if(!confirm('只清除本机使用统计，不影响游戏存档。确定吗？'))return;localStorage.removeItem(USAGE_KEY);renderUsageInsights();}
 function setupUsageTracking(){

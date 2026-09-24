@@ -335,23 +335,15 @@ function delYearQuest(i){
   S.year=S.year.filter(function(_,idx){return idx!==i;});
   save();render();
 }
-function editYearGoal(i){
+function editYearGoal(i,anchor){
   const c=S.year[i]; if(!c) return;
   const used=c.editCount||0, MAX=3;
   if(used>=MAX){ alert('该年目标已用完 '+MAX+' 次修改机会，不再支持修改。'); return; }
-  const remaining=MAX-used;
-  const nv=prompt('修改年目标（剩余 '+remaining+' 次）：\n注意：修改后所有分析将基于新标题重新生成。', c.t);
-  if(nv===null || !nv.trim() || nv.trim()===c.t) return;
-  c.t=nv.trim();
-  c.editCount=used+1;
-  try{ save(); }catch(e){}
-  renderLongterm();
-  celebrateTask('✏️ 年目标已修改，分析已刷新');
+  startInlineRename(anchor,c.t,nv=>{c.t=nv;c.editCount=used+1;save();renderLongterm();});
 }
-function renameQuest(kind,idx){
-  const o = kind==='year'?S.year[idx]:(kind==='month'?S.month:S.week);
-  const nv=prompt('重命名：',o.t);
-  if(nv!==null && nv.trim()){ o.t=nv.trim(); save();render(); }
+function renameQuest(kind,idx,anchor){
+  const o=kind==='year'?S.year[idx]:(kind==='month'?S.month:S.week);
+  if(o)startInlineRename(anchor,o.t,nv=>{o.t=nv;save();render();});
 }
 function pickMain(){
   const open=S.daily.filter(x=>!isDone(x, todayStr()) && (x.a==='CAREER'||x.a==='MIND'));
@@ -1043,7 +1035,7 @@ function renderDayTasks(){
   const el=document.getElementById('dayTaskList'); if(!el) return;
   const d=todayStr();
   const tasks=S.dayTasks||[];
-  const active=tasks.filter(x=>!x.done);   // 未完成：持续显示（含跨天/逾期）
+  const active=tasks.filter(x=>!x.done && (!x.schedule || x.schedule.date<=d));   // 未完成：持续显示（含跨天/逾期）
   const done=tasks.filter(x=>x.done).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
   const yesterday=addDays(d,-1);
   const doneToday=done.filter(x=>(x.doneDate||d)===d);
@@ -1059,11 +1051,12 @@ function renderDayTasks(){
     const meta=[];
     if(x.xp) meta.push(ao.icon+' +'+(x.xp)+' XP · '+ao.name);
     if(due) meta.push('⏰ 截止 '+fmtMD(due));
+    if(x.schedule)meta.push('📅 '+escHtml(calScheduleLabel(x.schedule)));
     if(overdue) meta.push('已逾期');
     if(isDone && x.doneDate) meta.push('完成于 '+fmtMD(x.doneDate));
     const clickAction=isDone?('undoDoneDayTask(\''+x.id+'\')'):('toggleDayTask(\''+x.id+'\')');
-    return '<div class="daytask'+(isDone?' done':'')+' a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'" onclick="'+clickAction+'">'
-      +'<span class="dt-chk">'+(isDone?'✓':'○')+'</span>'
+    return '<div class="daytask'+(isDone?' done':'')+' a-'+(x.a||'MIND').toLowerCase()+(overdue?' overdue':'')+'">'
+      +'<button class="dt-chk" onclick="'+clickAction+'" aria-label="'+(isDone?'恢复未完成':'完成任务')+'">'+(isDone?'✓':'○')+'</button>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
       +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
       +(isDone?'<span class="dt-undo" onclick="event.stopPropagation();undoDoneDayTask(\''+x.id+'\')" title="恢复未完成">↩</span>':'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>')
@@ -1103,6 +1096,7 @@ function editDayTaskHtml(x){
     +'<select id="editDayTaskAttr" class="dt-edit-attr" title="经验值归属属性">'+optAttrs(x.a)+'</select>'
     +'<input type="date" id="editDayTaskDue" class="dt-edit-due" title="截止日期（可选）" value="'+(x.due||'')+'">'
     +'<input type="number" id="editDayTaskXp" class="dt-edit-xp" value="'+(x.xp||10)+'" min="1" title="完成经验值 XP">'
+    +'<button class="btn xs ghost" onclick="openCalendarEditor(\''+x.id+'\')">安排日期 / 时间</button>'
     +'<button class="btn xs primary" onclick="saveDayTaskEdit(\''+x.id+'\')">保存</button>'
     +'<button class="btn xs ghost" onclick="cancelDayTaskEdit()">取消</button>'
     +'</div></div>';
@@ -1118,6 +1112,7 @@ function addDayTask(){
   const xp=Math.max(1, parseInt((xpEl&&xpEl.value)||'10')||10);
   S.dayTasks=S.dayTasks||[];
   S.dayTasks.push({id:id(), t, a, due, xp, d:todayStr(), done:false, from:'manual'});
+  trackUsage('action','添加今日任务');
   if(inp) inp.value=''; if(attrEl) attrEl.value='MIND'; if(dueEl) dueEl.value=''; if(xpEl) xpEl.value='10';
   save(); renderDayTasks();
 }
@@ -1127,6 +1122,7 @@ function toggleDayTask(uid){
   const a=t.a||'MIND';
   const ao=ATTRS[a]||ATTRS.MIND;
   t.done=!t.done;
+  trackUsage('action',t.done?'完成今日任务':'恢复今日任务');
   if(t.done){
     t.doneDate=todayStr();
     grant(a, xp);
@@ -1558,7 +1554,7 @@ function checklistBlock(c,i,kind,sub){
     ? `<span class="qt" onclick="toggleYearOpen(${i})">${c.t}<span class="ptag">⏸ 休眠</span></span>`
     : (isSimpleYear
         ? `<span style="display:inline-flex;align-items:center;cursor:pointer" onclick="toggleYearDone(${i})"><span style="display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-radius:5px;text-align:center;line-height:15px;margin-right:8px">${c.done?'✔':''}</span><span class="qt">${c.t}</span></span>`
-        : `<span class="qt" onclick="renameQuest('${kind}',${i})">${c.t}</span>`);
+        : `<span class="qt" onclick="renameQuest('${kind}',${i},this)">${c.t}</span>`);
   const prog = paused?'—':(total?doneEv+'/'+total+' 项':(isSimpleYear?(c.done?'✅ 完成':'目标'):'暂无'));
 
   if(collapsed){
@@ -1899,7 +1895,7 @@ function yearAnalysisCard(c,i){
   }
   const editUsed=c.editCount||0, EDIT_MAX=3, editRemaining=EDIT_MAX-editUsed;
   const editBtn = editRemaining>0
-    ? '<span class="ya-edit" onclick="editYearGoal('+i+')" title="修改年目标（3次限制）">✏️ '+editRemaining+'/'+EDIT_MAX+'</span>'
+    ? '<span class="ya-edit" onclick="editYearGoal('+i+',this)" title="修改年目标（3次限制）">✏️ '+editRemaining+'/'+EDIT_MAX+'</span>'
     : '<span class="ya-edit done" title="已用完修改机会">✏️ 0/'+EDIT_MAX+'</span>';
   return '<div class="ya-card'+(paused?' paused':'')+'">'
     +'<div class="ya-head">'+head+'<span class="ya-track-wrap">'+trackTag+(c.done?'<span class="ya-done">✔ 完成</span>':'')+editBtn+'<span class="qdel" onclick="delYearQuest('+i+')" title="删除">×</span></span></div>'
@@ -1938,6 +1934,7 @@ function renderLongterm(){
   try{ renderDayunNote(); }catch(e){ console.warn('dayunNote',e); }
 }
 function switchLtTab(tab){
+  window._uxLtTab=tab;
   const order=['month','year','decade'];
   order.forEach(t=>{
     const p=document.getElementById('lt'+t.charAt(0).toUpperCase()+t.slice(1));
@@ -2065,7 +2062,7 @@ function toggleTodayMain(k){
   else{ p.main.push(k); }
   save(); renderTodayCockpit(true); try{ renderLifeCompound(true); }catch(e){}
 }
-function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(); }
+function clearTodayMain(){ const p=ensureTodayPlan(); p.main=[]; save(); renderTodayCockpit(true); }
 const TRACK_LIGHT_HINTS={
   singing:['今天就花一些时间，唱一唱自己喜欢的歌吧。','让声音在房间里走一圈，不必唱给别人听。','选一首会让自己轻轻晃起来的歌。','哪怕只唱五分钟，也算今天被歌声吻过。'],
   piano:['今天弹一小段，让手指先醒过来。','打开琴盖，只练一个乐句也很好。','听一听琴声怎么把房间填满。','把最卡的两小节放慢一半。'],
@@ -2092,11 +2089,8 @@ function cockpitCandidates(){
   return out;
 }
 function todayMainOrRecord(k){
-  const sel=todayMainKeys();
-  const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0;
-  if(sel.indexOf(k)<0){ toggleTodayMain(k); _lcOpenTrack=k; renderLifeCompound(true); }  // 未点亮 → 点亮并立即展开时间记录器
-  else if(m===0){ toggleTodayMain(k); _lcOpenTrack=null; renderLifeCompound(true); }      // 已点亮未填时间 → 再点取消点亮
-  else { _lcOpenTrack=(_lcOpenTrack===k)?null:k; renderLifeCompound(true); }             // 已点亮已填时间 → 展开/收起记录器
+  _lcOpenTrack=(_lcOpenTrack===k)?null:k;
+  renderLifeCompound(true);
 }
 function renderTodayCockpit(force){
   const detail=document.getElementById('todayDetailCockpit'); if(!detail) return;
@@ -2110,12 +2104,12 @@ function renderTodayCockpit(force){
     if(m>0) cls.push('lit');
     if(!on && m===0) cls.push('dim');
     if(_lcOpenTrack===k) cls.push('open');
-    return '<button class="'+cls.join(' ')+'" data-k="'+k+'" onclick="todayMainOrRecord(\''+k+'\')" title="'+escHtml(t.n)+' · 建议 '+t.rec+' 分钟">'
+    return '<div class="lc-track-choice"><button class="'+cls.join(' ')+'" data-k="'+k+'" onclick="todayMainOrRecord(\''+k+'\')" title="'+escHtml(t.n)+' · 建议 '+t.rec+' 分钟">'
       +'<span class="lc-ic">'+t.ic+'</span>'
       +'<span class="lc-ic-name">'+escHtml(t.n)+'</span>'
       +(on && m===0?'<span class="lc-ic-tick">✓</span>':'')
       +(m>0?'<span class="lc-ic-badge">'+m+'</span>':'')
-      +'</button>';
+      +'</button><button class="lc-priority" aria-pressed="'+on+'" onclick="toggleTodayMain(\''+k+'\')">'+(on?'✓ 今日重点':'设为重点')+'</button></div>';
   };
   const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return m>=(t.rec||20); }).length;
   const expandHtml=_lcOpenTrack?(function(){
@@ -2129,8 +2123,8 @@ function renderTodayCockpit(force){
       +'<span class="lc-unit">分钟</span>'
       +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
       +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
-      +(m?'<button class="btn xs ghost lc-undo" onclick="clearLifeToday(\''+k+'\')" title="撤销当天这条轨道的全部记录">↺</button>':'')
-      +'</div></div>';
+      +(m?'<button class="btn xs ghost lc-undo" onclick="undoLastLifePractice(\''+k+'\')" title="仅撤销当天最近一次手动记录">撤销上次</button>':'')
+      +'</div>'+(m?'<details class="hint"><summary>更多记录操作</summary><button class="btn ghost" onclick="confirmClearLifeToday(\''+k+'\')">清除当天手动记录</button></details>':'')+'</div>';
   })():'';
   const dateBarHtml='<div class="tm-recbar">'
     +'<span class="reclabel">记录于</span>'
@@ -2139,19 +2133,20 @@ function renderTodayCockpit(force){
     +'<span class="rechint" id="recHint">'+(REC_DATE?'正在补录 '+fmtMD(REC_DATE)+'：点亮与分钟都会记到那一天。补完点「今天」切回。':'默认记今天；要补录过去某天，先选日期再勾任务。选好后会显示那天的点亮情况与已记分钟。')+'</span>'
     +'</div>';
   // 增量更新：已初始化且非结构变更时只更新动态值，避免整体重绘造成的闪动
-  if(detail.dataset.init==='1' && !force){
+  if(detail.dataset.init==='1' && !force && detail.dataset.recorded===String(!!(_lcOpenTrack&&practiceViewMinutes(_lcOpenTrack)))){
     const titleEl=detail.querySelector('#tmTitleMain');
     if(titleEl) titleEl.textContent= sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事';
     const enEl=detail.querySelector('#tmEnergy');
     if(enEl){ enEl.className='tm-energy '+e.cls; enEl.innerHTML='<span>精力 · '+e.label+'</span><b>'+e.v+'</b>'; }
     const tipEl=detail.querySelector('#tmLightTip');
-    if(tipEl) tipEl.textContent='已点亮 '+sel.length+' 条 · 点图标点亮；未输入时间时再点一次可取消点亮；填了时间即展开记录器';
+    if(tipEl) tipEl.textContent='今日重点 '+sel.length+' 项 · 点击图标记录时间，使用下方按钮设置重点';
     detail.querySelectorAll('.lc-ic-btn').forEach(function(btn){
       const k=btn.dataset.k; if(!k) return;
       const on=sel.indexOf(k)>=0, m=practiceViewMinutes(k);
       const cls=['lc-ic-btn'];
       if(on) cls.push('on'); if(m>0) cls.push('lit'); if(!on && m===0) cls.push('dim'); if(_lcOpenTrack===k) cls.push('open');
       btn.className=cls.join(' ');
+      const priority=btn.parentElement.querySelector('.lc-priority');if(priority){priority.setAttribute('aria-pressed',String(on));priority.textContent=on?'✓ 今日重点':'设为重点';}
       let tick=btn.querySelector('.lc-ic-tick'), badge=btn.querySelector('.lc-ic-badge');
       if(on && m===0){ if(!tick){ tick=document.createElement('span'); tick.className='lc-ic-tick'; tick.textContent='✓'; btn.appendChild(tick);} }
       else if(tick){ tick.remove(); }
@@ -2168,12 +2163,13 @@ function renderTodayCockpit(force){
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
     +'<div class="tm-energy '+e.cls+'" id="tmEnergy"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +dateBarHtml
-    +'<div class="tm-light-tip" id="tmLightTip">已点亮 '+sel.length+' 条 · 点图标点亮；未输入时间时再点一次可取消点亮；填了时间即展开记录器</div>'
+    +'<div class="tm-light-tip" id="tmLightTip">今日重点 '+sel.length+' 项 · 点击图标记录时间，使用下方按钮设置重点</div>'
     +'<div class="lc-ic-row">'+live.map(chip).join('')+'</div>'
     +expandHtml
     +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
     +(sel.length?' <button class="btn xs ghost" onclick="clearTodayMain()">清空重选</button>':'')+'</div>';
   detail.dataset.init='1';
+  detail.dataset.recorded=String(!!(_lcOpenTrack&&practiceViewMinutes(_lcOpenTrack)));
   renderDashboardSummary();
 }
 function renderDashboardSummary(){
@@ -2680,7 +2676,7 @@ function showQuestSettlement(info){
 }
 function closeQuestSettlement(){ const m=document.getElementById('settleMask'); if(m) m.style.display='none'; }
 
-function render(){
+function renderCore(){
   // 兜底：旧存档缺 hobbies / wishes 字段时补默认
   if(!Array.isArray(S.hobbies) || !S.hobbies.length) S.hobbies = defaultHobbies();
   if(!Array.isArray(S.wishes) || !S.wishes.length) S.wishes = defaultWishes();
@@ -3178,6 +3174,7 @@ function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=doc
 // 多页路由：切换 page 显示 + 导航高亮 + 同步 hash（刷新/分享不丢当前页）
 var _isDeepLink=false;   // notifGo 深层链接期间为 true，期间不强制重置为第一个 tab
 function showPage(p){
+  rememberPagePosition();
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
   // v6.0.37 默认隐藏的板块不可经导航/深链直接进入
   if(Array.isArray(S.hiddenPages) && S.hiddenPages.includes(p)) p='dashboard';
@@ -3194,32 +3191,22 @@ function showPage(p){
   document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('cur', n.dataset.page===p));
   if(p==='action'){
     try{
-      // 打开短期任务页：默认展示第一个 tab；深层链接(notifGo)才沿用 S.stTab
-      // 若有未读江湖委托或未完成揭榜，自动定位到江湖榜对应子 tab
-      let st='action', jhAuto='';
-      if(!_isDeepLink){
-        const hasNpc = !!(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length);
-        const hasMy = (S.myJianghu||[]).some(function(e){return !e.done;});
-        if(hasNpc || hasMy){ st='jianghu'; jhAuto=hasNpc?'npc':'my'; }
-      }else{
-        st = ((typeof S==='object' && S && (S.stTab==='jianghu'||S.stTab==='week'))?S.stTab:'action');
-      }
-      switchShortTaskTab(st, false, jhAuto);
+      // 打开短期任务页：恢复上次子页，通知可指定目标子页。
+      // 保留上次子页；未读消息只在通知入口跳转，不抢占导航。
+      const st=['action','jianghu','week','calendar'].includes(S.stTab)?S.stTab:'action';
+      switchShortTaskTab(st, false);
     }catch(e){}
     markSideSeen();
   }
-  if(p==='growth'){ try{ if(!_isDeepLink) switchGrowthTab('compound'); }catch(e){} markBondsSeen(); }   // 打开修行页默认第一个 tab
+  if(p==='growth'){ try{ if(!_isDeepLink) switchGrowthTab(S.gpTab||'compound'); }catch(e){} markBondsSeen(); }   // 恢复成长页子页
   if(p==='journey'){ try{ if(!_isDeepLink) switchJourneyTab(S.jrTab||'profile'); }catch(e){} }   // 打开角色设定页默认「角色档案」tab
-  if(p==='longterm'){ try{ if(!_isDeepLink) switchLtTab('month'); }catch(e){} }   // 打开长期主线页默认每月主线
+  if(p==='longterm'){ try{ if(!_isDeepLink) switchLtTab(window._uxLtTab||'month'); }catch(e){} }   // 恢复本次会话的长期主线子页
   if(p==='dashboard'){ markSideSeen(); }
   if(p==='data'){ try{ fillProfileInputs(); }catch(e){} try{ syncPageVisibilityUI(); }catch(e){} }
   if(location.hash!=='#'+p){ try{ history.replaceState(null,'','#'+p); }catch(e){} }
-  // v6.4.4 切换页面默认回到顶部，避免停留在上一页的滚动位置
+  // 按页面恢复滚动位置；首次进入显示顶部。
   // 深链锚点跳转（notifGo）时跳过：scrollIntoView 在 showPage 之后执行，应交由它定位
-  if(!_isDeepLink){
-    try{ window.scrollTo(0,0); }catch(e){}
-    const _c=document.querySelector('.content'); if(_c) try{ _c.scrollTop=0; }catch(e){}
-  }
+  if(!_isDeepLink) restorePagePosition(p);
   try{ renderNotifications(); renderNavBadges(); }catch(e){}
 }
 
@@ -3257,11 +3244,15 @@ function switchShortTaskTab(tab, resetSub, autoSub){
   const actionPane=document.getElementById('st-action-pane');
   const jianghuPane=document.getElementById('st-jianghu-pane');
   const weekPane=document.getElementById('st-week-pane');
+  const calendarPane=document.getElementById('st-calendar-pane');
   if(!actionPane || !jianghuPane || !weekPane) return;
   if(typeof S==='object' && S) S.stTab=tab;
   actionPane.style.display=tab==='action'?'block':'none';
   jianghuPane.style.display=tab==='jianghu'?'block':'none';
   weekPane.style.display=tab==='week'?'block':'none';
+  if(calendarPane)calendarPane.style.display=tab==='calendar'?'block':'none';
+  if(tab==='calendar')renderCalendar();
+  trackUsage('tab','短期任务:'+tab);
   document.querySelectorAll('#stTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.st===tab));
   if(tab==='jianghu'){
     let sub;
@@ -3278,6 +3269,7 @@ function switchJianghuTab(tab){
   const order=['npc','day','week','month','my'];
   if(!order.includes(tab)) tab='day';
   if(typeof S==='object' && S) S.jhTab=tab;
+  trackUsage('tab','江湖榜:'+tab);
   order.forEach(t=>{
     const pane=document.getElementById('jh-'+t+'-pane');
     if(pane) pane.style.display=(t===tab?'block':'none');
