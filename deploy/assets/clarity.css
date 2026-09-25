@@ -1,0 +1,23 @@
+.clarity-fold{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:12px 0}
+.clarity-fold>summary{cursor:pointer;padding:14px 16px;font-size:14px;font-weight:600;color:var(--txt)}
+.clarity-body{padding:0 16px 16px}.clarity-fold>.panel{margin:0;border:0;box-shadow:none}
+.clarity-task-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 12px;color:var(--dim);font-size:12px}
+.clarity-task-tools select{padding:6px 10px;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:6px;min-height:34px}
+.clarity-group-title{font-size:12px;color:var(--dim);margin:16px 0 4px;font-weight:600}
+#dayTaskList .daytask:not(.editing){display:grid;grid-template-columns:28px minmax(150px,1fr) minmax(120px,auto) 28px 28px;gap:8px;margin:0;padding:9px 6px;min-height:44px;border-radius:0;border:0;border-bottom:1px solid var(--line);background:transparent}
+#dayTaskList .dt-meta{max-width:360px;font-size:11px}#dayTaskList .daytask.overdue .dt-meta{color:var(--warn)}
+#todayDetailCockpit{padding:16px!important}#todayDetailCockpit .lc-ic-row{display:flex;flex-wrap:wrap;gap:8px}
+#todayDetailCockpit .lc-track-choice{flex:0 1 auto}#todayDetailCockpit .lc-ic-btn{display:flex;flex-direction:row;align-items:center;gap:7px;min-height:40px;height:auto;width:auto;min-width:0;padding:8px 12px;border-radius:8px}
+#todayDetailCockpit .lc-ic{font-size:20px}#todayDetailCockpit .lc-ic-name{font-size:13px;margin:0}#todayDetailCockpit .lc-ic-badge,#todayDetailCockpit .lc-ic-tick{position:static;font-size:11px}
+#todayDetailCockpit .tm-foot{font-size:11px;margin-top:10px}#todayDetailCockpit .tm-head{margin-bottom:10px}
+#todayDetailCockpit .tm-date,#todayDetailCockpit .tm-energy{display:none}#todayDetailCockpit .tm-recbar{padding:6px 8px;margin:8px 0;min-height:0}#todayDetailCockpit .rechint:empty{display:none}#todayDetailCockpit .tm-foot:empty{display:none}#todayDetailCockpit .tm-title{font-size:18px}#todayDetailCockpit .tm-foot .btn{min-height:28px;padding:3px 8px}
+#dayTaskList .dt-edit,#dayTaskList .dt-x,#dayTaskList .dt-undo{opacity:1;visibility:visible;min-width:28px}
+#npcBox .fei-trials{background:transparent;border:0;padding:0;margin:0 0 18px;box-shadow:none}
+#npcBox .fei-trials-head,.clarity-npc-heading{font-size:14px;font-weight:600;padding:8px 0;border-bottom:1px solid var(--line)}
+#npcBox .fei-trials-tag{display:none}#npcBox .fei-trial,#npcBox .npcq{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:12px 0;margin:0;background:transparent;box-shadow:none}
+#npcBox .npc-memory{font-size:12px;color:var(--dim)}#npcBox .npc-ic{font-size:24px}#npcBox .npc-d{font-size:11px}
+#monthPlanEdit>.lt-hint{font-size:12px;max-width:65ch}#monthPlanEdit .mp-row{padding:12px;margin-bottom:10px}#monthPlanEdit .mp-cards{gap:10px}#monthPlanEdit .mp-card{padding:10px;min-height:0}#monthPlanEdit .mp-card-b{min-height:0}
+#yearListLong .ya-card{padding:16px;margin-bottom:12px}#yearListLong .ya-elapsed{display:none}#yearListLong .ya-advice{margin:8px 0}
+#energyPageRoot>.subj-card{max-width:none}#energyPageRoot .energy-cards{margin-top:12px}
+#jr-memory-pane>.clarity-fold>.panel>h2{display:none}
+@media(max-width:700px){#dayTaskList .daytask:not(.editing){grid-template-columns:28px minmax(0,1fr) 28px 28px}#dayTaskList .dt-meta{grid-column:2;grid-row:2;padding:0;max-width:none}#dayTaskList .dt-edit,#dayTaskList .dt-undo{grid-column:3;grid-row:1}#dayTaskList .dt-x{grid-column:4;grid-row:1}#todayDetailCockpit .lc-ic-btn{min-height:44px}.clarity-task-tools{flex-wrap:wrap}#npcBox .npcq{gap:8px}#npcBox .npc-r{gap:6px}}

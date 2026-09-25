@@ -363,7 +363,7 @@ function npcSend(qid){
 function renderNpc(){
   const el=document.getElementById('npcBox'); if(!el) return;
   if(!S.npc.active.length){ el.innerHTML=feiTrialsHtml()+'<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
-  el.innerHTML=feiTrialsHtml()+S.npc.active.map(q=>{
+  el.innerHTML=feiTrialsHtml()+'<div class="clarity-npc-heading">每周委托 · 故人相托</div>'+S.npc.active.map(q=>{
     const p=NPCS.find(n=>n.id===q.npc)||{n:'?',ic:'❓',d:''};
     const ri=npcRelInfo(p.id);
     const adv=nextAdvancedNpcEvent(p.id,ri.xp),marks=[6,10].map(lv=>S.npcEvents[p.id+'_'+lv]).filter(Boolean).map(x=>x.mark);
@@ -440,7 +440,7 @@ function feiTrialsHtml(){
       +'</div>';
   }).join('');
   return '<div class="fei-trials">'
-    +'<div class="fei-trials-head">🎤 王菲 · 菲式历练<span class="fei-trials-sub">每日轮换三则 · 今日 '+doneN+'/'+today.length+'</span></div>'
+    +'<div class="fei-trials-head">每日历练 · 王菲<span class="fei-trials-sub">每日轮换三则 · 今日 '+doneN+'/'+today.length+'</span></div>'
     +'<div class="fei-trials-tag">歌者。决定即做，不解释，不回头。明日换新三则。</div>'
     +rows
     +'</div>';

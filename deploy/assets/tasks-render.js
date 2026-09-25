@@ -1029,7 +1029,7 @@ function renderDayTasks(){
   const el=document.getElementById('dayTaskList'); if(!el) return;
   const d=todayStr();
   const tasks=S.dayTasks||[];
-  const active=tasks.filter(x=>!x.done && (!x.schedule || x.schedule.date<=d));   // 未完成：持续显示（含跨天/逾期）
+  const active=sortedDayTasks(tasks.filter(x=>!x.done && (!x.schedule || x.schedule.date<=d)),S.taskOrder||'due');   // 未完成：持续显示（含跨天/逾期）
   const done=tasks.filter(x=>x.done).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
   const yesterday=addDays(d,-1);
   const doneToday=done.filter(x=>(x.doneDate||d)===d);
@@ -1058,9 +1058,10 @@ function renderDayTasks(){
       +'</div>';
   }
 
-  let html='';
+  let html=clarityTaskTools();
   if(active.length){
-    html+=active.map(x=>dtRow(x,false)).join('');
+    let group='';
+    html+=active.map(x=>{const type=x.a||'MIND';let title='';if(S.taskOrder==='type'&&group!==type){group=type;title='<div class="clarity-group-title">'+escHtml((ATTRS[type]||ATTRS.MIND).name)+'</div>';}return title+dtRow(x,false);}).join('');
   } else {
     html+='<div class="hint">今日暂无临时任务。下面加一个，完成后自动归档。</div>';
   }
@@ -1896,8 +1897,7 @@ function yearAnalysisCard(c,i){
     +'<div class="ya-elapsed">📅 今年已过 <b>'+a.elapsedDays+'</b> 天 · 占 <b>'+a.elapsedPct+'%</b></div>'
     +'<div class="ya-prog"><div class="ya-bar"><i class="ya-fill ya-'+a.predClass+'" style="width:'+a.progressPct+'%"></i></div>'
     +'<div class="ya-prog-label">数据进度 <b>'+a.progressPct+'%</b>'+(a.progressNote||'')+' · 预计年末达成度 <b class="ya-'+a.predClass+'">'+a.predLabel+'</b>（'+a.projected+'%）</div></div>'
-    +'<div class="ya-advice"><div class="ya-advice-h">📌 分析建议</div><ul>'+adviceHtml+'</ul></div>'
-    +yearRecordBlock(c,i)
+    +clarityFold('year-'+i,'记录进展与查看分析','<div class="ya-advice"><div class="ya-advice-h">分析建议</div><ul>'+adviceHtml+'</ul></div>'+yearRecordBlock(c,i))
     +'</div>';
 }
 function renderLongterm(){
@@ -1976,7 +1976,7 @@ function renderMonthPlanEdit(){
   const viewForm=(r,k)=>'<div class="mp-cards mp-view">'+dispCard('预期主线',r.plan)+dispCard('实际推进',r.actual)+dispCard('复盘',r.reason)+'</div>'
     +'<div class="mp-rowfoot"><span class="mp-foot-status"><label class="lt-lab" style="margin:0">'+statusChip(r.status)+'</label></span>'
     +'<span class="mp-foot-save"><button class="btn sm ghost" onclick="toggleMpOpen(\''+k+'\')">✎ 编辑</button></span></div>';
-  let html='<div class="lt-hint">每月三个维度横排对照：左边写「预期」，月底中间填「实际」，右边写「复盘」。当前月（'+monthLabel[nowMM-1]+'月）高亮可填；未来月先写预期；过去月置灰，点一下可补录。</div>';
+  let html='<div class="lt-hint">先看本月想推进什么；月底再补实际与复盘。当前月（'+monthLabel[nowMM-1]+'月）展开，其他月份按需查看。</div>';
   html+='<div class="mp-year">'+yk+' 年 · 每月主线</div>';
   html+='<div class="mp-rows">';
   // 顺序：当前月 → 未来月（升序）→ 过去月（升序，置灰）
@@ -2001,7 +2001,8 @@ function renderMonthPlanEdit(){
     } else {
       body = viewForm(r,k);
     }
-    html+='<div class="'+cls+'">'+head+body+'</div>';
+    const row='<div class="'+cls+'">'+head+body+'</div>';
+    html+=isCur?row:clarityFold('month-'+k,monthLabel[m-1]+'月 · '+(r.plan?escHtml(r.plan.slice(0,60)):(future?'尚未安排':'暂无记录')),row);
   });
   html+='</div>';
   el.innerHTML = html;
@@ -2103,7 +2104,7 @@ function renderTodayCockpit(force){
       +'<span class="lc-ic-name">'+escHtml(t.n)+'</span>'
       +(on && m===0?'<span class="lc-ic-tick">✓</span>':'')
       +(m>0?'<span class="lc-ic-badge">'+m+'</span>':'')
-      +'</button><button class="lc-priority" aria-pressed="'+on+'" onclick="toggleTodayMain(\''+k+'\')">'+(on?'✓ 今日重点':'设为重点')+'</button></div>';
+      +'</button></div>';
   };
   const doneN=sel.filter(function(k){ const t=LIFE_TRACKS[k]; const m=(typeof practiceViewMinutes==='function')?practiceViewMinutes(k):0; return m>=(t.rec||20); }).length;
   const expandHtml=_lcOpenTrack?(function(){
@@ -2115,6 +2116,7 @@ function renderTodayCockpit(force){
       +'<input class="lc-min" id="lcMin_'+k+'" type="number" min="1" max="600" step="5" value="'+rec+'" '
       +'onkeydown="if(event.key===\'Enter\')recordLifePractice(\''+k+'\')">'
       +'<span class="lc-unit">分钟</span>'
+      +'<button class="btn xs ghost" aria-pressed="'+(sel.indexOf(k)>=0)+'" onclick="toggleTodayMain(\''+k+'\')">'+(sel.indexOf(k)>=0?'取消重点':'设为重点')+'</button>'
       +'<button class="btn xs primary" onclick="recordLifePractice(\''+k+'\')">✓ 记录</button>'
       +'<button class="btn xs ghost" onclick="addLifePractice(\''+k+'\',5)" title="只做了一点点">+5</button>'
       +(m?'<button class="btn xs ghost lc-undo" onclick="undoLastLifePractice(\''+k+'\')" title="仅撤销当天最近一次手动记录">撤销上次</button>':'')
@@ -2124,16 +2126,16 @@ function renderTodayCockpit(force){
     +'<span class="reclabel">记录于</span>'
     +'<input id="recDate" type="date" class="recinput" value="'+(REC_DATE||todayStr())+'" onchange="setRecDate(this.value)">'
     +'<button class="btn ghost xs" onclick="setRecDate(\'\')">今天</button>'
-    +'<span class="rechint" id="recHint">'+(REC_DATE?'正在补录 '+fmtMD(REC_DATE)+'：点亮与分钟都会记到那一天。补完点「今天」切回。':'默认记今天；要补录过去某天，先选日期再勾任务。选好后会显示那天的点亮情况与已记分钟。')+'</span>'
+    +'<span class="rechint" id="recHint">'+(REC_DATE?'正在补录 '+fmtMD(REC_DATE)+'：点亮与分钟都会记到那一天。补完点「今天」切回。':'')+'</span>'
     +'</div>';
   // 增量更新：已初始化且非结构变更时只更新动态值，避免整体重绘造成的闪动
   if(detail.dataset.init==='1' && !force && detail.dataset.recorded===String(!!(_lcOpenTrack&&practiceViewMinutes(_lcOpenTrack)))){
     const titleEl=detail.querySelector('#tmTitleMain');
-    if(titleEl) titleEl.textContent= sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事';
+    if(titleEl) titleEl.textContent= sel.length?('今日重点 '+sel.length+' 项 · 已达成 '+doneN):'今天想推进什么';
     const enEl=detail.querySelector('#tmEnergy');
     if(enEl){ enEl.className='tm-energy '+e.cls; enEl.innerHTML='<span>精力 · '+e.label+'</span><b>'+e.v+'</b>'; }
     const tipEl=detail.querySelector('#tmLightTip');
-    if(tipEl) tipEl.textContent='今日重点 '+sel.length+' 项 · 点击图标记录时间，使用下方按钮设置重点';
+    if(tipEl) tipEl.textContent='今日重点 '+sel.length+' 项 · 点选练习后记录时间或设置重点';
     detail.querySelectorAll('.lc-ic-btn').forEach(function(btn){
       const k=btn.dataset.k; if(!k) return;
       const on=sel.indexOf(k)>=0, m=practiceViewMinutes(k);
@@ -2153,14 +2155,14 @@ function renderTodayCockpit(force){
     return;
   }
   detail.innerHTML='<div class="tm-head"><div><div class="tm-kicker">TODAY MAIN · 今日主线</div>'
-    +'<div class="tm-title" id="tmTitleMain">'+(sel.length?('今天一定会完成的 '+sel.length+' 件事 · 已达成 '+doneN):'先认下今天一定会完成的事')+'</div>'
+    +'<div class="tm-title" id="tmTitleMain">'+(sel.length?('今日重点 '+sel.length+' 项 · 已达成 '+doneN):'今天想推进什么')+'</div>'
     +'<div class="tm-date">'+fmtFull(new Date())+'</div></div>'
     +'<div class="tm-energy '+e.cls+'" id="tmEnergy"><span>精力 · '+e.label+'</span><b>'+e.v+'</b></div></div>'
     +dateBarHtml
-    +'<div class="tm-light-tip" id="tmLightTip">今日重点 '+sel.length+' 项 · 点击图标记录时间，使用下方按钮设置重点</div>'
+    +'<div class="tm-light-tip" id="tmLightTip">今日重点 '+sel.length+' 项 · 点选练习后记录时间或设置重点</div>'
     +'<div class="lc-ic-row">'+live.map(chip).join('')+'</div>'
     +expandHtml
-    +'<div class="tm-foot">主线是承诺，不是配额；没做完不扣分，明天重新认。'
+    +'<div class="tm-foot">'
     +(sel.length?' <button class="btn xs ghost" onclick="clearTodayMain()">清空重选</button>':'')+'</div>';
   detail.dataset.init='1';
   detail.dataset.recorded=String(!!(_lcOpenTrack&&practiceViewMinutes(_lcOpenTrack)));
@@ -4048,8 +4050,8 @@ function renderEnergyPage(){
     +'<div class="ea-score"><span class="ea-lab '+e.cls+'">'+e.label+'</span><b>'+e.v+'</b><span class="ea-unit">/100</span></div>'
     +'<div class="ea-body"><div class="ea-tip-top">'+e.tip+'</div>'
     +'<ul class="ea-list">'+advice.map(a=>'<li>'+a+'</li>').join('')+'</ul></div></div>';
-  h+='<div class="energy-cards">';
-  h+=subjectivityCard();
+  const overview=h;
+  h='<div class="energy-cards">';
   h+=energyCard('⚡ 精力值', '负荷 vs 恢复的综合分', e.v+' / 100 · '+e.label,
       (d)=>energyStateForDate(d).v, {max:100, colorFn:(v)=>v>=75?'#3fae74':(v>=50?'#5b8fd6':(v>=30?'#e0a94a':'#d9534f')), fmtVal:(v)=>v}, ranges);
   h+=energyCard('💤 睡眠', '每晚睡眠时长（小时）', (S.bioAge.sleepHours!=null?S.bioAge.sleepHours+'h':'未录入'),
@@ -4058,7 +4060,7 @@ function renderEnergyPage(){
       (d)=>(isStretchOn(d)?1:0)+(isHealedOn(d)?1:0), {max:2, colorFn:(v)=>v>=2?'#3fae74':(v>=1?'#5b8fd6':'#888'), fmtVal:(v)=>['无','部分','完成'][v]||v}, ranges);
   h+=energyCardBio();
   h+='</div>';
-  root.innerHTML=h;
+  root.innerHTML=subjectivityCard()+clarityFold('energy-more','精力、睡眠与身体恢复 · 按需查看',overview+h);
 }
 // v6.0.53 主体性卡片（精力页 · 武侠境界 + 立心入口 + 变化记录）
 function subjectivityCard(){

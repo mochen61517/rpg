@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const ctx=vm.createContext({S:{},save(){},renderDayTasks(){}});
+vm.runInContext(fs.readFileSync('assets/clarity.js','utf8'),ctx);
+const rows=[{id:'a',a:'MIND'},{id:'b',a:'BODY',due:'2026-10-01'},{id:'c',a:'MIND',due:'2026-09-01'},{id:'d',a:'BODY',due:'2026-10-01'}];
+ctx.rows=rows;
+const order=mode=>Array.from(vm.runInContext(`sortedDayTasks(rows,'${mode}').map(x=>x.id)`,ctx));
+assert.deepEqual(order('due'),['c','b','d','a']);
+assert.deepEqual(order('type'),['b','d','c','a']);
+assert.deepEqual(order('created'),['a','b','c','d']);
+assert.deepEqual(rows.map(x=>x.id),['a','b','c','d']);
+vm.runInContext("clarityRemember({open:true},'month-2026-09')",ctx);
+assert.ok(vm.runInContext("clarityFold('month-2026-09','Month','body')",ctx).includes(' open '));
+vm.runInContext("clarityRemember({open:false},'month-2026-09')",ctx);
+assert.ok(!vm.runInContext("clarityFold('month-2026-09','Month','body')",ctx).includes(' open '));
+console.log('PASS: stable deadline/type sorting, undated tasks last, source order preserved, expanded sections remembered.');

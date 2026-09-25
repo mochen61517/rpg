@@ -10,6 +10,7 @@ const ctx=vm.createContext({console,Date,Map,Blob,URL,setTimeout,requestAnimatio
   document:{getElementById:id=>elements.get(id),querySelector:()=>null},
 });
 vm.runInContext(fs.readFileSync('assets/calendar.js','utf8'),ctx);
+vm.runInContext(fs.readFileSync('assets/clarity.js','utf8'),ctx);
 function run(s){return vm.runInContext(s,ctx);}
 assert.equal(run("calAdd('2026-12-31',1)"),'2027-01-01');
 assert.equal(run("calAdd('2024-02-28',1)"),'2024-02-29');
