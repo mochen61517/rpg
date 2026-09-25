@@ -909,7 +909,7 @@ function migrate(){
   }
   // 兼容旧存档：年主线改为 checklist 结构
   if(Array.isArray(S.year)){
-    S.year = S.year.map(c=>({id:c.id||id(),t:c.t||'未命名年主线',paused:!!c.paused,done:!!c.done,items:Array.isArray(c.items)?c.items:[]}));
+    S.year = S.year.map(c=>({...c,id:c.id||id(),t:c.t||'未命名年主线',paused:!!c.paused,done:!!c.done,items:Array.isArray(c.items)?c.items:[]}));
   } else { S.year = defaultState().year; }
   // 兼容旧存档：月/周主线从 {t,p,target} 进度条改为 checklist
   function toChecklist(o, fallbackT){

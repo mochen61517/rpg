@@ -1,0 +1,37 @@
+/* Restrained surfaces: the action carries emphasis, metadata stays secondary. */
+html[data-theme] #yearListLong .goal-row{background:var(--panel);border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:24px 0;margin:0}
+.goal-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.goal-heading>div{min-width:0}
+.goal-eyebrow{font-size:12px;color:var(--dim);font-weight:400;letter-spacing:.03em;margin:0 0 8px}
+.goal-heading h3{font-family:inherit;font-size:20px;font-weight:650;line-height:1.5;color:var(--txt);margin:0;overflow-wrap:anywhere}
+.text-action{background:transparent;border:0;box-shadow:none;color:var(--dim);font:inherit;font-size:13px;cursor:pointer;padding:6px 4px;min-height:32px;white-space:nowrap;text-decoration:underline;text-underline-offset:4px}
+.text-action:hover{color:var(--txt)}.goal-next{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;margin:18px 0 14px;padding-left:12px;border-left:3px solid var(--career)}
+.goal-next>span{font-size:12px;color:var(--dim);padding-top:3px}.goal-next strong{font-size:15px;line-height:1.6;font-weight:500;overflow-wrap:anywhere}
+.goal-next-actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px}.goal-progress{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--dim);margin:10px 0}
+.goal-meter{width:120px;height:4px;background:var(--line);border-radius:4px}.goal-meter i{display:block;height:100%;background:var(--career)}
+.goal-row>.clarity-fold,html[data-theme] #monthPlanEdit .clarity-fold{border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;background:transparent;margin:12px 0 0}
+.goal-row>.clarity-fold>summary,html[data-theme] #monthPlanEdit .clarity-fold>summary{padding:10px 0;font-size:13px;font-weight:400;color:var(--dim)}
+.goal-row>.clarity-fold>.clarity-body,#monthPlanEdit .clarity-body{padding:8px 0 12px}.goal-done h3{color:var(--dim)}
+#ltYear>.hint,#ltMonth>.hint{display:none}
+html[data-theme] .month-focus{padding:10px 0 18px;border:0;background:transparent;box-shadow:none}
+.month-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 24px}.month-heading>span{font-size:13px;font-weight:500;color:var(--dim)}
+.month-plan-text{font-size:23px;line-height:1.7;font-weight:500;color:var(--txt);max-width:42em;white-space:pre-wrap;margin:0 0 26px;overflow-wrap:anywhere}
+.month-plan-input{display:block;width:100%;min-height:100px;margin-top:8px;padding:12px;font-size:18px;line-height:1.6;background:var(--panel);border:1px solid var(--line);color:var(--txt);box-sizing:border-box}
+.sr-label{font-size:12px;color:var(--dim)}.month-review-fields{display:grid;gap:14px}.month-review-fields label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)}
+.month-review-fields textarea{width:100%;min-height:72px;padding:10px;background:var(--panel);color:var(--txt);border:1px solid var(--line);box-sizing:border-box}.month-review-fields select{max-width:200px;padding:8px;background:var(--panel);color:var(--txt);border:1px solid var(--line)}
+.future-review{display:none}.month-save{margin-top:14px}.month-review-text h4{font-size:12px;color:var(--dim);font-weight:400;margin-bottom:6px}.month-review-text p{font-size:14px;line-height:1.7;white-space:pre-wrap}
+.year-step{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.year-step>span{flex:1}.year-step input{width:70px;background:var(--panel);color:var(--txt);border:1px solid var(--line);padding:6px}
+.task-group-label{display:flex;gap:8px;font-size:13px;font-weight:600;color:var(--txt);margin:18px 0 5px}.task-group-label span{font-size:12px;color:var(--dim);font-weight:400}.task-group-label.late{color:var(--warn)}
+html[data-theme] #dayTaskList .daytask{border-left:0!important;background:transparent!important;box-shadow:none!important}html[data-theme] #dayTaskList .dt-meta{color:var(--dim)!important;font-weight:400}html[data-theme] #dayTaskList .overdue .dt-meta{color:var(--warn)!important}
+.habit-panel h2{display:flex;justify-content:space-between;align-items:center;gap:12px}.habit-panel:not(.habit-managing) .supp-del{display:none}.habit-panel .addrow[hidden]{display:none!important}
+.habit-managing .supp-del{display:inline-flex;align-items:center;justify-content:center;min-width:24px;min-height:24px}
+.habit-edit{font-size:12px;text-decoration:underline;padding:5px}.habit-edit[hidden]{display:none!important}
+#dayTaskList .daytask:not(.editing){grid-template-columns:28px minmax(140px,1fr) minmax(120px,auto) 40px 28px}
+html[data-theme] #dayTaskList .dt-edit{padding:4px;min-width:40px;margin:0;white-space:nowrap;font-size:12px}
+@media(max-width:700px){#dayTaskList .daytask:not(.editing){grid-template-columns:28px minmax(0,1fr) 40px 28px}}
+.memory-heading{font-size:14px;margin:24px 0 12px}.memory-tools{display:flex;gap:12px;flex-wrap:wrap}.memory-tools label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)}
+.memory-tools input,.memory-tools select{background:var(--panel);color:var(--txt);border:1px solid var(--line);padding:9px}
+.memory-result{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:12px;text-align:left;padding:12px 0;width:100%;background:transparent;color:var(--txt);border:0;border-bottom:1px solid var(--line);font:inherit;cursor:pointer}.memory-result time,.memory-result small{color:var(--dim);font-size:12px}.memory-result span{overflow-wrap:anywhere}.lc-memory-list[hidden]{display:none!important}
+.active-commission{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}.active-commission strong{font-size:14px;font-weight:500}.active-commission small{display:block;font-size:12px;color:var(--dim);margin-top:6px}
+.review-access{display:block;margin:-6px 0 12px auto}#stTabs [hidden]{display:none!important}.backup-secondary{display:flex;gap:10px;flex-wrap:wrap;padding:8px 12px}
+#settings-backup .settings-section-title{display:none}#settings-backup .settings-card h2{font-size:14px}#settings-backup #saveSafetyBox{font-size:14px;line-height:1.8}
+@media(max-width:650px){.goal-heading h3{font-size:18px}.goal-heading{flex-wrap:wrap;gap:4px}.goal-next{grid-template-columns:1fr;gap:4px}.month-plan-text{font-size:19px}.month-heading{margin-bottom:16px}.memory-result{grid-template-columns:1fr;gap:4px}.goal-row .btn{min-height:40px}.habit-panel h2{flex-wrap:wrap}}

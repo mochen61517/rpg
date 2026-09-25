@@ -5,7 +5,7 @@ function clarityFold(key,title,body){
 }
 function clarityRemember(el,key){if(el.open)clarityOpen.add(key);else clarityOpen.delete(key);}
 function sortedDayTasks(tasks,mode){
-  const due=x=>x.due||'9999-12-31';
+  const due=x=>x.due||x.schedule?.date||'9999-12-31';
   return tasks.slice().sort((a,b)=> mode==='type'
     ? (a.a||'MIND').localeCompare(b.a||'MIND')||due(a).localeCompare(due(b))
     : mode==='created'?0:due(a).localeCompare(due(b)));

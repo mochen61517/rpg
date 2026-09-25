@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.5.2</title>
+<title>人生修行录 · v6.6.0</title>
 <link rel="stylesheet" href="assets/life-rpg.css?v=20260923-botanical">
-<link rel="stylesheet" href="assets/experience.css?v=20260925-clarity">
-<link rel="stylesheet" href="assets/settings.css?v=20260925-clarity">
-<link rel="stylesheet" href="assets/clarity.css?v=20260925-clarity">
+<link rel="stylesheet" href="assets/experience.css?v=20260925-hierarchy">
+<link rel="stylesheet" href="assets/settings.css?v=20260925-hierarchy">
+<link rel="stylesheet" href="assets/clarity.css?v=20260925-hierarchy">
+<link rel="stylesheet" href="assets/hierarchy.css?v=20260925-hierarchy">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-t">人生修行录<span>v6.5.2 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.6.0 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -392,12 +393,12 @@
       </div>
       <!-- 今日任务：独立色块，置于「每日补剂」之后 -->
       <div class="panel today-task-panel">
-        <div class="subh">📝 今日任务 <span class="tip" data-tip="临时任务·可加截止日期与经验值·完成即隐藏·未完持续显示">ⓘ</span></div>
+        <div class="subh">待办任务 <span class="tip" data-tip="临时任务·可加截止日期与经验值·完成即隐藏·未完持续显示">ⓘ</span></div>
         <div id="dayTaskList"></div>
         <div class="addrow">
           <input type="text" id="dayTaskText" placeholder="加一个今日任务…（如 去按摩）">
           <select id="dayTaskAttr" title="经验值归属属性"></select>
-          <input type="date" id="dayTaskDue" title="截止日期（可选）">
+          <input type="date" id="dayTaskDue" title="最晚完成日期（可选）" aria-label="最晚完成日期">
           <input type="number" id="dayTaskXp" value="10" min="1" title="完成经验值 XP（默认10）" style="width:60px">
           <button class="btn xs" onclick="addDayTask()">添加</button>
         </div>
@@ -488,12 +489,12 @@
         <button class="tab" onclick="switchLtTab('decade')">🗺️ 10年大运</button>
       </div>
       <div class="panel lt-pane" id="ltMonth">
-        <h2>📅 本月主线 · 预期 vs 实际</h2>
+        <h2>本月主线</h2>
         <div id="monthPlanEdit"></div>
         <div class="hint">每月初写下预期、月底回填实际与达成情况。看清「想的」和「做的」差在哪，比列清单更有用。</div>
       </div>
       <div class="panel lt-pane" id="ltYear" style="display:none">
-        <h2>🎯 年度主线 · 年目标</h2>
+        <h2>年度目标</h2>
         <div id="yearListLong"></div>
         <div class="addrow">
           <input type="text" id="yText" placeholder="新的一年主线目标…" style="flex:1 1 200px">
@@ -525,7 +526,7 @@
         <div class="achs" id="achsUnlocked"></div>
       </div>
       <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
-      <!-- v6.5.2 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
+      <!-- v6.6.0 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
       <div class="gp-tabs" id="gpTabs">
         <button class="gp-tab on" data-tab="compound" onclick="switchGrowthTab('compound')">🌳 长期复利轨道</button>
         <button class="gp-tab" data-tab="rewards" onclick="switchGrowthTab('rewards')">🎁 嘉奖箱</button>
@@ -783,13 +784,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=20260914-0958"></script>
-<script src="assets/tasks-render.js?v=20260925-clarity"></script>
+<script src="assets/core-state.js?v=20260925-hierarchy"></script>
+<script src="assets/tasks-render.js?v=20260925-hierarchy"></script>
 <script src="assets/npc-stories.js?v=20260914-0958"></script>
-<script src="assets/calendar.js?v=20260925-clarity"></script>
-<script src="assets/clarity.js?v=20260925-clarity"></script>
-<script src="assets/interaction.js?v=20260925-clarity"></script>
-<script src="assets/settings.js?v=20260925-clarity"></script>
-<script src="assets/systems.js?v=20260925-clarity"></script>
+<script src="assets/calendar.js?v=20260925-hierarchy"></script>
+<script src="assets/clarity.js?v=20260925-hierarchy"></script>
+<script src="assets/interaction.js?v=20260925-hierarchy"></script>
+<script src="assets/settings.js?v=20260925-hierarchy"></script>
+<script src="assets/hierarchy.js?v=20260925-hierarchy"></script>
+<script src="assets/systems.js?v=20260925-hierarchy"></script>
 </body>
 </html>

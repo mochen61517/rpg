@@ -1029,7 +1029,7 @@ function renderDayTasks(){
   const el=document.getElementById('dayTaskList'); if(!el) return;
   const d=todayStr();
   const tasks=S.dayTasks||[];
-  const active=sortedDayTasks(tasks.filter(x=>!x.done && (!x.schedule || x.schedule.date<=d)),S.taskOrder||'due');   // 未完成：持续显示（含跨天/逾期）
+  const active=sortedDayTasks(tasks.filter(x=>!x.done),S.taskOrder||'due');   // 未完成：持续显示（含跨天/逾期）
   const done=tasks.filter(x=>x.done).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
   const yesterday=addDays(d,-1);
   const doneToday=done.filter(x=>(x.doneDate||d)===d);
@@ -1044,8 +1044,8 @@ function renderDayTasks(){
     const ao=ATTRS[a]||ATTRS.MIND;
     const meta=[];
     if(x.xp) meta.push(ao.icon+' +'+(x.xp)+' XP · '+ao.name);
-    if(due) meta.push('⏰ 截止 '+fmtMD(due));
-    if(x.schedule)meta.push('📅 '+escHtml(calScheduleLabel(x.schedule)));
+    if(due) meta.push('最晚完成 '+fmtMD(due));
+    if(x.schedule)meta.push('计划 '+escHtml(calScheduleLabel(x.schedule)));
     if(overdue) meta.push('已逾期');
     if(isDone && x.doneDate) meta.push('完成于 '+fmtMD(x.doneDate));
     const clickAction=isDone?('undoDoneDayTask(\''+x.id+'\')'):('toggleDayTask(\''+x.id+'\')');
@@ -1053,15 +1053,14 @@ function renderDayTasks(){
       +'<button class="dt-chk" onclick="'+clickAction+'" aria-label="'+(isDone?'恢复未完成':'完成任务')+'">'+(isDone?'✓':'○')+'</button>'
       +'<span class="dt-t">'+escHtml(x.t)+'</span>'
       +(meta.length?'<span class="dt-meta">'+meta.join(' · ')+'</span>':'')
-      +(isDone?'<span class="dt-undo" onclick="event.stopPropagation();undoDoneDayTask(\''+x.id+'\')" title="恢复未完成">↩</span>':'<span class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">✎</span>')
+      +(isDone?'<span class="dt-undo" onclick="event.stopPropagation();undoDoneDayTask(\''+x.id+'\')" title="恢复未完成">↩</span>':'<button type="button" class="dt-edit" onclick="event.stopPropagation();editDayTask(\''+x.id+'\')" title="编辑任务">编辑</button>')
       +'<span class="dt-x" onclick="event.stopPropagation();delDayTask(\''+x.id+'\')" title="删除">×</span>'
       +'</div>';
   }
 
   let html=clarityTaskTools();
   if(active.length){
-    let group='';
-    html+=active.map(x=>{const type=x.a||'MIND';let title='';if(S.taskOrder==='type'&&group!==type){group=type;title='<div class="clarity-group-title">'+escHtml((ATTRS[type]||ATTRS.MIND).name)+'</div>';}return title+dtRow(x,false);}).join('');
+    html+=taskListHtml(active,dtRow);
   } else {
     html+='<div class="hint">今日暂无临时任务。下面加一个，完成后自动归档。</div>';
   }
@@ -1089,7 +1088,7 @@ function editDayTaskHtml(x){
     +'<div class="dt-edit-form">'
     +'<input type="text" id="editDayTaskText" class="dt-edit-text" value="'+escHtml(x.t)+'" placeholder="任务内容">'
     +'<select id="editDayTaskAttr" class="dt-edit-attr" title="经验值归属属性">'+optAttrs(x.a)+'</select>'
-    +'<input type="date" id="editDayTaskDue" class="dt-edit-due" title="截止日期（可选）" value="'+(x.due||'')+'">'
+    +'<input type="date" id="editDayTaskDue" class="dt-edit-due" title="最晚完成日期（可选）" aria-label="最晚完成日期" value="'+(x.due||'')+'">'
     +'<input type="number" id="editDayTaskXp" class="dt-edit-xp" value="'+(x.xp||10)+'" min="1" title="完成经验值 XP">'
     +'<button class="btn xs ghost" onclick="openCalendarEditor(\''+x.id+'\')">安排日期 / 时间</button>'
     +'<button class="btn xs primary" onclick="saveDayTaskEdit(\''+x.id+'\')">保存</button>'
@@ -2618,14 +2617,14 @@ function renderMyJianghu(){
   const el=document.getElementById('myJianghuBox'); if(!el) return;
   if(!Array.isArray(S.myJianghu)) S.myJianghu=[];
   const now=Date.now();
-  const list=S.myJianghu.slice().map(function(e,i){ e._idx=i; return e; }).sort(function(a,b){
+  const list=S.myJianghu.map(function(e,i){ return {...e,_idx:i}; }).sort(function(a,b){
     const aLate=!a.done&&a.deadline<now; const bLate=!b.done&&b.deadline<now;
-    if(aLate!==bLate) return aLate?1:-1;
+    if(aLate!==bLate) return aLate?-1:1;
     if(a.done!==b.done) return a.done?1:-1;
-    return (a.acceptedAt||a._idx||0)-(b.acceptedAt||b._idx||0);
+    return (a.deadline||Infinity)-(b.deadline||Infinity)||(a.acceptedAt||0)-(b.acceptedAt||0);
   });
   if(!list.length){ el.innerHTML='<div class="hint">还没有揭榜。去「江湖日榜 / 周榜 / 月榜」点 🗡️ 揭榜，认领这一期想做的任务，这里会追踪状态与截止日。</div>'; return; }
-  el.innerHTML=list.map(function(e){
+  const rows=list.map(function(e){
     const overdue=!e.done&&e.deadline<now; const a=ATTRS[safeAttr(e.a)];
     const cls=e.done?'done':(overdue?'overdue':'open');
     return '<div class="jh-row myjh-'+cls+'">'
@@ -2642,7 +2641,10 @@ function renderMyJianghu(){
               : '<button class="btn xs primary" onclick="jianghuMyToggle(\''+e.uid+'\')">完成</button>'))
       +'<div class="jh-dead">截止 '+fmtDeadline(e.deadline)+'</div>'
       +'</div>';
-  }).join('');
+  });
+  const active=rows.filter((_,i)=>!list[i].done).join('');
+  const done=rows.filter((_,i)=>list[i].done);
+  el.innerHTML=(active||'<p class="hint">没有进行中的揭榜任务。</p>')+(done.length?clarityFold('claimed-done','已完成 · '+done.length,done.join('')):'');
 }
 const SETTLE_STORIES={
   BADMINTON:['拍线轻响，身体又记住了一点。真正的进步往往发生在没人鼓掌的时候。','风从球网两侧穿过。今天的这一拍，会留在下一次更从容的移动里。'],
@@ -3246,7 +3248,7 @@ function switchShortTaskTab(tab, resetSub, autoSub){
   document.querySelectorAll('#stTabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.st===tab));
   if(tab==='jianghu'){
     let sub;
-    if(resetSub) sub='day';
+    if(resetSub) sub='my';
     else if(autoSub) sub=autoSub;
     else sub=S.jhTab||'day';
     try{ switchJianghuTab(sub); }catch(e){}

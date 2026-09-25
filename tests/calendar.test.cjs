@@ -11,6 +11,7 @@ const ctx=vm.createContext({console,Date,Map,Blob,URL,setTimeout,requestAnimatio
 });
 vm.runInContext(fs.readFileSync('assets/calendar.js','utf8'),ctx);
 vm.runInContext(fs.readFileSync('assets/clarity.js','utf8'),ctx);
+vm.runInContext(fs.readFileSync('assets/hierarchy.js','utf8'),ctx);
 function run(s){return vm.runInContext(s,ctx);}
 assert.equal(run("calAdd('2026-12-31',1)"),'2027-01-01');
 assert.equal(run("calAdd('2024-02-28',1)"),'2024-02-29');
@@ -25,12 +26,15 @@ assert.equal(run("calConflict({date:'2026-09-25',endDate:'2026-09-25',allDay:fal
 assert.equal(run("calConflict({date:'2026-09-25',endDate:'2026-09-25',allDay:false,start:'00:30',end:'01:30'},'a').length"),0);
 for(const view of ['month','week','day']){run(`calendarView='${view}';calendarDate='2026-09-24';renderCalendar()`);assert.ok(root.innerHTML.includes('&lt;img'));assert.ok(!root.innerHTML.includes('<img'));}
 for(const [key,value] of Object.entries({calTitle:'项目讨论',calStartDate:'2026-09-24',calEndDate:'2026-09-24',calStartTime:'14:00',calEndTime:'15:00',calAttr:'MIND',calXp:'10'}))elements.set(key,{value});
+elements.set('calDue',{value:'2026-09-30'});
 elements.set('calAllDay',{checked:false});elements.set('calError',{textContent:''});elements.set('calendarEditor',{close(){}});
 run('calSave()');assert.equal(ctx.S.dayTasks.length,2);assert.equal(ctx.S.dayTasks[1].schedule.start,'14:00');
+assert.equal(ctx.S.dayTasks[1].due,'2026-09-30');
 run("calendarEditingId='new-id'");elements.get('calStartDate').value='2026-09-26';elements.get('calEndDate').value='2026-09-26';run('calSave()');
 assert.equal(ctx.S.dayTasks.length,2);assert.equal(ctx.S.dayTasks[1].schedule.date,'2026-09-26');
 ctx.S.dayTasks[1].done=true;elements.get('calXp').value='100';run('calSave()');assert.equal(ctx.S.dayTasks[1].xp,10);
 run('calUnSchedule()');assert.equal(ctx.S.dayTasks.length,2);assert.equal(ctx.S.dayTasks[1].schedule,undefined);
+assert.equal(ctx.S.dayTasks[1].due,'2026-09-30');
 // Exercise the real task completion functions, including XP reversal and future filtering.
 const taskSource=fs.readFileSync('assets/tasks-render.js','utf8');
 ctx.grant=(a,xp,neg)=>ctx.S.attrs[a]+=(neg?-xp:xp);ctx.floatXP=()=>{};
@@ -42,7 +46,8 @@ run("undoDoneDayTask('new-id')");assert.equal(ctx.S.attrs.MIND,100);
 ctx.addDays=(d,n)=>run(`calAdd('${d}',${n})`);ctx.fmtMD=d=>d;
 elements.set('dayTaskList',{innerHTML:''});
 ctx.S.dayTasks[1].schedule={date:'2026-09-26',endDate:'2026-09-26',allDay:true};run('renderDayTasks()');
-assert.ok(!elements.get('dayTaskList').innerHTML.includes('项目讨论'));
+assert.ok(elements.get('dayTaskList').innerHTML.includes('项目讨论'));
+assert.ok(elements.get('dayTaskList').innerHTML.includes('之后'));
 vm.runInContext(fs.readFileSync('assets/interaction.js','utf8'),ctx);
 ctx.REC_DATE='';ctx.recordDateStr=()=> '2026-09-24';ctx.LIFE_TRACKS={reading:{a:'MIND',n:'阅读'}};
 const logs=[{id:'task',key:'reading',d:'2026-09-24',min:20,src:'task',a:'MIND'},{id:'1',key:'reading',d:'2026-09-24',min:10,src:'quick',a:'MIND'},{id:'2',key:'reading',d:'2026-09-24',min:5,src:'quick',a:'MIND'}];

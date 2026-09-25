@@ -11,6 +11,7 @@ function calValidate(v){
   if(!v.t.trim())return '请填写任务名称';
   if(!calValidDate(v.date)||!calValidDate(v.endDate))return '请选择有效日期';
   if(v.endDate<v.date)return '结束日期不能早于开始日期';
+  if(v.due&&!calValidDate(v.due))return '请选择有效的最晚完成日期';
   if(!v.allDay){
     const time=/^([01]\d|2[0-3]):[0-5]\d$/;
     if(!time.test(v.start)||!time.test(v.end))return '请填写有效的起止时间';
@@ -100,6 +101,7 @@ function renderCalendar(){
   });}
 }
 function openCalendarEditor(uid,date,time){
+  if(typeof calendarPendingGoal!=='undefined')calendarPendingGoal=null;
   if(typeof _editingDayTask!=='undefined'&&_editingDayTask===uid){saveDayTaskEdit(uid);}
   const task=(S.dayTasks||[]).find(t=>t.id===uid);
   calendarEditingId=task?task.id:null;
@@ -115,9 +117,9 @@ function openCalendarEditor(uid,date,time){
   dialog.innerHTML='<form id="calForm"><div class="ux-dialog-head"><h2 id="calEditorTitle">'+(task?'编辑任务安排':'安排任务')+'</h2><button type="button" class="btn ghost" onclick="closeCalendarEditor()" aria-label="关闭">×</button></div>'+
     '<label>任务名称<input id="calTitle" required maxlength="200" value="'+escHtml(task?task.t:'')+'" placeholder="例如：练琴、项目讨论"></label>'+
     '<label class="cal-check"><input id="calAllDay" type="checkbox" '+(s.allDay||(!task&&!time)?'checked':'')+' onchange="calToggleTimes()">全天</label>'+
-    '<div class="cal-form-grid"><label>开始日期<input type="date" id="calStartDate" required value="'+day+'"></label><label>结束日期<input type="date" id="calEndDate" required value="'+endDate+'"></label><label class="cal-time-field">开始时间<input type="time" id="calStartTime" value="'+start+'"></label><label class="cal-time-field">结束时间<input type="time" id="calEndTime" value="'+end+'"></label>'+
-    '<label>属性<select id="calAttr" '+(task&&task.done?'disabled':'')+'>'+optAttrs(task?task.a:'MIND')+'</select></label><label>完成经验<input type="number" id="calXp" min="1" max="10000" value="'+(task?task.xp||10:10)+'" '+(task&&task.done?'disabled':'')+'></label></div>'+
-    '<p class="hint">安排时间与原任务截止日期分别保留。已完成任务的属性与经验锁定，恢复未完成后可修改。</p><p id="calError" class="ux-error" role="alert"></p><p id="calOverlap" class="hint" role="status"></p>'+
+    '<div class="cal-form-grid"><label>计划开始日期<input type="date" id="calStartDate" required value="'+day+'"></label><label>计划结束日期<input type="date" id="calEndDate" required value="'+endDate+'"></label><label class="cal-time-field">开始时间<input type="time" id="calStartTime" value="'+start+'"></label><label class="cal-time-field">结束时间<input type="time" id="calEndTime" value="'+end+'"></label>'+
+    '<label>最晚完成日期（可选）<input type="date" id="calDue" value="'+escHtml(task?.due||'')+'"></label><label>属性<select id="calAttr" '+(task&&task.done?'disabled':'')+'>'+optAttrs(task?task.a:'MIND')+'</select></label><label>完成经验<input type="number" id="calXp" min="1" max="10000" value="'+(task?task.xp||10:10)+'" '+(task&&task.done?'disabled':'')+'></label></div>'+
+    '<p class="hint">计划时间表示准备什么时候做；最晚完成日期是截止日，可不同于计划时间。已完成任务的属性与经验锁定，恢复未完成后可修改。</p><p id="calError" class="ux-error" role="alert"></p><p id="calOverlap" class="hint" role="status"></p>'+
     '<div class="ux-dialog-actions">'+(s.date?'<button type="button" class="btn ghost" onclick="calUnSchedule()">移除时间安排</button>':'')+'<button type="button" class="btn ghost" onclick="closeCalendarEditor()">取消</button><button type="submit" class="btn primary">保存安排</button></div></form>';
   document.getElementById('calForm').addEventListener('submit',e=>{e.preventDefault();calSave();});
   document.getElementById('calForm').addEventListener('input',calShowConflict);
@@ -127,16 +129,17 @@ function openCalendarEditor(uid,date,time){
   });
   calToggleTimes();calShowConflict();dialog.showModal();document.getElementById('calTitle').focus();
 }
-function closeCalendarEditor(){document.getElementById('calendarEditor').close();}
+function closeCalendarEditor(){if(typeof calendarPendingGoal!=='undefined')calendarPendingGoal=null;document.getElementById('calendarEditor').close();}
 function calToggleTimes(){const all=document.getElementById('calAllDay').checked;document.querySelectorAll('#calendarEditor .cal-time-field').forEach(e=>{e.hidden=all;e.querySelector('input').disabled=all;});}
-function calFormValue(){return {t:document.getElementById('calTitle').value.trim(),date:document.getElementById('calStartDate').value,endDate:document.getElementById('calEndDate').value,allDay:document.getElementById('calAllDay').checked,start:document.getElementById('calStartTime').value,end:document.getElementById('calEndTime').value,a:document.getElementById('calAttr').value,xp:Number(document.getElementById('calXp').value)};}
+function calFormValue(){return {due:document.getElementById('calDue')?.value,t:document.getElementById('calTitle').value.trim(),date:document.getElementById('calStartDate').value,endDate:document.getElementById('calEndDate').value,allDay:document.getElementById('calAllDay').checked,start:document.getElementById('calStartTime').value,end:document.getElementById('calEndTime').value,a:document.getElementById('calAttr').value,xp:Number(document.getElementById('calXp').value)};}
 function calShowConflict(){const v=calFormValue(),hits=calValidate(v)?[]:calConflict(v,calendarEditingId);document.getElementById('calOverlap').textContent=hits.length?'时间与 '+hits.length+' 项未完成任务重叠，仍可保存。':'';}
 function calSave(){
   const v=calFormValue(),err=calValidate(v);if(err){document.getElementById('calError').textContent=err;return;}
   S.dayTasks=S.dayTasks||[];let task=S.dayTasks.find(t=>t.id===calendarEditingId);
   if(!task){task={id:id(),d:todayStr(),done:false,from:'calendar',due:''};S.dayTasks.push(task);}
-  task.t=v.t;if(!task.done){task.a=ATTRS[v.a]?v.a:'MIND';task.xp=Math.round(v.xp);}
+  task.t=v.t;if(v.due!==undefined)task.due=v.due;if(!task.done){task.a=ATTRS[v.a]?v.a:'MIND';task.xp=Math.round(v.xp);}
   task.schedule={date:v.date,endDate:v.endDate,allDay:v.allDay,start:v.allDay?'':v.start,end:v.allDay?'':v.end};
+  if(typeof calendarPendingGoal!=='undefined'&&calendarPendingGoal){calendarPendingGoal.nextTaskId=task.id;calendarPendingGoal=null;}
   calendarDate=v.date;save();trackUsage('action',calendarEditingId?'日历编辑':'日历新增');
   closeCalendarEditor();renderDayTasks();renderCalendar();
 }
