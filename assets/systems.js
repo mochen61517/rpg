@@ -2295,7 +2295,8 @@ function reorganizeDetailPages(){
   setHead('journey','角色设定','角色档案 · 命格历程 · 时间轴设置');
   setHead('action','短期任务','今日行动 · 江湖榜 · 周期揭榜');
   setHead('growth','修行 · 成长','等级与专精优先 · 成就愿望随后');
-  setHead('data','设置与内容管理','存档与反馈 · 通知 · 随机内容库');
+  setHead('data','数据与设置','存档、偏好与记录');
+  setupDataSettings();
 }
 
 // 长期复利轨道 = 唯一累计时长真源。覆盖所有需要长期复利的维度；
@@ -2930,16 +2931,7 @@ function usageLabel(row){
   const pages={dashboard:'仪表盘',energy:'精力恢复',action:'短期任务',current:'短期任务',week:'本周卷册',longterm:'长期主线',ledger:'钱庄',journey:'角色设定',growth:'修行成长',data:'设置'};
   return (names[row.kind]||row.kind)+' · '+(row.kind==='page'?(pages[row.key]||row.key):row.key);
 }
-function renderUsageInsights(){
-  const box=document.getElementById('usageInsightsBox');if(!box)return;
-  const u=readUsage(),rows=Object.values(u.events||{}).sort((a,b)=>b.count-a.count);
-  if(!rows.length){box.innerHTML='<p class="hint">还没有本机使用记录。不会把缺失记录视为没有使用。</p>';return;}
-  const daily=u.daily||{},cut=calAdd(todayStr(),-13),recent={};
-  Object.keys(daily).filter(d=>d>=cut).forEach(d=>Object.entries(daily[d]).forEach(([k,v])=>recent[k]=(recent[k]||0)+v));
-  box.innerHTML='<p class="hint">累计记录 '+escHtml((u.first||'').slice(0,10))+' 至 '+escHtml((u.last||'').slice(0,10))+'。旧版只覆盖页面和少数操作，次数不等于真实使用率，不据此自动判断功能去留。近14天数据从 '+escHtml(u.dailySince||'本次更新')+' 起采集，缺失日期不补记。</p>'+
-    '<div class="usage-row"><b>页面 / 操作</b><b>累计 / 近14天</b></div>'+rows.map(r=>'<div class="usage-row"><span>'+escHtml(usageLabel(r))+'</span><b>'+r.count+' / '+(recent[r.kind+':'+r.key]||0)+'</b></div>').join('')+
-    '<button class="btn ghost" onclick="usageExport()">导出本机统计</button>';
-}
+function renderUsageInsights(){renderUsageOverview();}
 function clearUsageInsights(){if(!confirm('只清除本机使用统计，不影响游戏存档。确定吗？'))return;localStorage.removeItem(USAGE_KEY);renderUsageInsights();}
 function setupUsageTracking(){
   if(document.getElementById('usageInsightsPanel'))return;

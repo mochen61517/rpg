@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.5.0</title>
+<title>人生修行录 · v6.5.1</title>
 <link rel="stylesheet" href="assets/life-rpg.css?v=20260923-botanical">
 <link rel="stylesheet" href="assets/experience.css?v=20260924-calendar">
+<link rel="stylesheet" href="assets/settings.css?v=20260925-settings">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-t">人生修行录<span>v6.5.0 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.5.1 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -523,7 +524,7 @@
         <div class="achs" id="achsUnlocked"></div>
       </div>
       <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
-      <!-- v6.5.0 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
+      <!-- v6.5.1 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
       <div class="gp-tabs" id="gpTabs">
         <button class="gp-tab on" data-tab="compound" onclick="switchGrowthTab('compound')">🌳 长期复利轨道</button>
         <button class="gp-tab" data-tab="rewards" onclick="switchGrowthTab('rewards')">🎁 嘉奖箱</button>
@@ -636,10 +637,10 @@
       <div class="panel">
         <h2>📲 微信推送（pushplus）</h2>
         <div class="addrow">
-          <input type="text" id="pushToken" placeholder="pushplus token（一次填入即记住）" style="flex:1 1 200px">
+          <input type="password" id="pushToken" placeholder="pushplus token（一次填入即记住）" style="flex:1 1 200px">
           <button class="btn sm" onclick="pushWechat()">推送今日打卡到微信</button>
         </div>
-        <div class="hint">静态网页无法自动定时推送；点此按钮把你今日的主线+清单发到微信。每天 9:00 的通用打卡提醒已通过 WorkBuddy 定时任务启用。</div>
+        <div class="hint">点击按钮将今日清单发送到微信。本页面不会自行定时推送。</div>
       </div>
       <div class="panel">
         <h2>📱 手机访问（随身使用）</h2>
@@ -704,7 +705,7 @@
           <button class="btn ghost sm theme-btn" id="theme-bing" onclick="setTheme('bing')">丁火·清凉</button>
           <button class="btn ghost sm theme-btn" id="theme-dark" onclick="setTheme('dark')">命理·夜</button>
         </div>
-        <div class="hint">丁火喜金水：青蓝水色 + 水墨衬线，更贴合你的命格「喜金水清凉」。选择即时生效并记住，下次打开自动应用。</div>
+        <div class="hint">选择后立即生效，下次打开会保留。标题保留原有气质，正文以清晰易读为主。</div>
       </div>
 
       <!-- 身体指标（体重趋势） -->
@@ -782,10 +783,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="assets/core-state.js?v=20260914-0958"></script>
-<script src="assets/tasks-render.js?v=20260924-calendar"></script>
+<script src="assets/tasks-render.js?v=20260925-settings"></script>
 <script src="assets/npc-stories.js?v=20260914-0958"></script>
 <script src="assets/calendar.js?v=20260924-calendar"></script>
 <script src="assets/interaction.js?v=20260924-calendar"></script>
-<script src="assets/systems.js?v=20260924-calendar"></script>
+<script src="assets/settings.js?v=20260925-settings"></script>
+<script src="assets/systems.js?v=20260925-settings"></script>
 </body>
 </html>
