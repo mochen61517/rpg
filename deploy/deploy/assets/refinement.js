@@ -26,11 +26,12 @@ function setupMemoryEntry(){
   selectMemoryEntry(memoryEntryKind);
 }
 function petBirthdayImage(name){
-  const pet=(S.pets||[]).find(p=>p.name===name);
+  const normalized=String(name||'').trim().toLocaleLowerCase();
+  const pet=(S.pets||[]).find(p=>String(p.name||'').trim().toLocaleLowerCase()===normalized);
   const custom=pet&&(pet.avatar||pet.image||pet.img);
   if(custom&&isValidDataUrl(custom))return custom;
   if(pet?.photo==='assets/pet-mudan.jpg')return pet.photo;
-  return Array.from(document.querySelectorAll('#jpProfile .pet img')).find(img=>img.alt===name)?.getAttribute('src')||'';
+  return Array.from(document.querySelectorAll('#jpProfile .pet img')).find(img=>String(img.alt||'').trim().toLocaleLowerCase()===normalized)?.getAttribute('src')||'';
 }
 function setupRefinement(){
   setupMemoryEntry();

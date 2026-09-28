@@ -19,3 +19,8 @@ html:root #monthPlanEdit .month-focus{border:1px solid var(--line);border-radius
 #usefulArchive{border:0;margin:0;padding:0}#usefulArchive>details{padding:0;margin:14px 0;border:1px solid var(--line);border-radius:12px}#usefulArchive summary{padding:15px 18px;font-size:14px;color:var(--txt)}#usefulArchive #usefulLogBox{padding:0 18px 16px}
 
 .pet-avatar img{width:64px;height:64px;border-radius:50%;object-fit:cover}.pet-avatar img[src$="pet-mudan.jpg"],.bday-ic img[src$="pet-mudan.jpg"],.pet[data-pet="mudan"] img{object-position:75% 45%}
+
+/* Reserve the same space as the photo; never let the image overflow into text. */
+.bday-card>.bday-ic,.pet-panel>.pet-avatar{box-sizing:border-box;width:48px;height:48px;min-width:48px;flex:0 0 48px;overflow:hidden;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:28px;line-height:1}
+.bday-card>.bday-ic img,.pet-panel>.pet-avatar img{display:block;width:100%;height:100%;max-width:100%;object-fit:cover;border-radius:inherit}
+.bday-card>.bday-main,.pet-panel>.pet-id{min-width:0;flex:1}
