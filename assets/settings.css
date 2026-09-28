@@ -38,3 +38,15 @@
 #settings-records .hist{align-items:start;padding:10px 0;gap:10px}
 #settings-records .hist .ht{overflow-wrap:anywhere;min-width:0}
 @media(max-width:600px){.settings-search{width:100%;flex-wrap:wrap}.settings-search input{flex:1;min-width:160px}.settings-tabs{display:grid;grid-template-columns:1fr 1fr}.settings-tabs button{min-height:44px}#page-data .settings-card{padding:16px}.settings-field{flex-basis:100%}.settings-section-title p{width:100%}.usage-page-row{grid-template-columns:90px minmax(0,1fr) 50px;font-size:12px}}
+#page-data.settings-simple{max-width:900px}
+.settings-home-save{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
+.settings-home-preferences{margin:12px 0 20px}.settings-home-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line)}
+.settings-home-row>span{font-size:14px;font-weight:500}.settings-home-row .row{margin:0;justify-content:flex-end}
+#settingsHomeStatus{font-size:15px}#settingsHomeStatus .hint{font-size:12px;margin-top:5px;color:var(--dim)}
+#settingsHome .btn{font-size:13px;min-height:36px}#settingsHome .hint[hidden]{display:none!important}
+html[data-theme] #settingsHomeQuiet .btn{background:transparent!important;color:var(--txt)!important;border:1px solid var(--line);box-shadow:none}
+#settingsMore{border:0;background:transparent;margin-top:12px}#settingsMore>summary{font-size:14px;color:var(--dim);cursor:pointer;padding:12px 0}
+.settings-more-body{padding-top:16px}.settings-simple .settings-section-title{display:none}.settings-simple .settings-intro{margin-bottom:12px}
+.settings-simple .settings-help{margin:12px 0;color:var(--dim);font-size:12px}.settings-help>summary{cursor:pointer;padding:5px 0}.settings-help .hint{line-height:1.7}
+.settings-simple .settings-search{margin-left:auto}.settings-simple .settings-tabs button{font-size:13px}
+@media(max-width:600px){.settings-home-row{align-items:flex-start;flex-direction:column;gap:10px}.settings-home-row .row{justify-content:flex-start}.settings-home-save{flex-wrap:wrap}.settings-home-row .theme-btn{padding:7px 9px}.settings-simple .settings-search{margin-left:0}}

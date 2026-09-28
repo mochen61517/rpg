@@ -20,6 +20,40 @@ function settingsItem(section,title,node,keywords){
   document.getElementById('settings-'+section).append(item);
   return item;
 }
+function setupSimpleSettings(){
+  const layout=document.getElementById('settingsLayout');if(!layout||document.getElementById('settingsHome'))return;
+  const page=document.getElementById('page-data');page.classList.add('settings-simple');
+  const subtitle=page.querySelector('.phead .psub');if(subtitle)subtitle.remove();
+  const home=document.createElement('div');home.id='settingsHome';
+  home.innerHTML='<div class="settings-home-save"><div id="settingsHomeStatus"></div><div id="settingsHomeExport"></div></div><div class="settings-home-preferences"><div class="settings-home-row"><span>外观</span><div id="settingsHomeTheme"></div></div><div class="settings-home-row"><span>奖励提示</span><div id="settingsHomeQuiet"></div></div></div>';
+  const more=document.createElement('details');more.id='settingsMore';more.innerHTML='<summary>更多设置</summary><div class="settings-more-body"></div>';
+  layout.before(home,more);more.querySelector('.settings-more-body').append(layout);
+  const help=document.createElement('details');help.className='settings-help';help.innerHTML='<summary>使用说明</summary><div></div>';more.querySelector('.settings-more-body').append(help);
+  const helpBody=help.querySelector('div');
+  const moveHelp=node=>{if(node)helpBody.append(node);};
+  const status=document.getElementById('saveSafetyBox');if(status)document.getElementById('settingsHomeStatus').append(status);
+  const exportButton=page.querySelector('button[onclick="exportSave()"]');if(exportButton){exportButton.textContent='导出备份';exportButton.classList.remove('ghost');exportButton.classList.add('primary');document.getElementById('settingsHomeExport').append(exportButton);}
+  for(const [id,target] of [['theme-light','settingsHomeTheme'],['quietModeBtn','settingsHomeQuiet']]){
+    const control=document.getElementById(id),item=control?.closest('.settings-item'),row=control?.closest('.row');
+    if(!row)continue;
+    item.querySelectorAll('.hint').forEach(moveHelp);
+    document.getElementById(target).append(row);item.remove();
+  }
+  const quietText=document.getElementById('quietModeText');if(quietText)quietText.hidden=true;
+  const warning=document.getElementById('saveWarn');if(warning)home.prepend(warning);
+  const intro=layout.querySelector('.settings-intro>p');if(intro)intro.remove();
+  const search=document.getElementById('settingsSearch');search.placeholder='搜索更多设置';
+  const foot=page.querySelector(':scope>.foot');moveHelp(foot);
+  // Keep explanations accessible, but leave operational status and warnings beside controls.
+  layout.querySelectorAll('.settings-card').forEach(card=>{
+    const notes=Array.from(card.querySelectorAll(':scope>.hint')).filter(n=>!n.id&&!n.querySelector('input,select,button'));
+    if(!notes.length)return;
+    const details=document.createElement('details');details.className='settings-help';details.innerHTML='<summary>说明</summary>';
+    notes.forEach(n=>details.append(n));card.append(details);
+  });
+  const transfer=page.querySelector('[aria-label="导出与导入"]');if(transfer){const h=transfer.querySelector('h2');if(h)h.textContent='导入与本地文件';}
+  const safety=page.querySelector('[aria-label="存档安全"]');if(safety){const h=safety.querySelector('h2');if(h)h.textContent='恢复与备份管理';}
+}
 function setupDataSettings(){
   const root=document.getElementById('page-data');if(!root||document.getElementById('settingsLayout'))return;
   const panelFor=id=>document.getElementById(id)?.closest('.panel');

@@ -2,7 +2,7 @@
 let taskTypeFilter='',habitManagement=false,memoryQuery='',memoryMonth='',memoryAll=false,calendarPendingGoal=null;
 function renderSaveSafety(){
   const el=document.getElementById('saveSafetyBox');if(!el)return;const points=restorePoints(),last=points[0];
-  el.innerHTML='<strong>'+(typeof SAVE_OK!=='undefined'&&SAVE_OK===false?'本次保存失败，请立即导出备份':'当前浏览器存档')+'</strong><div class="hint">'+(last?'最近本机恢复点：'+escHtml(new Date(last.ts).toLocaleString('zh-CN')):'尚无本机恢复点')+' · 已保留 '+points.length+' / 3 份</div>';
+  el.innerHTML='<strong>'+(typeof SAVE_OK!=='undefined'&&SAVE_OK===false?'本次保存失败，请立即导出备份':'本机存档')+'</strong><div class="hint">'+(last?'最近本机恢复点：'+escHtml(new Date(last.ts).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})):'尚无本机恢复点')+'</div>';
 }
 function taskDateGroup(t,date=todayStr()){
   const due=t.due||t.schedule?.date||'';
@@ -123,15 +123,5 @@ function setupHierarchy(){
     const reports=week.querySelector('#reportWeek')?.closest('.panel');if(reports)clarityWrap(reports,'周报 / 月报 · 生成与导出','reports');
     const histories=week.querySelector('#weeklyHistoryBox')?.closest('.panel');if(histories)clarityWrap(histories,'以前的回顾','past-reviews');
   }
-  const backup=document.getElementById('settings-backup');
-  if(backup&&!backup.dataset.simplified){backup.dataset.simplified='1';
-    const transfer=backup.querySelector('.settings-item');
-    const safety=document.getElementById('saveSafetyBox')?.closest('.settings-item');
-    if(transfer&&safety)backup.insertBefore(safety,transfer);
-    const fileBanner=document.getElementById('fsBanner');if(fileBanner)clarityWrap(fileBanner,'本地文件存档 · 使用说明','file-help');
-    if(transfer){const row=transfer.querySelector('.row'),exportButton=row?.querySelector('button[onclick*="export"]');
-      if(row&&exportButton){const secondary=document.createElement('div');secondary.className='backup-secondary';Array.from(row.children).filter(n=>n!==exportButton).forEach(n=>secondary.append(n));row.after(secondary);clarityWrap(secondary,'导入或连接本地文件','backup-import');}
-      const hint=transfer.querySelector('.hint');if(hint)clarityWrap(hint,'备份操作说明','backup-help');
-    }
-  }
+  setupSimpleSettings();
 }
