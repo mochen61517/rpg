@@ -58,22 +58,52 @@ function removePlanTask(kind,key,index){
   planTasks(g,kind).splice(index,1);planRefresh();
 }
 function planPriority(value,handler,label){return '<select aria-label="'+label+'" onchange="'+handler+'">'+GOAL_PRIORITIES.map(([key,text])=>'<option value="'+key+'"'+((value||'normal')===key?' selected':'')+'>'+text+'优先级</option>').join('')+'</select>';}
+function planPriorityLabel(value){return (GOAL_PRIORITIES.find(([k])=>k===value)||GOAL_PRIORITIES[1])[1]+'优先级';}
 function planGoalHtml(g,kind,key,label){
   const args="'"+kind+"','"+key+"'",tasks=planTasks(g,kind),complete=planGoalDone(g,kind),pct=planProgress(g,kind);
   const rows=planTaskOrder(tasks),open=rows.filter(({t})=>!planTaskDone(t)),done=rows.filter(({t})=>planTaskDone(t));
   const row=({t,i})=>{
-    const done=planTaskDone(t),late=!done&&t.due&&t.due<todayStr(),a=args+','+i;
-    return '<div class="plan-task'+(done?' is-done':'')+'"><input type="checkbox" aria-label="完成任务：'+escHtml(t.t)+'" '+(done?'checked':'')+' onchange="setPlanTask('+a+',\'done\',this.checked)"><div class="plan-task-main"><textarea rows="1" class="plan-task-title" aria-label="任务名称" onchange="setPlanTask('+a+',\'title\',this.value)">'+escHtml(t.t)+'</textarea><div class="plan-task-meta">'+planPriority(t.priority,'setPlanTask('+a+',\'priority\',this.value)','任务优先级')+'<label class="'+(late?'is-late':'')+'">'+(late?'已逾期':'截止')+' <input type="date" aria-label="任务截止日期" value="'+escHtml(t.due||'')+'" onchange="setPlanTask('+a+',\'due\',this.value)"></label></div></div><button class="text-action" aria-label="删除任务" onclick="removePlanTask('+a+')">×</button></div>';
+    const checked=planTaskDone(t),late=!checked&&t.due&&t.due<todayStr(),a=args+','+i;
+    return '<div class="compact-plan-task'+(checked?' is-done':'')+'"><input type="checkbox" aria-label="完成任务：'+escHtml(t.t)+'" '+(checked?'checked':'')+' onchange="setPlanTask('+a+',\'done\',this.checked)"><button class="compact-task-title" onclick="openPlanEditor('+a+')">'+escHtml(t.t)+'</button><span class="plan-priority priority-'+(t.priority==='high'?'high':t.priority==='low'?'low':'normal')+'">'+planPriorityLabel(t.priority)+'</span><time class="compact-task-due'+(late?' is-late':'')+'">'+(t.due?escHtml(t.due)+(late?' · 逾期':''):'无截止日期')+'</time><button class="text-action" aria-label="编辑任务：'+escHtml(t.t)+'" onclick="openPlanEditor('+a+')">编辑</button></div>';
   };
-  return '<article class="plan-goal'+(complete?' is-complete':'')+'"><div class="plan-kicker">'+label+'</div><div class="plan-title-row"><textarea rows="1" class="plan-title" aria-label="总目标" placeholder="写下一个明确的总目标" onchange="setPlanField('+args+',\'title\',this.value)">'+escHtml(g[kind==='year'?'t':'plan']||'')+'</textarea><label class="plan-complete"><input type="checkbox" '+(complete?'checked':'')+' onchange="setPlanField('+args+',\'done\',this.checked)">已完成</label></div><div class="plan-goal-meta">'+planPriority(g.priority,'setPlanField('+args+',\'priority\',this.value)','目标优先级')+'<label>当前进度 <input class="plan-percent" aria-label="当前进度百分比" type="number" min="0" max="100" value="'+pct+'" '+(complete?'disabled':'')+' onchange="setPlanField('+args+',\'progress\',this.value)">%</label>'+(g.progressMode==='manual'?'<button class="text-action" onclick="setPlanField('+args+',\'auto\',true)">按任务计算</button>':'<small>按任务完成数计算 · 可直接改百分比</small>')+'</div><div class="plan-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><i style="width:'+pct+'%"></i></div><div class="plan-task-heading">拆分任务 <small>'+tasks.filter(planTaskDone).length+' / '+tasks.length+' 已完成</small></div>'+open.map(row).join('')+(!tasks.length?'<p class="hint">从一个具体的小任务开始，最多拆分 5 个。</p>':'')+(!complete&&tasks.length<5?'<div class="plan-add"><input id="plan-add-'+kind+'-'+key+'" aria-label="新拆分任务" placeholder="添加任务（'+tasks.length+'/5）" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addPlanTask('+args+')}"><button class="btn sm" onclick="addPlanTask('+args+')">＋ 添加</button></div>':!complete?'<p class="plan-limit">'+(tasks.length>5?'已有任务全部保留；':'')+'已达 5 个任务上限</p>':'')+(done.length?'<div class="plan-done-heading">已完成 · '+done.length+'</div>'+done.map(row).join(''):'')+'</article>';
+  return '<article class="compact-plan'+(complete?' is-complete':'')+'"><header class="compact-plan-header"><button class="compact-goal-title" aria-label="编辑总目标" onclick="openPlanEditor('+args+')">'+escHtml(g[kind==='year'?'t':'plan']||'点击设置'+label)+'</button><span class="plan-priority priority-'+(g.priority==='high'?'high':g.priority==='low'?'low':'normal')+'">'+planPriorityLabel(g.priority)+'</span><button class="compact-progress" aria-label="编辑目标进度 '+pct+'%" onclick="openPlanEditor('+args+')"><span class="compact-progress-track"><i style="width:'+pct+'%"></i></span><span>'+pct+'%</span></button><button class="text-action" onclick="openPlanEditor('+args+')">编辑</button></header>'+open.map(row).join('')+(!complete&&tasks.length<5?'<button class="compact-add text-action" onclick="openPlanEditor('+args+',-1)">＋ 拆分任务 <small>'+tasks.length+'/5</small></button>':'')+(done.length?'<div class="compact-done-label">已完成 · '+done.length+'</div>'+done.map(row).join(''):'')+'</article>';
 }
-function yearAnalysisCard(c,i){
-  const legacy=(c.nextAction?'<p>原下一步：'+escHtml(c.nextAction)+'</p>':'')+(c.titleHistory||[]).map(x=>'<p>'+escHtml(x.date+' · '+x.from+' → '+x.to)+'</p>').join('');
-  return '<section class="plan-year-entry">'+planGoalHtml(c,'year',String(i),'年度总目标')+clarityFold('year-'+i,'进展记录'+((c.records||[]).length?' · '+c.records.length+' 条':''),yearRecordBlock(c,i))+clarityFold('year-more-'+i,'历史与管理',legacy+'<button class="text-action" onclick="delYearQuest('+i+')">删除目标</button>')+'</section>';
+function openPlanEditor(kind,key,index){
+  const g=planGoal(kind,key);if(!g)return;
+  const taskEdit=Number.isInteger(index),adding=index===-1;
+  if(adding&&(planTasks(g,kind).length>=5||planGoalDone(g,kind)))return;
+  const t=taskEdit?(adding?{t:'',priority:'normal',due:''}:planTasks(g,kind)[index]):g;if(!t)return;
+  let modal=document.getElementById('planEditor');if(!modal){modal=document.createElement('dialog');modal.id='planEditor';modal.className='plan-editor';document.body.append(modal);}
+  const priorityOptions=GOAL_PRIORITIES.map(([k,n])=>'<option value="'+k+'"'+((t.priority||'normal')===k?' selected':'')+'>'+n+'优先级</option>').join('');
+  modal.innerHTML='<form><h2>'+(taskEdit?(adding?'添加拆分任务':'编辑任务'):'编辑总目标')+'</h2><label>名称<textarea name="title" required maxlength="500" rows="3">'+escHtml(taskEdit?t.t:(g[kind==='year'?'t':'plan']||''))+'</textarea></label><label>优先级<select name="priority">'+priorityOptions+'</select></label>'+(taskEdit?'<label>截止日期<input type="date" name="due" value="'+escHtml(t.due||'')+'"></label>':'<label>进度方式<select name="mode"><option value="tasks"'+(g.progressMode!=='manual'?' selected':'')+'>按任务完成数计算</option><option value="manual"'+(g.progressMode==='manual'?' selected':'')+'>手动填写</option></select></label><label class="manual-progress">当前进度（%）<input type="number" name="progress" min="0" max="100" value="'+planProgress(g,kind)+'"></label><label class="editor-check"><input type="checkbox" name="done" '+(planGoalDone(g,kind)?'checked':'')+'>目标已完成</label>')+'<div class="plan-editor-actions">'+(!adding?'<button type="button" class="text-action editor-delete">删除'+(taskEdit?'任务':'目标')+'</button>':'')+'<button type="button" class="btn ghost editor-cancel">取消</button><button class="btn primary" type="submit">保存</button></div></form>';
+  const form=modal.querySelector('form');
+  if(!taskEdit){const sync=()=>{form.querySelector('.manual-progress').hidden=form.elements.mode.value!=='manual';};form.elements.mode.onchange=sync;sync();}
+  form.querySelector('.editor-cancel').onclick=()=>modal.close();
+  const del=form.querySelector('.editor-delete');if(del){if(!taskEdit&&kind==='month')del.remove();else del.onclick=()=>{if(taskEdit){removePlanTask(kind,key,index);modal.close();}else{delYearQuest(Number(key));modal.close();}};}
+  form.onsubmit=e=>{
+    e.preventDefault();const title=form.elements.title.value.trim();if(!title){form.elements.title.focus();return;}
+    const priority=form.elements.priority.value;
+    if(taskEdit){
+      const tasks=planTasks(g,kind);if(adding&&tasks.length>=5)return;
+      const target=adding?{id:id(),planDone:false}:tasks[index];if(!target)return;
+      target.t=title;target.priority=priority;target.due=form.elements.due.value;
+      if(adding){if(kind==='year')g.items=tasks;else g.tasks=tasks;tasks.push(target);}
+    }else{
+      if(kind==='year'&&g.t!==title){g.titleHistory||=[];g.titleHistory.push({date:todayStr(),from:g.t,to:title});}
+      g[kind==='year'?'t':'plan']=title;g.priority=priority;g.progressMode=form.elements.mode.value;
+      if(g.progressMode==='manual')g.progress=Math.max(0,Math.min(100,Number(form.elements.progress.value)||0));
+      const checked=form.elements.done.checked;
+      if(kind==='year')g.done=checked;
+      else if(checked&&g.status!=='done'){g.previousStatus=g.status;g.status='done';}
+      else if(!checked&&g.status==='done')g.status=g.previousStatus&&g.previousStatus!=='done'?g.previousStatus:'';
+    }
+    modal.close();planRefresh();
+  };
+  modal.showModal();
 }
+function yearAnalysisCard(c,i){return '<section class="compact-year-entry">'+planGoalHtml(c,'year',String(i),'年度总目标')+'</section>';}
 function renderMonthPlanEdit(){
   const el=document.getElementById('monthPlanEdit');if(!el)return;
   const key=goalMonth||thisMonth(),g=planGoal('month',key);
-  const legacy='<label>实际推进<textarea id="mActual_'+key+'">'+escHtml(g.actual||'')+'</textarea></label><label>复盘与调整<textarea id="mReason_'+key+'">'+escHtml(g.reason||'')+'</textarea></label><button class="btn sm" onclick="saveMonthPlanKey(\''+key+'\')">保存回顾</button>';
-  el.innerHTML='<div class="plan-month-picker"><label>月份 <input type="month" value="'+key+'" onchange="if(this.value){goalMonth=this.value;renderMonthPlanEdit()}"></label></div>'+planGoalHtml(g,'month',key,key.replace('-',' 年 ')+' 月总目标')+clarityFold('review-'+key,'月末回顾'+(g.actual?' · 已有记录':''),'<div class="month-review-fields">'+legacy+'</div>');
+  el.innerHTML='<div class="plan-month-picker"><label>月份 <input type="month" value="'+key+'" onchange="if(this.value){goalMonth=this.value;renderMonthPlanEdit()}"></label></div>'+planGoalHtml(g,'month',key,key.replace('-',' 年 ')+' 月总目标');
 }
