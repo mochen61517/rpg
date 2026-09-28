@@ -7,8 +7,6 @@ html.hide-calendar .calendar-task-entry,
 html.hide-reviews #reviewAccess,
 html.hide-reviews #st-week-pane,
 html.hide-xp [data-clarity="xp"],
-html.hide-collections [data-clarity="jpCapsule"],
-html.hide-collections [data-clarity="jpCodex"],
 html.hide-collections [data-clarity="jpLoot"],
 html.hide-dashboardExtras [data-dash-id="trend"],
 html.hide-dashboardExtras [data-dash-id="catstatus"]{display:none!important}

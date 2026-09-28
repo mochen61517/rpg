@@ -7,3 +7,10 @@ run("setOptionalFeature('calendar',true)");assert.equal(run("optionalEnabled('ca
 run("setOptionalFeature('calendar',false)");assert.equal(ctx.S.dayTasks[0].schedule.date,'2026-10-01');
 run('addGoalTodo(0);addGoalTodo(0)');assert.equal(ctx.S.dayTasks.length,2);assert.equal(ctx.S.dayTasks[1].t,'下一步');assert.equal(ctx.S.dayTasks[1].schedule,undefined);
 console.log('PASS: optional defaults, reversible controls, preserved scheduled data, next action adds one ordinary task.');
+
+const lightweightCss=fs.readFileSync("assets/lightweight.css","utf8");
+for(const key of ["jpCapsule","jpCodex","jpWishes"]) assert.equal(lightweightCss.includes(`[data-clarity="${key}"]`),false,`${key} must remain visible`);
+assert.ok(lightweightCss.includes("html.hide-calendar"));
+assert.ok(lightweightCss.includes("html.hide-recovery"));
+assert.equal(run("OPTIONAL_FEATURES.find(x=>x[0]==='collections')[1]"),"故人信物");
+console.log("PASS: active memory entries remain visible; unused feature controls retained.");
