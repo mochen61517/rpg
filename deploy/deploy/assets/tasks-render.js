@@ -1922,7 +1922,7 @@ function renderLongterm(){
   }
 
   const ylEl=document.getElementById('yearListLong');
-  if(ylEl) ylEl.innerHTML=S.year.map((c,i)=>yearAnalysisCard(c,i)).join('')||'<div class="hint">还没有设定今年大道。</div>';
+  if(ylEl) ylEl.innerHTML=S.year.map((c,i)=>({c,i})).sort((a,b)=>Number(!!a.c.done)-Number(!!b.c.done)||({high:0,normal:1,low:2}[a.c.priority]??1)-({high:0,normal:1,low:2}[b.c.priority]??1)||a.i-b.i).map(({c,i})=>yearAnalysisCard(c,i)).join('')||'<div class="hint">还没有设定今年大道。</div>';
   try{ renderMonthPlanEdit(); }catch(e){ console.warn('monthPlanEdit',e); }
   try{ renderDayunNote(); }catch(e){ console.warn('dayunNote',e); }
 }
