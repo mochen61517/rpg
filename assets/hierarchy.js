@@ -111,8 +111,8 @@ function renderActiveCommissions(){
   box.querySelectorAll('[data-commission]').forEach(b=>b.onclick=()=>{switchJianghuTab('npc');document.getElementById('qi_'+b.dataset.commission)?.scrollIntoView({block:'center',behavior:'smooth'});});
 }
 function setupHierarchy(){
-  applyHabitManagement();setupMemoryBrowser();renderActiveCommissions();
-  const my=document.querySelector('[data-jh="my"]');if(my){my.childNodes[0].textContent='进行中 ';document.getElementById('jhTabs').prepend(my);}
+  applyHabitManagement();setupMemoryBrowser();
+  const my=document.querySelector('[data-jh="my"]');if(my){my.childNodes[0].textContent='已揭榜 ';document.getElementById('jhTabs').prepend(my);}
   const header=document.querySelector('#myJianghuBox')?.closest('.panel')?.querySelector('h2');if(header)header.textContent='已接榜任务 · 按截止时间';
   const weekTab=document.querySelector('[data-st="week"]');if(weekTab)weekTab.hidden=true;
   const tabs=document.getElementById('stTabs');
@@ -147,5 +147,5 @@ function renderTrackOverview(){
   const card=k=>{const d=data(k);return '<article class="track-feature"><div class="track-feature-head"><h3>'+d.t.ic+' '+escHtml(d.t.n)+'</h3><small>'+escHtml(d.stage.n)+'</small></div><div class="track-feature-value">'+(practiceWeekMinutes(k)/60).toFixed(1)+'<small>h 本周投入</small></div><div class="track-total">累计 '+(d.total/60).toFixed(1)+'h</div>'+clarityFold('track-'+k,'成长详情',detail(k,d))+'</article>';};
   const row=k=>{const d=data(k);return '<details class="track-row"'+(clarityOpen.has('track-row-'+k)?' open':'')+' ontoggle="clarityRemember(this,\'track-row-'+k+'\')"><summary><span class="track-name">'+d.t.ic+' '+escHtml(d.t.n)+'</span><span class="track-week">本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span class="track-total">累计 '+(d.total/60).toFixed(1)+'h</span></summary>'+detail(k,d)+'</details>';};
   const preferences=keys.map(k=>'<label><input type="checkbox" '+(chosen.includes(k)?'checked':'')+' onchange="setGrowthFocus(\''+k+'\',this.checked)">'+escHtml(LIFE_TRACKS[k].n)+'</label>').join('');
-  host.innerHTML='<div class="track-overview-head"><h2>长期复利轨道</h2>'+clarityFold('track-settings','选择重点', '<div class="track-picks">'+preferences+'</div><p class="hint">最多两个；未选择时，突出近 28 天投入天数最多的方向。</p>')+'</div>'+(featured.length?'<div class="track-focus-label">'+(chosen.length?'我的重点':'近期常练 · 按近 28 天投入天数')+'</div><div class="track-features">'+featured.map(card).join('')+'</div>':'')+'<div class="track-list-heading">'+(featured.length?'其他方向':'全部方向')+'</div><div class="track-list">'+ranked.filter(k=>!featured.includes(k)).map(row).join('')+'</div>';
+  host.innerHTML='<div class="track-overview-head"><h2>长期复利轨道</h2>'+clarityFold('track-settings','选择重点', '<div class="track-picks">'+preferences+'</div><p class="hint">最多两个；未选择时，突出近 28 天投入天数最多的方向。</p>')+'</div>'+(featured.length?'<div class="track-focus-label">'+(chosen.length?'我的重点':'近期常练 · 按近 28 天投入天数')+'</div><div class="track-features">'+featured.map(card).join('')+'</div>':'')+'<div class="track-list-heading">'+(featured.length?'其他方向':'全部方向')+'</div><div class="track-list">'+ranked.filter(k=>!featured.includes(k)).sort((a,b)=>data(b).total-data(a).total).map(row).join('')+'</div>';
 }

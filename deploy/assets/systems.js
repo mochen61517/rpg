@@ -361,40 +361,15 @@ function npcSend(qid){
   save(); render();
 }
 function renderNpc(){
-  const el=document.getElementById('npcBox'); if(!el) return;
-  if(!S.npc.active.length){ el.innerHTML=feiTrialsHtml()+'<div class="dash-empty">本周江湖委托待刷新</div>'; return; }
-  el.innerHTML=feiTrialsHtml()+'<div class="clarity-npc-heading">每周委托 · 故人相托</div>'+S.npc.active.map(q=>{
-    const p=NPCS.find(n=>n.id===q.npc)||{n:'?',ic:'❓',d:''};
-    const ri=npcRelInfo(p.id);
-    const adv=nextAdvancedNpcEvent(p.id,ri.xp),marks=[6,10].map(lv=>S.npcEvents[p.id+'_'+lv]).filter(Boolean).map(x=>x.mark);
-    const open=npcChatOpen.has(q.id);
-    const mc=(q.chat?q.chat.filter(m=>m.who==='me').length:0);
-    const msgs=(q.chat&&q.chat.length)?q.chat.map(m=>'<div class="npc-msg '+(m.who==='me'?'me':'npc')+'"><span class="npc-msg-who">'+(m.who==='me'?'我':escHtml(p.n))+'</span><span class="npc-msg-t">'+escHtml(m.t)+'</span></div>').join(''):'<div class="npc-chat-empty">点「💬 聊聊」，告诉他你练了什么、练得怎样——他记得越多，越懂你。</div>';
-    return '<div class="npcq '+(q.done?'done':'')+(open?' open-chat':'')+'" id="qi_'+q.id+'">'
-      +'<div class="npc-ic">'+p.ic+'</div>'
-      +'<div class="npc-body"><div class="npc-n">'+p.n+' <span class="npc-d">'+p.d+'</span></div>'
-      +'<div class="npc-t">「'+q.t+'」</div>'
-      +(q.branch&&q.choice!=null?'<div class="npc-branch-chose">你选了：'+escHtml(q.choices[q.choice].t)+' · '+escHtml(q.choices[q.choice].d)+'</div>':'')
-      +'<div class="npc-rel"><span class="npc-rel-lv">'+ri.name+' · '+ri.xp+(ri.know?' · 聊'+ri.know:'')+'</span><span class="npc-rel-bar"><i style="width:'+ri.pct+'%"></i></span></div>'
-      +'<div class="npc-memory">'+npcMemory(p,ri)+'</div>'
-      +(S.npcEvents[p.id]?'<span class="npc-event-done">🧿 '+NPC_EVENTS[p.id].relic.name+(marks.length?' · '+marks.join(' · '):'')+'</span>':(ri.xp>=3?'<div><button class="btn sm ghost npc-event-btn" onclick="openNpcEvent(\''+p.id+'\')">📜 专属事件 · 熟识</button></div>':''))
-      +(adv?'<div><button class="btn sm ghost npc-event-btn" onclick="openAdvancedNpcEvent(\''+p.id+'\','+adv.lv+')">📖 '+(adv.lv===6?'知交':'莫逆')+'事件 · '+adv.e.title+'</button></div>':'')
-      +'<div class="npc-chat"'+(open?'':' style="display:none"')+'>'
-      +'<div class="npc-chat-msgs" id="npcMsgs_'+q.id+'">'+msgs+'</div>'
-      +'<div class="npc-chat-compose"><textarea id="npcChat_'+q.id+'" rows="2" placeholder="比如：今天把《平沙落雁》第一段顺下来了，左手按弦还是疼…"></textarea><button class="btn sm primary" onclick="npcSend(\''+q.id+'\')">发送</button></div>'
-      +'</div>'
-      +'</div>'
-      +'<div class="npc-r">'
-      +(q.branch
-          ? '<span class="npc-xp branch-tag">二选一</span>'+(q.choice!=null?'<button class="btn sm ghost" onclick="npcDone(\''+q.id+'\')">撤销</button>':'<button class="btn sm primary" onclick="npcDone(\''+q.id+'\')">选一下</button>')
-          : '<span class="npc-xp">+'+q.xp+'</span>'+'<button class="btn sm '+(q.done?'ghost':'primary')+'" onclick="npcDone(\''+q.id+'\')">'+(q.done?'撤销':'交差')+'</button>')
-      +'<button class="btn sm ghost" onclick="npcToggleChat(\''+q.id+'\')">💬 聊聊'+(mc?' '+mc:'')+'</button>'
-      +'</div>'
-      +'</div>';
-  }).join('')
-  + birthdayQuestRowsHtml()
-  +(NPCS.every(p=>S.npcEvents[p.id])&&!S.npcEvents.joint_four?'<div class="npcq"><div class="npc-ic">🏮</div><div class="npc-body"><div class="npc-n">四方故人 · 联动事件</div><div class="npc-t">「雨夜里，四盏灯恰好照到了一张桌上。」</div></div><button class="btn sm primary" onclick="openJointNpcEvent()">赴约</button></div>':'')
-  +'<div class="hint">每周一自动刷新江湖委托。交差会积累关系：初识 → 相识 → 熟识 → 知交 → 莫逆；撤销会同步回退。四人全清额外掉落一份嘉奖。</div>';
+  const el=document.getElementById('npcBox');if(!el)return;
+  ensurePracticalNpcTasks();
+  el.innerHTML=feiTrialsHtml()+'<div class="clarity-npc-heading">每周委托 · 完成实际行动后勾选</div>'+NPCS.map(p=>{
+    const ri=npcRelInfo(p.id),quests=S.npc.active.filter(q=>q.npc===p.id);
+    const row=q=>'<label class="npc-check'+(q.done?' done':'')+'" id="qi_'+escHtml(q.id)+'"><input type="checkbox" '+(q.done?'checked':'')+' data-npc-task="'+escHtml(q.id)+'"><span>'+escHtml(q.t)+(q.branch&&q.choice!=null?' · '+escHtml(q.choices[q.choice].t):'')+'</span><small>+'+(q.xp||30)+' XP</small></label>';
+    const old=quests.filter(q=>!q.practical);
+    return '<section class="npc-person"><header><span>'+p.ic+'</span><div><h3>'+escHtml(p.n)+'</h3><p>'+escHtml(p.d)+'</p><div class="npc-rel"><span>熟悉度 · '+escHtml(ri.name)+' · '+ri.xp+'</span><span class="npc-rel-bar"><i style="width:'+ri.pct+'%"></i></span></div></div></header>'+quests.filter(q=>q.practical).map(row).join('')+(old.length?clarityFold('npc-old-'+p.id,'原有委托 · '+old.length,old.map(row).join('')):'')+'</section>';
+  }).join('')+birthdayQuestRowsHtml();
+  el.querySelectorAll('[data-npc-task]').forEach(input=>input.onchange=()=>npcDone(input.dataset.npcTask));
 }
 // v6.0.53 王菲·菲式历练区块（主体性修行任务）
 // v6.0.61 回归「江湖委托」区块；改为每日轮换三则、当日完成当日清零（次日换新三则重新可做）。
@@ -1183,11 +1158,11 @@ function renderPet(){
     const info=petAgeInfo(p);
     const stageTxt=info.catYears>=3&&info.catYears<7?'壮年猫':(info.catYears>=7?'中年猫+':'小猫咪');
     h+='<div class="pet-panel">'
-      +'<div class="pet-avatar">'+(p.emoji||'🐱')+'</div>'
+      +'<div class="pet-avatar">'+(petBirthdayImage(p.name)?'<img src="'+escapeHtml(petBirthdayImage(p.name))+'" alt="'+escapeHtml(p.name)+'">':(p.emoji||'🐱'))+'</div>'
       +'<div class="pet-id"><div class="pet-name">'+escapeHtml(p.name||'猫')+'</div>'
-      +'<div class="pet-meta">'+escapeHtml(p.breed||'未知品种')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
+      +'<div class="pet-meta">'+escapeHtml(p.breed||'未知品种')+(p.sex?' · '+escapeHtml(p.sex):'')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
       +'<button class="btn sm" onclick="summonPet('+i+')">召唤'+(p.name||'猫')+' 🐾</button></div>';
-    h+='<div class="pet-stat">🎂 '+info.catYears+' 岁（人类≈'+info.humanYears+' 岁 · '+stageTxt+'） · 🤝 在一起 '+(info.daysTogether!=null?info.daysTogether:'—')+' 天</div>';
+    h+='<div class="pet-stat">🎂 '+(p.ageEstimated?'约 ':'')+info.catYears+' 岁（人类≈'+info.humanYears+' 岁 · '+stageTxt+'） · 🤝 在一起 '+(info.daysTogether!=null?info.daysTogether:'—')+' 天</div>';
     if(info.isBirthday) h+='<div style="margin-top:8px">'+petBdayHtml(p)+'</div>';
     else h+='<div class="hint" style="margin-top:8px">'+(p.name||'猫')+' 的生日（'+petNextBirthday(p.birthday)+'）会收到她的一封信 💌</div>';
     h+='<details class="fold" style="margin-top:10px"><summary>✏️ 编辑'+(p.name||'猫')+'的资料</summary>'
@@ -1340,7 +1315,7 @@ function renderBirthday(){
     const icon = e.type==='pet'?'🐱':(e.rel==='自己'?'🎂':(e.rel==='父亲'?'👨':(e.rel==='母亲'?'👩':'💛')));
     const yrTag = occ.year>new Date(now+'T00:00:00').getFullYear() ? '（明年）' : '';
     let card='<div class="bday-card'+(occ.daysLeft<=BIRTHDAY_LEAD_DAYS?' soon':'')+'">'
-      +'<div class="bday-ic">'+icon+'</div>'
+      +'<div class="bday-ic">'+(e.type==='pet'&&petBirthdayImage(e.name)?'<img src="'+escapeHtml(petBirthdayImage(e.name))+'" alt="'+escapeHtml(e.name)+'">':icon)+'</div>'
       +'<div class="bday-main"><div class="bday-name">'+escapeHtml(e.name)+' <span class="bday-rel">'+escapeHtml(e.rel)+'</span></div>'
       +'<div class="bday-date">下一次生日：'+escapeHtml(occ.label)+yrTag+' · <b>'+cnt+'</b></div>';
     if(rem){
@@ -2034,18 +2009,18 @@ function renderUsefulLog(){
   const todayMem=lc.memories.find(m=>m.id==='mem:useful:'+today);
   const lines=todayMem?(todayMem.useful||['','','']):['','',''];
   const allUseful=(lc.memories||[]).filter(m=>m.useful && m.useful.some(x=>x));
-  const recent=allUseful.slice().reverse().slice(0,7);
+  const recent=allUseful.slice().sort((a,b)=>String(b.d).localeCompare(String(a.d)));
   const wkStart=monday(), wkEnd=todayStr();
   const weekCount=allUseful.filter(m=>m.d>=wkStart&&m.d<=wkEnd).length;
   const area='<div style="margin:2px 0 8px;color:var(--muted,#9aa);font-size:12px">本周已记录 '+weekCount+'/7 天 · 每条 +1 主体性，每日最多 3 条</div>';
   const ta=(i)=>'<textarea id="usefulLine'+(i+1)+'" rows="2" maxlength="200" placeholder="第'+(i+1)+'行…" style="width:100%;margin:3px 0;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:inherit;font:inherit;resize:vertical">'+escHtml(lines[i]||'')+'</textarea>';
-  const recentHtml=recent.length?('<details style="margin-top:10px"><summary class="hint" style="cursor:pointer;user-select:none">最近记录（'+recent.length+' 天）</summary>'+recent.map(e=>{
+  const recentHtml=recent.length?('<div class="useful-history">'+recent.map(e=>{
       const txt=(e.useful||[]).filter(Boolean).join(' · ');
       return '<div style="padding:5px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px"><b style="color:var(--grw,#7fd)">'+escHtml(e.d)+'</b> '+escHtml(txt)+'</div>';
-    }).join('')+'</details>'):'<div class="hint" style="margin-top:10px">还没有记录。今晚睡前写 3 行吧。</div>';
-  el.innerHTML=area+ta(0)+ta(1)+ta(2)
+    }).join('')+'</div>'):'<div class="hint" style="margin-top:10px">还没有有用感记录。</div>';
+  el.innerHTML='<div class="useful-compose">'+area+ta(0)+ta(1)+ta(2)
     +'<button class="btn" onclick="saveUsefulLog()" style="margin-top:10px;width:100%">保存今日有感</button>'
-    +recentHtml;
+    +'</div>'+recentHtml;
 }
 function saveUsefulLog(){
   const today=todayStr();
@@ -2649,7 +2624,7 @@ function sealFutureLetter(){
   S.futureLetters.push({id:id(),cycle:'free',writeFor:key,writeDate:todayStr(),openAt,text,readDate:null});
   S.bonusXP=(S.bonusXP||0)+FUTURE_LETTER_XP;
   addHist('✉️ 封存一封信给未来的自己（'+openAt+' 开启）+'+FUTURE_LETTER_XP+' XP',FUTURE_LETTER_XP);
-  save(); render();
+  t.value='';save(); render();
   try{ celebrateTask('✉️ 一封信已封存 · '+openAt+' 开启 · +'+FUTURE_LETTER_XP+' XP'); }catch(e){}
 }
 let _flOpenId=null;
@@ -2660,7 +2635,7 @@ function toggleFutureLetter(uid){
   if(openAt>today){ alert('这封信要到 '+openAt+' 才能开启'); return; }
   _flOpenId=(_flOpenId===uid)?null:uid;
   if(!t.readDate){ t.readDate=todayStr(); addHist('📨 读了一封写给未来的信',0); save(); }
-  renderCapsule();
+  renderCapsule();setupMemoryEntry();
 }
 function lifeChapter(count){const chapters=['开始留心','生活有光','细节收藏家','日常鉴赏家','人间值得'];return chapters[Math.min(chapters.length-1,Math.floor(count/7))];}
 // v5.39 复利面板 = 今日行动的唯一记录入口（原「固定日常」里同名的项已迁走，不再两处各记一遍）。

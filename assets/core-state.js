@@ -1150,6 +1150,11 @@ function migrate(){
     S.pets = (_old && typeof _old==='object') ? [_old] : [];
   }
   if(!S.pets.length) S.pets=[{name:'土豆',birthday:'2021-02-24',adopted:'',breed:'中华田园（狸花橘）',color:'橘黄虎斑',emoji:'🐱',personality:['黏人','爱蹭人','爱撒娇','认主','被摸下巴会眯眼呼噜'],notes:'',lastGreet:'',birthdayShown:'',remindKey:''}];
+  // One-time addition; keep existing pets and user-edited profiles intact.
+  if(!S.mudanAdded){
+    if(!S.pets.some(p=>p.id==='pet-mudan'||p.name==='牡丹')) S.pets.push({id:'pet-mudan',name:'牡丹',sex:'母猫',birthday:'2022-09-27',ageEstimated:true,adopted:'2026-09-27',breed:'英短',photo:'assets/pet-mudan.jpg',emoji:'🐱',personality:[],notes:'年龄暂按 4 岁估算；9 月 27 日为接回家纪念日，作为生日庆祝。',lastGreet:'',birthdayShown:'',remindKey:''});
+    S.mudanAdded=true;
+  }
   S.pets.forEach(function(p){
     if(typeof p.name!=='string'||!p.name) p.name='猫';
     if(typeof p.birthday!=='string') p.birthday='2021-02-24';

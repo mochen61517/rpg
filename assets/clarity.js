@@ -22,7 +22,7 @@ function clarityWrap(node,title,key){
 }
 function setupClarity(){
   const cockpit=document.getElementById('todayDetailCockpit'),tasks=document.querySelector('#st-action-pane .today-task-panel');
-  if(cockpit&&tasks&&cockpit.nextElementSibling!==tasks)cockpit.after(tasks);
+  if(cockpit&&tasks&&cockpit.nextElementSibling!==tasks)document.getElementById('st-action-pane').append(tasks);
   clarityWrap(document.querySelector('.xp-ledger'),'修为账本 · 查看奖励明细','xp');
   const pane=document.getElementById('jr-memory-pane');
   if(pane){

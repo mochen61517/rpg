@@ -2642,9 +2642,10 @@ function renderMyJianghu(){
       +'<div class="jh-dead">截止 '+fmtDeadline(e.deadline)+'</div>'
       +'</div>';
   });
-  const active=rows.filter((_,i)=>!list[i].done).join('');
+  const active=rows.filter((_,i)=>!list[i].done&&!(list[i].deadline<now)).join('');
+  const expired=rows.filter((_,i)=>!list[i].done&&list[i].deadline<now);
   const done=rows.filter((_,i)=>list[i].done);
-  el.innerHTML=(active||'<p class="hint">没有进行中的揭榜任务。</p>')+(done.length?clarityFold('claimed-done','已完成 · '+done.length,done.join('')):'');
+  el.innerHTML=(active||'<p class="hint">没有进行中的揭榜任务。</p>')+(expired.length?clarityFold('claimed-expired','过期未完成 · '+expired.length,expired.join('')):'')+(done.length?clarityFold('claimed-done','已完成 · '+done.length,done.join('')):'');
 }
 const SETTLE_STORIES={
   BADMINTON:['拍线轻响，身体又记住了一点。真正的进步往往发生在没人鼓掌的时候。','风从球网两侧穿过。今天的这一拍，会留在下一次更从容的移动里。'],
@@ -2868,7 +2869,7 @@ function renderCore(){
   // v5.39 今日运势 · 天象 · 宜忌（干支为真实推算，天气来自 Open-Meteo）
   try{ renderFortune(); }catch(e){ console.warn('fortune render',e); }
   // v5.19 互动版块渲染
-  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); renderDemons(); }catch(e){ console.warn('v5.19 render',e); }
+  try{ renderDraw(); renderLetters(); renderEncounter(); renderBonds(); renderPet(); renderBirthday(); renderGarden(); renderCapsule(); renderCodex(); }catch(e){ console.warn('v5.19 render',e); }
   // v5.34 周报/月报历史（周月分开放，自动留痕）
   try{ renderReportHistory(); }catch(e){ console.warn('v5.34 report render',e); }
   // v6.4.18 每日有用感
@@ -3166,6 +3167,7 @@ function renderQuietMode(){const b=document.getElementById('quietModeBtn'),t=doc
 // 多页路由：切换 page 显示 + 导航高亮 + 同步 hash（刷新/分享不丢当前页）
 var _isDeepLink=false;   // notifGo 深层链接期间为 true，期间不强制重置为第一个 tab
 function showPage(p){
+  if(p==='energy' && !optionalEnabled('recovery'))p='growth';
   rememberPagePosition();
   try{if(typeof trackUsage==='function')trackUsage('page',p);}catch(e){}
   // v6.0.37 默认隐藏的板块不可经导航/深链直接进入
@@ -4063,7 +4065,7 @@ function renderEnergyPage(){
       (d)=>(isStretchOn(d)?1:0)+(isHealedOn(d)?1:0), {max:2, colorFn:(v)=>v>=2?'#3fae74':(v>=1?'#5b8fd6':'#888'), fmtVal:(v)=>['无','部分','完成'][v]||v}, ranges);
   h+=energyCardBio();
   h+='</div>';
-  root.innerHTML=subjectivityCard()+clarityFold('energy-more','精力、睡眠与身体恢复 · 按需查看',overview+h);
+  root.innerHTML=clarityFold('energy-more','精力、睡眠与身体恢复 · 按需查看',overview+h);
 }
 // v6.0.53 主体性卡片（精力页 · 武侠境界 + 立心入口 + 变化记录）
 function subjectivityCard(){

@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人生修行录 · v6.7.1</title>
+<title>人生修行录 · v6.8.0</title>
 <link rel="stylesheet" href="assets/life-rpg.css?v=20260923-botanical">
-<link rel="stylesheet" href="assets/experience.css?v=20260928-memory-restore">
-<link rel="stylesheet" href="assets/settings.css?v=20260928-memory-restore">
-<link rel="stylesheet" href="assets/clarity.css?v=20260928-memory-restore">
-<link rel="stylesheet" href="assets/hierarchy.css?v=20260928-memory-restore">
-<link rel="stylesheet" href="assets/priority.css?v=20260928-memory-restore">
-<link rel="stylesheet" href="assets/lightweight.css?v=20260928-memory-restore">
+<link rel="stylesheet" href="assets/experience.css?v=20260928-refinement-mudan">
+<link rel="stylesheet" href="assets/settings.css?v=20260928-refinement-mudan">
+<link rel="stylesheet" href="assets/clarity.css?v=20260928-refinement-mudan">
+<link rel="stylesheet" href="assets/hierarchy.css?v=20260928-refinement-mudan">
+<link rel="stylesheet" href="assets/priority.css?v=20260928-refinement-mudan">
+<link rel="stylesheet" href="assets/lightweight.css?v=20260928-refinement-mudan">
+<link rel="stylesheet" href="assets/refinement.css?v=20260928-refinement-mudan">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-t">人生修行录<span>v6.7.1 · 生活复利</span></div>
+      <div class="brand-t">人生修行录<span>v6.8.0 · 生活复利</span></div>
     </div>
     <nav class="nav">
       <a class="navitem cur" data-page="dashboard" onclick="showPage('dashboard')">🏠 仪表盘</a>
@@ -317,10 +318,7 @@
         <div id="codexBox"></div>
       </div>
 
-      <div class="panel" id="jpDemon">
-        <h2>👹 心魔挑战 <span class="tip" data-tip="温和 · 削弱而非击败">ⓘ</span></h2>
-        <div id="demonBox"></div>
-      </div>
+
 
       <div class="panel" id="jpBazi">
         <h2>🔮 命格 · 丁火流年</h2>
@@ -430,15 +428,11 @@
         </div>
         <div id="jh-week-pane" style="display:none">
           <div class="panel">
-            <h2>🗡️ 江湖周榜 <span class="tip" data-tip="每周一刷新 · 难度高 / 积分高在上">ⓘ</span>
-              <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('week');save();render()">🔄 换榜</button></h2>
             <div id="jianghuWeekBox"></div>
           </div>
         </div>
         <div id="jh-month-pane" style="display:none">
           <div class="panel">
-            <h2>🗡️ 江湖月榜 <span class="tip" data-tip="每月 1 日刷新 · 难度高 / 积分高在上">ⓘ</span>
-              <button class="btn sm ghost" style="float:right" onclick="jianghuPeriodReroll('month');save();render()">🔄 换榜</button></h2>
             <div id="jianghuMonthBox"></div>
           </div>
         </div>
@@ -528,7 +522,7 @@
         <div class="achs" id="achsUnlocked"></div>
       </div>
       <!-- 🔒 待揭帖已移除（与「已扬名」成就重复） -->
-      <!-- v6.7.1 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
+      <!-- v6.8.0 长期复利轨道 / 人生愿望 / 嘉奖箱 三合一 tab -->
       <div class="gp-tabs" id="gpTabs">
         <button class="gp-tab on" data-tab="compound" onclick="switchGrowthTab('compound')">🌳 长期复利轨道</button>
         <button class="gp-tab" data-tab="rewards" onclick="switchGrowthTab('rewards')">🎁 嘉奖箱</button>
@@ -786,15 +780,16 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="assets/core-state.js?v=20260928-memory-restore"></script>
-<script src="assets/tasks-render.js?v=20260928-memory-restore"></script>
+<script src="assets/core-state.js?v=20260928-refinement-mudan"></script>
+<script src="assets/tasks-render.js?v=20260928-refinement-mudan"></script>
 <script src="assets/npc-stories.js?v=20260914-0958"></script>
-<script src="assets/calendar.js?v=20260928-memory-restore"></script>
-<script src="assets/clarity.js?v=20260928-memory-restore"></script>
-<script src="assets/interaction.js?v=20260928-memory-restore"></script>
-<script src="assets/settings.js?v=20260928-memory-restore"></script>
-<script src="assets/hierarchy.js?v=20260928-memory-restore"></script>
-<script src="assets/lightweight.js?v=20260928-memory-restore"></script>
-<script src="assets/systems.js?v=20260928-memory-restore"></script>
+<script src="assets/calendar.js?v=20260928-refinement-mudan"></script>
+<script src="assets/clarity.js?v=20260928-refinement-mudan"></script>
+<script src="assets/interaction.js?v=20260928-refinement-mudan"></script>
+<script src="assets/settings.js?v=20260928-refinement-mudan"></script>
+<script src="assets/hierarchy.js?v=20260928-refinement-mudan"></script>
+<script src="assets/lightweight.js?v=20260928-refinement-mudan"></script>
+<script src="assets/refinement.js?v=20260928-refinement-mudan"></script>
+<script src="assets/systems.js?v=20260928-refinement-mudan"></script>
 </body>
 </html>

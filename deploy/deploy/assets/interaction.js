@@ -14,10 +14,13 @@ function render(){
   const drafts=group?Array.from(group.querySelectorAll('input[id],select[id],textarea[id]')).map(e=>({id:e.id,value:e.value})):[];
   const focusId=focused&&focused.id;
   const selection=focused&&typeof focused.selectionStart==='number'?[focused.selectionStart,focused.selectionEnd]:null;
+  const memoryDrafts=Array.from(document.querySelectorAll('#memoryEntry input:not([type=file]),#memoryEntry textarea,#memoryEntry select')).filter(e=>e.id).map(e=>({id:e.id,value:e.value}));
   renderCore();
   setupClarity();
   setupHierarchy();
   setupLightweight();
+  setupRefinement();
+  memoryDrafts.forEach(d=>{const e=document.getElementById(d.id);if(e)e.value=d.value;});
   drafts.forEach(d=>{const e=document.getElementById(d.id);if(e)e.value=d.value;});
   if(focusId&&drafts.length){const e=document.getElementById(focusId);if(e){e.focus({preventScroll:true});if(selection&&e.setSelectionRange)e.setSelectionRange(...selection);}}
   updateRecordNotice();
