@@ -125,3 +125,26 @@ function setupHierarchy(){
   }
   setupSimpleSettings();
 }
+function rankedTrackKeys(keys,logs,chosen,date){
+  const cutoff=calAdd(date,-27),scores=new Map(keys.map(k=>[k,new Set()]));
+  logs.forEach(x=>{if(scores.has(x.key)&&x.d>=cutoff&&x.d<=date&&Number(x.min)>0)scores.get(x.key).add(x.d);});
+  return keys.slice().sort((a,b)=>Number(chosen.includes(b))-Number(chosen.includes(a))||scores.get(b).size-scores.get(a).size);
+}
+function setGrowthFocus(key,on){
+  const picks=(S.growthFocus||[]).filter(k=>LIFE_TRACKS[k]&&!LIFE_TRACKS[k].paused);
+  if(on&&!picks.includes(key)){if(picks.length>=2){alert('最多突出两个方向，请先取消一个。');renderTrackOverview();return;}picks.push(key);}
+  S.growthFocus=on?picks:picks.filter(k=>k!==key);save();renderTrackOverview();
+}
+function renderTrackOverview(){
+  const host=document.getElementById('longPracticeBox');if(!host)return;
+  const keys=Object.keys(LIFE_TRACKS).filter(k=>!LIFE_TRACKS[k].paused),chosen=(S.growthFocus||[]).filter(k=>keys.includes(k));
+  const ranked=rankedTrackKeys(keys,ensureLifeCompound().logs,chosen,todayStr());
+  const recent=ensureLifeCompound().logs.some(x=>keys.includes(x.key)&&x.d>=calAdd(todayStr(),-27)&&x.d<=todayStr()&&Number(x.min)>0);
+  const featured=chosen.length?ranked.filter(k=>chosen.includes(k)):recent?ranked.slice(0,1):[];
+  const data=k=>{const t=LIFE_TRACKS[k],total=getLifeBaseMin(k)+practiceNewMinutes(k),stage=trackStage(total,t.realms);return {t,total,stage};};
+  const detail=(k,d)=>'<div class="track-detail">'+practiceDays(k)+' 个投入日 · '+(d.stage.next?'距离「'+escHtml(d.stage.next.n)+'」还差 '+Math.max(0,d.stage.next.h-d.total/60).toFixed(0)+'h':'已达最高境界')+'<button class="text-action" onclick="editLifeBase(\''+k+'\')">调整历史累计</button></div>';
+  const card=k=>{const d=data(k);return '<article class="track-feature"><div class="track-feature-head"><h3>'+d.t.ic+' '+escHtml(d.t.n)+'</h3><small>'+escHtml(d.stage.n)+'</small></div><div class="track-feature-value">'+(practiceWeekMinutes(k)/60).toFixed(1)+'<small>h 本周投入</small></div><div class="track-total">累计 '+(d.total/60).toFixed(1)+'h</div>'+clarityFold('track-'+k,'成长详情',detail(k,d))+'</article>';};
+  const row=k=>{const d=data(k);return '<details class="track-row"'+(clarityOpen.has('track-row-'+k)?' open':'')+' ontoggle="clarityRemember(this,\'track-row-'+k+'\')"><summary><span class="track-name">'+d.t.ic+' '+escHtml(d.t.n)+'</span><span class="track-week">本周 '+(practiceWeekMinutes(k)/60).toFixed(1)+'h</span><span class="track-total">累计 '+(d.total/60).toFixed(1)+'h</span></summary>'+detail(k,d)+'</details>';};
+  const preferences=keys.map(k=>'<label><input type="checkbox" '+(chosen.includes(k)?'checked':'')+' onchange="setGrowthFocus(\''+k+'\',this.checked)">'+escHtml(LIFE_TRACKS[k].n)+'</label>').join('');
+  host.innerHTML='<div class="track-overview-head"><h2>长期复利轨道</h2>'+clarityFold('track-settings','选择重点', '<div class="track-picks">'+preferences+'</div><p class="hint">最多两个；未选择时，突出近 28 天投入天数最多的方向。</p>')+'</div>'+(featured.length?'<div class="track-focus-label">'+(chosen.length?'我的重点':'近期常练 · 按近 28 天投入天数')+'</div><div class="track-features">'+featured.map(card).join('')+'</div>':'')+'<div class="track-list-heading">'+(featured.length?'其他方向':'全部方向')+'</div><div class="track-list">'+ranked.filter(k=>!featured.includes(k)).map(row).join('')+'</div>';
+}
