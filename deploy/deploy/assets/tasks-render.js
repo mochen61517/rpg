@@ -1090,7 +1090,7 @@ function editDayTaskHtml(x){
     +'<select id="editDayTaskAttr" class="dt-edit-attr" title="经验值归属属性">'+optAttrs(x.a)+'</select>'
     +'<input type="date" id="editDayTaskDue" class="dt-edit-due" title="最晚完成日期（可选）" aria-label="最晚完成日期" value="'+(x.due||'')+'">'
     +'<input type="number" id="editDayTaskXp" class="dt-edit-xp" value="'+(x.xp||10)+'" min="1" title="完成经验值 XP">'
-    +'<button class="btn xs ghost" onclick="openCalendarEditor(\''+x.id+'\')">安排日期 / 时间</button>'
+    +'<button class="btn xs ghost calendar-task-entry" onclick="openCalendarEditor(\''+x.id+'\')">安排日期 / 时间</button>'
     +'<button class="btn xs primary" onclick="saveDayTaskEdit(\''+x.id+'\')">保存</button>'
     +'<button class="btn xs ghost" onclick="cancelDayTaskEdit()">取消</button>'
     +'</div></div>';
@@ -3233,6 +3233,7 @@ function currentPage(){
 // resetSub=true 表示用户主动点击「江湖榜」父 tab，需把嵌套子 tab 重置到第一个（日榜）
 // autoSub 为自动定位的子 tab（如 'npc'/'my'），优先级低于 resetSub
 function switchShortTaskTab(tab, resetSub, autoSub){
+  if(typeof optionalEnabled==='function'&&((tab==='calendar'&&!optionalEnabled('calendar'))||(tab==='week'&&!optionalEnabled('reviews'))))tab='action';
   const actionPane=document.getElementById('st-action-pane');
   const jianghuPane=document.getElementById('st-jianghu-pane');
   const weekPane=document.getElementById('st-week-pane');

@@ -31,6 +31,7 @@ function yearStepsHtml(c,i){
 }
 function editYearNext(i,anchor){const c=S.year[i];if(!c)return;startInlineRename(anchor,yearNextText(c),v=>{c.nextAction=v;save();renderLongterm();});}
 function yearNextTask(i){
+  if(typeof optionalEnabled==='function'&&!optionalEnabled('calendar')){addGoalTodo(i);return;}
   const c=S.year[i],title=yearNextText(c);if(!title)return;
   const task=(S.dayTasks||[]).find(t=>t.id===c.nextTaskId&&!t.done);
   openCalendarEditor(task?task.id:null);calendarPendingGoal=c;
@@ -43,7 +44,7 @@ function yearAnalysisCard(c,i){
   const records=(c.records||[]).length;
   const histories=(c.titleHistory||[]).slice().reverse().map(x=>'<p>'+escHtml(x.date+' · '+x.from+' → '+x.to)+'</p>').join('');
   return '<article class="goal-row'+(c.done?' goal-done':'')+'"><div class="goal-heading"><div><div class="goal-eyebrow">'+(c.paused?'已暂停':c.done?'已完成':'年度目标')+(a.track?' · '+escHtml(a.track.n):'')+'</div><h3>'+escHtml(c.t)+'</h3></div><button class="text-action" onclick="editYearGoal('+i+',this)">编辑目标</button></div>'+
-    '<div class="goal-next"><span>下一步</span><div><strong>'+escHtml(next||'写下一个具体、可以开始的行动')+'</strong><div class="goal-next-actions"><button class="text-action" onclick="editYearNext('+i+',this)">'+(next?'编辑下一步':'设置下一步')+'</button>'+(next&&!c.done&&!c.paused?'<button class="btn sm primary" onclick="yearNextTask('+i+')">安排时间</button>':'')+'</div></div></div>'+
+    '<div class="goal-next"><span>下一步</span><div><strong>'+escHtml(next||'写下一个具体、可以开始的行动')+'</strong><div class="goal-next-actions"><button class="text-action" onclick="editYearNext('+i+',this)">'+(next?'编辑下一步':'设置下一步')+'</button>'+(next&&!c.done&&!c.paused?'<button class="btn sm primary" onclick="yearNextTask('+i+')">'+(typeof optionalEnabled==='function'&&!optionalEnabled('calendar')?'加入待办':'安排时间')+'</button>':'')+'</div></div></div>'+
     '<div class="goal-progress"><span>'+progress+'</span>'+(a.total||c.done?'<div class="goal-meter"><i style="width:'+pct+'%"></i></div>':'')+'</div>'+
     clarityFold('year-'+i,'进展记录'+(records?' · '+records+' 条':''),yearRecordBlock(c,i))+
     clarityFold('year-more-'+i,'目标详情与管理',yearStepsHtml(c,i)+'<p class="hint">关联轨道的投入量不等于目标完成度。以下为辅助参考，不代表结果预测。</p><p class="hint">参考进度 '+a.progressPct+'% '+escHtml(a.progressNote||'')+'</p><ul class="hint">'+a.advice.map(t=>'<li>'+escHtml(t)+'</li>').join('')+'</ul>'+histories+'<div class="goal-next-actions">'+(!a.total?'<button class="btn ghost" onclick="toggleYearDone('+i+')">'+(c.done?'恢复进行中':'标记目标完成')+'</button>':'')+'<button class="btn ghost" onclick="delYearQuest('+i+')">删除目标</button></div>')+'</article>';

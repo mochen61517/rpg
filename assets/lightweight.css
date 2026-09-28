@@ -1,0 +1,18 @@
+html.hide-recovery #energyPageRoot>.clarity-fold,
+html.hide-recovery [data-clarity="body-metrics"],
+html.hide-recovery [data-dash-id="energy"],
+html.hide-calendar [data-st="calendar"],
+html.hide-calendar #st-calendar-pane,
+html.hide-calendar .calendar-task-entry,
+html.hide-reviews #reviewAccess,
+html.hide-reviews #st-week-pane,
+html.hide-xp [data-clarity="xp"],
+html.hide-collections [data-clarity="jpCapsule"],
+html.hide-collections [data-clarity="jpCodex"],
+html.hide-collections [data-clarity="jpLoot"],
+html.hide-dashboardExtras [data-dash-id="trend"],
+html.hide-dashboardExtras [data-dash-id="catstatus"]{display:none!important}
+html.hide-recovery #dashKeySummary .dks-card[onclick="showPage('energy')"]{display:none!important}
+html.hide-recovery .dash-key-summary{grid-template-columns:1.6fr 1fr 1fr}
+@media(max-width:650px){html.hide-recovery .dash-key-summary{grid-template-columns:1fr 1fr}html.hide-recovery .dash-key-summary>.dks-card:first-child{grid-column:1/-1}}
+.optional-feature-list{display:grid;gap:14px;padding:6px 0}.optional-feature-list label{display:flex;align-items:center;gap:10px;font-size:14px}.optional-feature-list input{width:auto!important;min-height:0!important}

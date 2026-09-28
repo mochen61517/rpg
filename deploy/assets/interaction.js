@@ -17,6 +17,7 @@ function render(){
   renderCore();
   setupClarity();
   setupHierarchy();
+  setupLightweight();
   drafts.forEach(d=>{const e=document.getElementById(d.id);if(e)e.value=d.value;});
   if(focusId&&drafts.length){const e=document.getElementById(focusId);if(e){e.focus({preventScroll:true});if(selection&&e.setSelectionRange)e.setSelectionRange(...selection);}}
   updateRecordNotice();
