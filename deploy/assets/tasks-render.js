@@ -3943,14 +3943,14 @@ function renderCapsule(){
     const cursor=isOpen?'cursor:pointer':'cursor:not-allowed;opacity:.75';
     const arrow=open?' ▴':' ▾';
     return '<div class="fl-item'+(x.readDate?' read':'')+'">'
-      +'<div class="fl-item-head" style="'+cursor+'" onclick="'+(isOpen?('toggleFutureLetter(\''+x.id+'\')'):('alert(\'这封信要到 '+openAt+' 才能开启\')'))+'">📨 写给 '+escHtml(x.writeFor)+'（'+x.writeDate+'）'+status+(isOpen?arrow:'')+'</div>'
+      +'<div class="fl-item-head" style="'+cursor+'" onclick="'+(isOpen?('toggleFutureLetter(\''+x.id+'\')'):('alert(\'这封信要到 '+openAt+' 才能开启\')'))+'">📨 '+escHtml(x.title||('写给 '+x.writeFor))+'（'+x.writeDate+'）'+status+(isOpen?arrow:'')+'</div>'
       +(open?'<div class="fl-item-body">'+escHtml(x.text)+'</div>':'')
       +'</div>';
   }
 
   const defaultOpen=flDefaultOpenDate(1);
   let html='<div class="cap-future"><div class="cap-future-head"><b>✉️ 给未来的信</b><span>想写就写 · 点封存即留档（每次 +'+FUTURE_LETTER_XP+' XP）</span></div>'
-    +'<textarea id="flEditText" class="fl-ta" placeholder="写点什么给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
+    +'<label class="future-letter-field" for="flEditTitle">标题</label><input id="flEditTitle" type="text" maxlength="100" placeholder="给这封信起个标题"><label class="future-letter-field" for="flEditText">内容</label><textarea id="flEditText" class="fl-ta" rows="5" placeholder="写点什么给未来的自己…" oninput="autoResizeCapText(this)"></textarea>'
     +'<div class="cap-future-row" style="align-items:center;gap:8px;flex-wrap:wrap">'
       +'<span style="font-size:12px;color:var(--dim)">开启时间：</span>'
       +'<select id="flOpenPreset" class="btn xs ghost" style="font-size:12px;padding:3px 8px" onchange="setFlOpenPreset(this.value)">'

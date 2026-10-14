@@ -2613,6 +2613,9 @@ function futureLetterState(){
 // v6.0.88 给未来的信：时间胶囊区内联编辑 + 封存（固定 XP），不再弹窗；不区分月/季，随时可写
 var FUTURE_LETTER_XP=10; // 每次封存固定经验值
 function sealFutureLetter(){
+  const titleEl=document.getElementById('flEditTitle');
+  const title=(titleEl?.value||'').trim();
+  if(!title){alert('请给这封信写一个标题');titleEl?.focus();return;}
   const t=document.getElementById('flEditText'); if(!t) return;
   const text=t.value.trim(); if(!text){ alert('先写点什么给未来的自己'); return; }
   const dateEl=document.getElementById('flOpenDate');
@@ -2621,10 +2624,10 @@ function sealFutureLetter(){
   S.futureLetters=S.futureLetters||[];
   const now=new Date(), mo=now.getMonth()+1;
   const key=now.getFullYear()+'-'+String(mo).padStart(2,'0');
-  S.futureLetters.push({id:id(),cycle:'free',writeFor:key,writeDate:todayStr(),openAt,text,readDate:null});
+  S.futureLetters.push({id:id(),cycle:'free',writeFor:key,writeDate:todayStr(),openAt,title,text,readDate:null});
   S.bonusXP=(S.bonusXP||0)+FUTURE_LETTER_XP;
   addHist('✉️ 封存一封信给未来的自己（'+openAt+' 开启）+'+FUTURE_LETTER_XP+' XP',FUTURE_LETTER_XP);
-  t.value='';save(); render();
+  t.value='';if(titleEl)titleEl.value='';save(); render();
   try{ celebrateTask('✉️ 一封信已封存 · '+openAt+' 开启 · +'+FUTURE_LETTER_XP+' XP'); }catch(e){}
 }
 let _flOpenId=null;
