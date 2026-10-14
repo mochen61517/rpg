@@ -2,7 +2,7 @@
 let memoryEntryKind='fragment';
 function selectMemoryEntry(kind){
   memoryEntryKind=kind;
-  document.querySelectorAll('[data-memory-form]').forEach(n=>n.hidden=n.dataset.memoryForm!==kind);
+  switchMemoryTab(kind==='letter'?'capsule':'fragments',false);
 }
 function setupMemoryEntry(){
   const pane=document.getElementById('jr-memory-pane');if(!pane)return;
@@ -23,7 +23,7 @@ function setupMemoryEntry(){
   const useful=document.querySelector('#jpFragments .lc-useful');
   if(useful){useful.id='usefulArchive';pane.append(useful);useful.classList.add('clarity-fold-host');useful.querySelector('summary').textContent='今日有用感 · 查看记录';}
   clarityWrap(document.getElementById('jpFragments'),'今日碎片 · 查看记录','jpFragments');
-  selectMemoryEntry(memoryEntryKind);
+  setupMemoryTabs();
 }
 function petBirthdayImage(name){
   const normalized=String(name||'').trim().toLocaleLowerCase();
@@ -64,4 +64,30 @@ function ensurePracticalNpcTasks(){
     (PRACTICAL_NPC_TASKS[p.id]||[]).forEach(t=>S.npc.active.push({npc:p.id,id:id(),t,a:p.a,xp:30,done:false,practical:true}));
   });
   save();
+}
+
+function setupMemoryTabs(){
+  const pane=document.getElementById('jr-memory-pane');if(!pane)return;
+  let tabs=document.getElementById('memoryTabs');
+  if(!tabs){tabs=document.createElement('div');tabs.id='memoryTabs';tabs.className='memory-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','时间记忆分类');
+    [['fragments','时间碎片'],['capsule','时间胶囊'],['wishes','人生愿望']].forEach(([key,title])=>{const b=document.createElement('button');b.type='button';b.textContent=title;b.dataset.memoryTab=key;b.setAttribute('role','tab');b.onclick=()=>switchMemoryTab(key);tabs.append(b);});
+  }
+  pane.prepend(tabs);switchMemoryTab(S.uiPrefs?.memoryTab||'fragments',true,false);
+}
+function switchMemoryTab(tab,adjustEditor=true,persist=true){
+  if(!['fragments','capsule','wishes'].includes(tab))tab='fragments';
+  S.uiPrefs||={};S.uiPrefs.memoryTab=tab;
+  const groups={jpFragments:'fragments',usefulArchive:'fragments',jpCapsule:'capsule',jpWishes:'wishes',jpCodex:'wishes',jpLoot:'wishes'};
+  Object.entries(groups).forEach(([id,group])=>{
+    const node=document.getElementById(id);if(!node)return;
+    const wrapper=node.parentElement?.dataset.clarity===id?node.parentElement:node;
+    wrapper.hidden=group!==tab;wrapper.classList.add('memory-tab-content');
+    if(wrapper.tagName==='DETAILS')wrapper.open=true;
+  });
+  const editor=document.getElementById('memoryEntry');if(editor)editor.hidden=tab==='wishes';
+  if(adjustEditor){if(tab==='capsule')memoryEntryKind='letter';else if(tab==='fragments'&&memoryEntryKind==='letter')memoryEntryKind='fragment';}
+  const select=document.getElementById('memoryEntryKind');if(select)select.value=memoryEntryKind;
+  document.querySelectorAll('[data-memory-form]').forEach(n=>n.hidden=n.dataset.memoryForm!==memoryEntryKind);
+  document.querySelectorAll('[data-memory-tab]').forEach(b=>{const active=b.dataset.memoryTab===tab;b.classList.toggle('on',active);b.setAttribute('aria-selected',String(active));});
+  if(persist)save();
 }

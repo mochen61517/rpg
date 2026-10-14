@@ -26,7 +26,7 @@ function setupClarity(){
   clarityWrap(document.querySelector('.xp-ledger'),'修为账本 · 查看奖励明细','xp');
   const pane=document.getElementById('jr-memory-pane');
   if(pane){
-    const fragments=document.getElementById('jpFragments');if(fragments&&pane.contains(fragments))pane.prepend(fragments);
+    const fragments=document.getElementById('jpFragments');if(fragments&&pane.contains(fragments))pane.prepend(fragments.parentElement?.dataset.clarity==='jpFragments'?fragments.parentElement:fragments);
     [['jpCapsule','写给未来 · 时间胶囊'],['jpWishes','想去完成 · 人生愿望'],['jpCodex','已经收集 · 人生收集册'],['jpLoot','故人信物 · 收藏']].forEach(([id,title])=>{
       const node=document.getElementById(id);if(node&&pane.contains(node))clarityWrap(node,title,id);
     });
