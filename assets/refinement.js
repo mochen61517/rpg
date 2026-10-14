@@ -72,6 +72,7 @@ function setupMemoryTabs(){
   if(!tabs){tabs=document.createElement('div');tabs.id='memoryTabs';tabs.className='memory-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','时间记忆分类');
     [['fragments','时间碎片'],['capsule','时间胶囊'],['wishes','人生愿望']].forEach(([key,title])=>{const b=document.createElement('button');b.type='button';b.textContent=title;b.dataset.memoryTab=key;b.setAttribute('role','tab');b.onclick=()=>switchMemoryTab(key);tabs.append(b);});
   }
+  const wishes=document.getElementById('jpWishes')?.parentElement,codex=document.getElementById('jpCodex')?.parentElement;if(wishes?.dataset.clarity==='jpWishes'&&codex?.dataset.clarity==='jpCodex')codex.before(wishes);
   pane.prepend(tabs);switchMemoryTab(S.uiPrefs?.memoryTab||'fragments',true,false);
 }
 function switchMemoryTab(tab,adjustEditor=true,persist=true){
