@@ -102,7 +102,7 @@ function openPlanEditor(kind,key,index){
   modal.showModal();
 }
 function yearAnalysisCard(c,i){return '<section class="compact-year-entry">'+planGoalHtml(c,'year',String(i),'年度总目标')+'</section>';}
-function renderMonthPlanEdit(){
+function renderLegacyMonthPlanEdit(){
   const el=document.getElementById('monthPlanEdit');if(!el)return;
   const key=goalMonth||thisMonth(),g=planGoal('month',key);
   el.innerHTML='<div class="plan-month-picker"><label>月份 <input type="month" value="'+key+'" onchange="if(this.value){goalMonth=this.value;renderMonthPlanEdit()}"></label></div>'+planGoalHtml(g,'month',key,key.replace('-',' 年 ')+' 月总目标');

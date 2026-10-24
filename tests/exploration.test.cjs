@@ -1,0 +1,18 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');let next=0,saves=0;
+const ctx=vm.createContext({S:{attrs:{MIND:0},monthPlansByYear:{'2026':{'2026-09':{plan:'旧目标'}}}},Date,Map,Set,Math,Number,String,Error,RATE:1,id:()=>`test-${++next}`,todayStr:()=> '2026-10-24',save:()=>saves++,grant:(a,n)=>ctx.S.attrs[a]+=n*1.5,touchActivity(){},addHist(){}});
+vm.runInContext(fs.readFileSync('assets/exploration.js','utf8'),ctx);const run=s=>vm.runInContext(s,ctx);
+assert.equal(run("explorationBounds('2026-10-24').start"),'2026-09-01');assert.equal(run("explorationBounds('2026-12-31').end"),'2026-12-31');assert.equal(run("explorationBounds('2028-01-01').end"),'2028-02-29');
+run('ensureExplorationCycle()');const theme=ctx.S.exploration.cycles[0].theme;run('ensureExplorationCycle();ensureExplorationCycle()');assert.equal(ctx.S.exploration.cycles.length,1);assert.equal(ctx.S.exploration.cycles[0].theme,theme);
+run("addExplorationTask('2026-09','读书','book');addExplorationTask('2026-09','读书','book')");const c=ctx.S.exploration.cycles[0];assert.equal(c.tasks.length,1);ctx.task=c.tasks[0].id;
+run("explorationLog('2026-09',task,'2026-10-24',60,false)");assert.equal(ctx.S.attrs.MIND,90);assert.equal(run('explorationMinutes(S.exploration.cycles[0])'),60);
+ctx.log=c.logs[0].id;run("explorationLog('2026-09',task,'2026-10-24',90,true,log)");assert.equal(ctx.S.attrs.MIND,135);assert.equal(c.logs.length,1);assert.equal(c.tasks[0].done,true);
+run("explorationLog('2026-09',task,'2026-10-23',30,false)");assert.equal(ctx.S.attrs.MIND,180);assert.equal(run('explorationMinutes(S.exploration.cycles[0])'),120);
+assert.throws(()=>run("explorationLog('2026-09',task,'2026-11-01',10,false)"));assert.throws(()=>run("explorationLog('2026-09',task,'2026-10-25',10,false)"));assert.throws(()=>run("explorationLog('2026-09',task,'2026-10-24',0,false)"));
+run("deleteExplorationLog('2026-09',log)");assert.equal(ctx.S.attrs.MIND,45);assert.equal(c.tasks[0].done,false);run("deleteExplorationLog('2026-09',log)");assert.equal(ctx.S.attrs.MIND,45);
+run("ensureExplorationCycle('2026-11-01')");assert.notEqual(ctx.S.exploration.cycles[1].theme,theme);assert.equal(run('explorationTotals().reduce((s,x)=>s+x[1],0)'),30);assert.equal(ctx.S.monthPlansByYear['2026']['2026-09'].plan,'旧目标');assert.equal(ctx.S.lifeCompound,undefined);
+console.log('PASS: fixed two-month bounds/leap year, stable random theme, no duplicate templates, minute totals, exact XP edit/undo, completion, date validation, old plans and long-term tracks preserved.');
+assert.throws(()=>run("explorationLog('2026-09',task,'2026-09-31',30,false)"));
+run("explorationLog('2026-09',task,'2026-10-20',1440,false);explorationLog('2026-09',task,'2026-10-21',1440,false);explorationLog('2026-09',task,'2026-10-22',690,true)");
+assert.equal(run('explorationMinutes(S.exploration.cycles[0])'),3600);
+const serialized=JSON.stringify(ctx.S);ctx.S=JSON.parse(serialized);run('ensureExplorationCycle()');assert.equal(run('explorationMinutes(S.exploration.cycles[0])'),3600);assert.equal(ctx.S.exploration.cycles[0].theme,theme);
+console.log('PASS: exact 60-hour target, invalid calendar dates rejected, saved records and theme survive reload.');
