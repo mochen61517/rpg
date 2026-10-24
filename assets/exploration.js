@@ -9,14 +9,15 @@ function explorationBounds(date){
   return {id:start.slice(0,7),start,end:y+'-'+String(first+1).padStart(2,'0')+'-'+String(end.getDate()).padStart(2,'0')};
 }
 function ensureExplorationCycle(date=todayStr()){
-  const store=explorationStore(),bounds=explorationBounds(date);let c=store.cycles.find(c=>c.id===bounds.id);
+  const store=explorationStore(),bounds=explorationBounds(date<'2026-11-01'?'2026-11-01':date);let c=store.cycles.find(c=>c.id===bounds.id);
   if(!c){const used=new Set(store.cycles.map(c=>c.theme));let choices=EXPLORATION_THEMES.filter(t=>!used.has(t));if(!choices.length)choices=EXPLORATION_THEMES;
     c={...bounds,theme:choices[Math.floor(Math.random()*choices.length)],targetMinutes:3600,tasks:[],logs:[]};store.cycles.push(c);save();}
   return c;
 }
 function explorationCycle(id){return explorationStore().cycles.find(c=>c.id===id);}
 function explorationMinutes(c){return c.logs.reduce((sum,l)=>sum+l.minutes,0);}
-function explorationTotals(){const totals=new Map(EXPLORATION_THEMES.map(t=>[t,0]));explorationStore().cycles.forEach(c=>totals.set(c.theme,(totals.get(c.theme)||0)+explorationMinutes(c)));return [...totals].sort((a,b)=>b[1]-a[1]);}
+function explorationAllMinutes(c){return explorationMinutes(c)+(c.previousThemes||[]).reduce((n,x)=>n+explorationMinutes(x),0);}
+function explorationTotals(){const totals=new Map(EXPLORATION_THEMES.map(t=>[t,0]));explorationStore().cycles.forEach(c=>[...(c.previousThemes||[]),c].forEach(x=>totals.set(x.theme,(totals.get(x.theme)||0)+explorationMinutes(x))));return [...totals].sort((a,b)=>b[1]-a[1]);}
 function addExplorationTask(cycleId,title,template=''){
   const c=explorationCycle(cycleId);title=String(title||'').trim();if(!c||!title)return false;
   if(template&&c.tasks.some(t=>t.template===template))return false;
@@ -50,7 +51,7 @@ function openExplorationTask(cycleId){
   d.querySelector('form').onsubmit=e=>{e.preventDefault();if(addExplorationTask(cycleId,e.target.elements.title.value)){d.close();render();}};d.showModal();
 }
 function openExplorationLog(cycleId,taskId,logId=''){
-  const c=explorationCycle(cycleId),t=c?.tasks.find(t=>t.id===taskId),log=c?.logs.find(l=>l.id===logId);if(!t)return;
+  const c=explorationCycle(cycleId),t=c?.tasks.find(t=>t.id===taskId),log=c?.logs.find(l=>l.id===logId);if(!t)return;if(todayStr()<c.start){alert('本期从 '+c.start+' 开始，届时再记录实际投入。');return;}
   const d=explorationDialog(log?'修改投入记录':'记录投入'),latest=todayStr()<c.end?todayStr():c.end;
   d.querySelector('.exploration-fields').innerHTML='<p>'+escHtml(t.title)+'</p><label>日期<input type="date" name="date" required min="'+c.start+'" max="'+latest+'" value="'+(log?.date||latest)+'"></label><label>本次实际投入（分钟）<input type="number" name="minutes" min="1" max="1440" step="1" required value="'+(log?.minutes||'')+'" placeholder="例如 45"></label><label class="editor-check"><input name="finished" type="checkbox" '+(log?.finished?'checked':'')+'>这次已完成整项任务</label><small>可以分多次记录；完成标记不会额外增加时长。</small>';
   d.querySelector('form').onsubmit=e=>{e.preventDefault();try{const f=e.target.elements;explorationLog(cycleId,taskId,f.date.value,f.minutes.value,f.finished.checked,logId);d.close();checkAch();render();}catch(err){d.querySelector('.exploration-error').textContent=err.message;}};d.showModal();
@@ -58,9 +59,11 @@ function openExplorationLog(cycleId,taskId,logId=''){
 function renderMonthPlanEdit(){
   const el=document.getElementById('monthPlanEdit');if(!el)return;const current=ensureExplorationCycle(),c=explorationCycle(explorationPeriod)||current;
   const minutes=explorationMinutes(c),pct=Math.min(100,minutes/36),taskMinutes=t=>c.logs.filter(l=>l.taskId===t.id).reduce((s,l)=>s+l.minutes,0);
-  const options=explorationStore().cycles.slice().sort((a,b)=>b.id.localeCompare(a.id)).map(x=>'<option value="'+x.id+'"'+(x.id===c.id?' selected':'')+'>'+x.start.slice(0,7)+' — '+x.end.slice(0,7)+' · '+escHtml(x.theme)+'</option>').join('');
+  const options=explorationStore().cycles.filter(x=>x.id>='2026-11'||explorationAllMinutes(x)>0).slice().sort((a,b)=>b.id.localeCompare(a.id)).map(x=>'<option value="'+x.id+'"'+(x.id===c.id?' selected':'')+'>'+x.start.slice(0,7)+' — '+x.end.slice(0,7)+' · '+escHtml(x.theme)+'</option>').join('');
   const available=EXPLORATION_OPTIONS.filter(([k])=>!c.tasks.some(t=>t.template===k));
-  el.innerHTML='<section class="exploration-cycle"><header><div><small>双月探索 · '+c.start+' — '+c.end+'</small><h2>'+escHtml(c.theme)+'</h2></div><select aria-label="探索周期" onchange="explorationPeriod=this.value;renderMonthPlanEdit()">'+options+'</select></header><div class="exploration-target"><strong>'+(minutes/60).toFixed(2)+' <small>/ 60 小时</small></strong><span>'+(minutes>=3600?'本期已达标':'还差 '+((3600-minutes)/60).toFixed(2)+' 小时')+'</span></div><div class="plan-progress"><i style="width:'+pct+'%"></i></div><div class="exploration-task-heading">本期任务 <button class="text-action" data-explore-add>＋ 自定义任务</button></div>'+c.tasks.slice().sort((a,b)=>Number(a.done)-Number(b.done)).map(t=>'<div class="exploration-task'+(t.done?' is-done':'')+'"><span>'+(t.done?'✓ ':'')+escHtml(t.title)+'</span><small>'+ (taskMinutes(t)/60).toFixed(2)+'h</small><button class="text-action" data-explore-record="'+escHtml(t.id)+'">记录投入</button><button class="text-action" data-explore-rename="'+escHtml(t.id)+'">编辑</button></div>').join('')+(!c.tasks.length?'<p class="hint">从下面选择任务，或添加自己的探索。</p>':'')+(available.length?'<details class="exploration-options" open><summary>可选任务</summary><div>'+available.map(([k,title])=>'<button class="btn sm ghost" data-explore-option="'+k+'">＋ '+title+'</button>').join('')+'</div></details>':'')+'<details class="exploration-history"><summary>投入记录 · '+c.logs.length+' 条</summary>'+c.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="exploration-log"><span>'+l.date+' · '+escHtml(c.tasks.find(t=>t.id===l.taskId)?.title||'探索')+'</span><small>'+l.minutes+' 分钟</small><button class="text-action" data-explore-log="'+l.id+'">修改</button><button class="text-action" data-explore-delete="'+l.id+'">删除</button></div>').join('')+'</details><p class="exploration-note">按实际投入累计，1 分钟 = 1 原始灵台经验；已在其他任务记过的时长请勿重复记录。</p></section>';
+  el.innerHTML='<section class="exploration-cycle"><header><div><small>双月探索 · '+c.start+' — '+c.end+'</small><h2>'+escHtml(c.theme)+'</h2><button class="text-action" data-explore-reroll '+((c.rerolls||0)>=2||c.id<'2026-11'?'disabled':'')+'>更换主题 · 剩余 '+Math.max(0,2-(c.rerolls||0))+' 次</button></div><select aria-label="探索周期" onchange="explorationPeriod=this.value;renderMonthPlanEdit()">'+options+'</select></header>'+(todayStr()<c.start?'<p class="hint">11 月 1 日开始计时，现在可以选主题和准备任务。</p>':'')+'<div class="exploration-target"><strong>'+(minutes/60).toFixed(2)+' <small>/ 60 小时</small></strong><span>'+(minutes>=3600?'本期已达标':'还差 '+((3600-minutes)/60).toFixed(2)+' 小时')+'</span></div><div class="plan-progress"><i style="width:'+pct+'%"></i></div><div class="exploration-task-heading">本期任务 <button class="text-action" data-explore-add>＋ 自定义任务</button></div>'+c.tasks.slice().sort((a,b)=>Number(a.done)-Number(b.done)).map(t=>'<div class="exploration-task'+(t.done?' is-done':'')+'"><span>'+(t.done?'✓ ':'')+escHtml(t.title)+'</span><small>'+ (taskMinutes(t)/60).toFixed(2)+'h</small><button class="text-action" data-explore-record="'+escHtml(t.id)+'">记录投入</button><button class="text-action" data-explore-rename="'+escHtml(t.id)+'">编辑</button></div>').join('')+(!c.tasks.length?'<p class="hint">从下面选择任务，或添加自己的探索。</p>':'')+(available.length?'<details class="exploration-options" open><summary>可选任务</summary><div>'+available.map(([k,title])=>'<button class="btn sm ghost" data-explore-option="'+k+'">＋ '+title+'</button>').join('')+'</div></details>':'')+'<details class="exploration-history"><summary>投入记录 · '+c.logs.length+' 条</summary>'+c.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="exploration-log"><span>'+l.date+' · '+escHtml(c.tasks.find(t=>t.id===l.taskId)?.title||'探索')+'</span><small>'+l.minutes+' 分钟</small><button class="text-action" data-explore-log="'+l.id+'">修改</button><button class="text-action" data-explore-delete="'+l.id+'">删除</button></div>').join('')+'</details><p class="exploration-note">按实际投入累计，1 分钟 = 1 原始灵台经验；已在其他任务记过的时长请勿重复记录。</p></section>';
+  el.querySelector('[data-explore-reroll]').onclick=()=>{if(c.logs.length&&!confirm('更换后本期按新主题重新累计。已有投入会保留在原主题探索累计里，成长经验不变。继续更换？'))return;if(rerollExploration(c.id))render();};
+  if(c.previousThemes?.length)el.insertAdjacentHTML('beforeend','<details class="exploration-history"><summary>更换前的主题记录</summary>'+c.previousThemes.map(x=>'<p>'+escHtml(x.theme)+' · '+(explorationMinutes(x)/60).toFixed(2)+'h</p>'+x.logs.map(l=>'<p>'+l.date+' · '+escHtml(x.tasks.find(t=>t.id===l.taskId)?.title||'探索')+' · '+l.minutes+' 分钟</p>').join('')).join('')+'</details>');
   el.querySelector('[data-explore-add]').onclick=()=>openExplorationTask(c.id);
   el.querySelectorAll('[data-explore-option]').forEach(b=>b.onclick=()=>{const opt=EXPLORATION_OPTIONS.find(([k])=>k===b.dataset.exploreOption);addExplorationTask(c.id,opt[1],opt[0]);renderMonthPlanEdit();});
   el.querySelectorAll('[data-explore-record]').forEach(b=>b.onclick=()=>openExplorationLog(c.id,b.dataset.exploreRecord));
@@ -74,4 +77,13 @@ function renderExplorationOverview(){
   const host=document.getElementById('longPracticeBox');if(!host)return;
   const rows=explorationTotals().filter(([,n])=>n>0);let section=document.getElementById('explorationOverview');if(!section){section=document.createElement('section');section.id='explorationOverview';host.append(section);}
   section.innerHTML='<h2>探索 · 主题累计</h2><p class="hint">各期投入按主题累加，与长期练习分别统计。</p>'+(rows.length?rows.map(([title,n])=>'<div class="exploration-total"><span>'+escHtml(title)+'</span><strong>'+(n/60).toFixed(2)+'h</strong></div>').join(''):'<p class="hint">主题月记录投入后，会在这里按分类累计。</p>');
+}
+
+function rerollExploration(cycleId){
+  const c=explorationCycle(cycleId);if(!c||c.id<'2026-11'||(c.rerolls||0)>=2)return false;
+  const rejected=new Set([c.theme,...(c.previousThemes||[]).map(x=>x.theme)]);
+  const used=new Set(explorationStore().cycles.flatMap(x=>[x.theme,...(x.previousThemes||[]).map(y=>y.theme)]));
+  let choices=EXPLORATION_THEMES.filter(t=>!rejected.has(t)&&!used.has(t));if(!choices.length)choices=EXPLORATION_THEMES.filter(t=>!rejected.has(t));
+  c.previousThemes||=[];c.previousThemes.push({theme:c.theme,tasks:c.tasks,logs:c.logs});
+  c.theme=choices[Math.floor(Math.random()*choices.length)];c.tasks=[];c.logs=[];c.rerolls=(c.rerolls||0)+1;save();return true;
 }
