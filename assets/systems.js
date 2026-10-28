@@ -1157,7 +1157,7 @@ function renderPet(){
   pets.forEach(function(p,i){
     const info=petAgeInfo(p);
     const stageTxt=info.catYears>=3&&info.catYears<7?'壮年猫':(info.catYears>=7?'中年猫+':'小猫咪');
-    h+='<div class="pet-panel">'
+    h+='<section class="pet-summary"><div class="pet-panel">'
       +'<div class="pet-avatar">'+(petBirthdayImage(p.name)?'<img src="'+escapeHtml(petBirthdayImage(p.name))+'" alt="'+escapeHtml(p.name)+'">':(p.emoji||'🐱'))+'</div>'
       +'<div class="pet-id"><div class="pet-name">'+escapeHtml(p.name||'猫')+'</div>'
       +'<div class="pet-meta">'+escapeHtml(p.breed||'未知品种')+(p.sex?' · '+escapeHtml(p.sex):'')+(p.color?' · '+escapeHtml(p.color):'')+'</div></div>'
@@ -1176,7 +1176,7 @@ function renderPet(){
       +'<label>想对'+(p.name||'猫')+'说的话 / 备注</label><textarea id="petNotes_'+i+'" rows="2">'+escapeHtml(p.notes||'')+'</textarea>'
       +'<button class="btn sm primary" onclick="savePetProfile('+i+')">保存资料</button>'
       +'</div></details>';
-    h+='</div>';
+    h+='</section>';
   });
   el.innerHTML=h;
 }

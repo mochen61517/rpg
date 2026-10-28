@@ -1,0 +1,38 @@
+/* Compact summaries; keep prose and editing controls at readable widths. */
+.page{--layout-gap:16px}
+html[data-theme] .page .panel{padding:18px;margin-bottom:16px}
+.page .phead{margin-bottom:16px}
+.page .panel>h2{margin-top:0;margin-bottom:14px}
+#longPracticeBox{container-type:inline-size}
+.track-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:20px;align-items:start}
+.track-categories .track-category{margin:0;min-width:0}
+.track-categories .track-category>h3{padding-bottom:10px;margin:0;border-bottom:2px solid var(--line);font-size:15px}
+.track-categories .track-row summary{grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;padding:12px 0}
+.track-categories .track-name{grid-column:1/-1;font-size:14px;overflow-wrap:anywhere}
+.track-categories .track-week{padding-left:17px}
+.track-categories .track-total{text-align:right;font-variant-numeric:tabular-nums}
+.track-categories .track-detail{line-height:1.7;padding:8px 0}
+.track-categories .track-detail .text-action{display:block;margin-left:0;white-space:normal}
+.track-feature{padding:14px 16px}.track-feature-value{margin:8px 0 4px;font-size:26px}
+#yearListLong{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;align-items:start}
+#yearListLong>.compact-year-entry{margin:0;padding:12px 16px;border:1px solid var(--line);border-radius:10px;min-width:0}
+#yearListLong>.addrow,#yearListLong>.hint{grid-column:1/-1}
+#petBox,#birthdayBox{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;align-items:start}
+#petBox>.pet-summary,#birthdayBox>.bday-card{margin:0;min-width:0}
+#petBox>.pet-summary{padding:14px;border:1px solid var(--line);border-radius:12px}
+#petBox .pet-summary .pet-stat{font-size:12px;line-height:1.6;padding:8px;margin-top:10px}
+#petBox .pet-summary .pet-panel{gap:8px}
+#petBox .pet-summary .pet-edit input,#petBox .pet-summary .pet-edit textarea{max-width:100%;min-width:0;box-sizing:border-box}
+#birthdayBox>.bday-card{padding:14px}
+#birthdayBox>p,#birthdayBox>.hint{grid-column:1/-1}
+.exploration-cycle header h2{font-size:21px;margin:6px 0 10px}
+.exploration-cycle .plan-progress{margin-bottom:16px}
+.exploration-history,.exploration-options{margin:12px 0}
+.exploration-note{margin-top:12px}
+#memoryEntry .memory-entry-head{margin-bottom:12px}
+.clarity-fold-host>details{padding:12px 16px;margin:12px 0}
+#page-data .settings-card{padding:16px 18px}
+.settings-tabs{margin-bottom:16px}
+@container (max-width:850px){.track-categories{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}}
+@container (max-width:540px){.track-categories{grid-template-columns:1fr;gap:16px}.track-categories .track-row summary{grid-template-columns:minmax(0,1fr) auto}.track-categories .track-name{grid-column:1}.track-categories .track-week{grid-column:1;padding-left:17px;grid-row:2}.track-categories .track-total{grid-column:2;grid-row:1/3}}
+@media(max-width:650px){html[data-theme] .page .panel{padding:14px;margin-bottom:12px}.track-feature{min-width:0;flex-basis:100%}#yearListLong>.compact-year-entry{padding:12px}.page .phead{margin-bottom:12px}}
