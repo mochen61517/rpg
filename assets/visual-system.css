@@ -42,3 +42,18 @@ html body .track-categories .track-category>h3{border-bottom:1px solid var(--lin
 html body .content :is(.pill,.htag,.ya-track){background:var(--panel2);border-color:var(--line);color:var(--txt)}
 html body .text-action{color:var(--career);text-decoration-thickness:1px;text-underline-offset:3px}
 @media(prefers-reduced-motion:reduce){html body *{scroll-behavior:auto!important}}
+
+/* Consistency audit: shared states across every task board and subnavigation. */
+html body .content .jh-row{background:var(--panel)!important;background-image:none!important;border-color:var(--line)!important;box-shadow:none!important}
+html body .content .jh-row.done{background:var(--panel2)!important}
+html body .content :is(.ttab,.settings-tabs button,.memory-tabs button){background:transparent!important;background-image:none!important;color:var(--dim);border:1px solid transparent;border-radius:8px;box-shadow:none!important;font:inherit;font-size:14px}
+html body .content :is(.ttab.on,.ttab.active,.settings-tabs button[aria-selected="true"],.memory-tabs button.on){background:var(--panel2)!important;color:var(--career)!important;border-color:var(--line);font-weight:650}
+html body .btn.danger,html body .btn.warn{background:transparent!important;color:var(--warn)!important;border-color:var(--warn)!important}
+html body :is(button,input,select,textarea):disabled{opacity:.5;cursor:not-allowed;filter:none}
+html body .content :is(input[type="checkbox"],input[type="radio"]){accent-color:var(--career)}
+html body .content .fo-gz-c{font:650 22px/1.4 system-ui,"Microsoft YaHei",sans-serif}
+html body .content .xpbar{background:var(--panel2)}
+html body .content :is(.npc-rel-bar i,.lb-bar i){background:var(--c-progress)!important}
+html body .content :is(.notif-row,.bday-card,.npc-person,.pet-summary){border-radius:12px}
+html body .content .ttab:not(.off){background:var(--panel2)!important;color:var(--career)!important;border-color:var(--line);font-weight:650}
+html body .content .ttab.off{opacity:1}
