@@ -1,0 +1,44 @@
+/* RPG visual system: calm surfaces, clear hierarchy, restrained accents. */
+html:root:not([data-theme="dark"]){
+ --bg:#f5f8f8;--panel:#ffffff;--panel2:#eef5f4;--line:#dce6e5;
+ --txt:#243b3b;--dim:#607574;--accent:#147d73;--gold:#147d73;--warn:#b44141;
+ --career:#147d73;--grw:#147d73;--bm:#9a661c;--body:#277b62;--mind:#6e66a0;--life:#8b6e28;
+ --c-tab1:#147d73;--c-tab2:#147d73;--c-btn:#147d73;--c-btn-text:#ffffff;--c-progress:#27998a;--c-notif:#147d73;
+ --t-title:#243b3b;--t-sub:#243b3b;--t-body:#243b3b;--t-note:#607574;
+}
+html:root[data-theme="dark"]{--bg:#172322;--panel:#1f302e;--panel2:#293e3b;--line:#405653;--txt:#e4efed;--dim:#aec1bd;--accent:#72ceba;--career:#72ceba;--gold:#72ceba;--c-btn:#72ceba;--c-btn-text:#172322;--c-tab1:#72ceba;--c-progress:#72ceba}
+html body{background:var(--bg)!important;background-image:none!important;color:var(--txt)}
+html body:before,html body:after{display:none!important}
+html body .sidebar{background:var(--panel)!important;border-right:1px solid var(--line);box-shadow:none}
+html body .brand-t{font-family:inherit;font-size:17px;font-weight:650;color:var(--txt)}
+html body .navitem{border:1px solid transparent;border-radius:8px;background:transparent;box-shadow:none;color:var(--dim);padding:10px 12px}
+html body .navitem.active,html body .navitem.on{background:var(--panel2)!important;border-color:transparent!important;box-shadow:none!important;color:var(--career)!important;font-weight:650}
+html body .navitem:before{display:none!important}
+html body .navitem.cur{background:var(--panel2)!important;border-color:transparent!important;color:var(--career)!important;box-shadow:none!important;font-weight:650}
+html body .lb-bar i{background:var(--c-progress)!important}
+html body .notif-row{background:var(--panel2);border-color:var(--line)}
+html body .page .panel{background:var(--panel)!important;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 8px #183e3505!important}
+html body .page .panel .panel{box-shadow:none!important}
+html body .btn{background:var(--c-btn)!important;color:var(--c-btn-text)!important;border:1px solid transparent;border-radius:8px;box-shadow:none!important;font-weight:600}
+html body .btn.ghost{background:transparent!important;color:var(--txt)!important;border-color:var(--line)!important;font-weight:500}
+html body .btn:hover{filter:brightness(.96)}
+html body :is(button,a,input,textarea,select,summary):focus-visible{outline:2px solid var(--career);outline-offset:3px}
+html body .content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,select){border-color:var(--line);border-radius:8px;color:var(--txt)}
+html body .content :is(.tab.on,.gp-tab.on,.st-tab.on,.jh-tab.on){background:var(--panel2)!important;color:var(--career)!important;border-color:var(--line)!important;box-shadow:none!important;font-weight:650}
+html body .content :is(.xpfill,.plan-progress i,.compact-progress-track i,.track-feature .progress-fill){background:var(--c-progress)!important}
+html body #page-dashboard :is(.hero,.life-banner,.quote-postcard){background:var(--panel)!important;background-image:none!important}
+html body #quoteBanner :is(.pc-inner,.pc-main,.pc-side){background:none!important}
+html body #quoteBanner :is(.pc-text,.pc-story-text){color:var(--txt)}
+html body #quoteBanner :is(.pc-src,.pc-postmark,.pc-shuffle){color:var(--dim);border-color:var(--line)}
+html body #quoteBanner .pc-divider{border-left:1px solid var(--line)}
+html body #quoteBanner .pc-postmark{transform:none;border-radius:8px;height:32px;font-family:inherit}
+html body #quoteBanner .pc-postmark:before,html body #quoteBanner .pc-postmark:after{display:none}
+html body #lifeBanner .lb-poem{background:none;border:0}
+html body #fortuneBox :is(.fo-top,.fo-col,.fo-season,.fo-note){background:var(--panel2);border-color:var(--line)}
+html body #fortuneBox .fo-note{background:transparent}
+html body :is(.track-feature,.npc-person,.pet-summary,.bday-card,.compact-year-entry){background:var(--panel);box-shadow:none;border-color:var(--line)}
+html body .track-feature{background:var(--panel2);border-left:3px solid var(--career)}
+html body .track-categories .track-category>h3{border-bottom:1px solid var(--line)}
+html body .content :is(.pill,.htag,.ya-track){background:var(--panel2);border-color:var(--line);color:var(--txt)}
+html body .text-action{color:var(--career);text-decoration-thickness:1px;text-underline-offset:3px}
+@media(prefers-reduced-motion:reduce){html body *{scroll-behavior:auto!important}}
