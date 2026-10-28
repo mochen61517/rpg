@@ -41,12 +41,7 @@ function setupRefinement(){
     const card=document.createElement('div');card.className='pet';card.dataset.pet='mudan';
     card.innerHTML='<img src="assets/pet-mudan.jpg" alt="牡丹"><div><div class="pet-name">牡丹</div><div class="pet-meta">母猫 · 英短 · 约 '+petAgeInfo(mudan).catYears+' 岁</div></div>';pets.append(card);
   }
-  const energy=document.getElementById('page-energy'),growth=document.getElementById('page-growth');
-  if(energy&&growth){
-    let section=document.getElementById('growthSubjectivity');
-    if(!section){section=document.createElement('section');section.id='growthSubjectivity';growth.querySelector('.lvl-bar')?.after(section);}
-    section.innerHTML=subjectivityCard();
-  }
+  document.getElementById('growthSubjectivity')?.remove();
   const tasks=document.querySelector('#st-action-pane .today-task-panel');if(tasks)document.getElementById('st-action-pane').append(tasks);
   document.getElementById('activeCommissions')?.remove();
 }
