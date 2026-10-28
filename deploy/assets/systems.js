@@ -363,12 +363,12 @@ function npcSend(qid){
 function renderNpc(){
   const el=document.getElementById('npcBox');if(!el)return;
   ensurePracticalNpcTasks();
-  el.innerHTML=feiTrialsHtml()+'<div class="clarity-npc-heading">每周委托 · 完成实际行动后勾选</div>'+NPCS.map(p=>{
+  el.innerHTML=feiTrialsHtml()+'<div class="clarity-npc-heading">每周委托 · 完成实际行动后勾选</div><div class="npc-week-grid">'+NPCS.map(p=>{
     const ri=npcRelInfo(p.id),quests=S.npc.active.filter(q=>q.npc===p.id);
     const row=q=>'<label class="npc-check'+(q.done?' done':'')+'" id="qi_'+escHtml(q.id)+'"><input type="checkbox" '+(q.done?'checked':'')+' data-npc-task="'+escHtml(q.id)+'"><span>'+escHtml(q.t)+(q.branch&&q.choice!=null?' · '+escHtml(q.choices[q.choice].t):'')+'</span><small>+'+(q.xp||30)+' XP</small></label>';
     const old=quests.filter(q=>!q.practical);
     return '<section class="npc-person"><header><span>'+p.ic+'</span><div><h3>'+escHtml(p.n)+'</h3><p>'+escHtml(p.d)+'</p><div class="npc-rel"><span>熟悉度 · '+escHtml(ri.name)+' · '+ri.xp+'</span><span class="npc-rel-bar"><i style="width:'+ri.pct+'%"></i></span></div></div></header>'+quests.filter(q=>q.practical).map(row).join('')+(old.length?clarityFold('npc-old-'+p.id,'原有委托 · '+old.length,old.map(row).join('')):'')+'</section>';
-  }).join('')+birthdayQuestRowsHtml();
+  }).join('')+'</div>'+birthdayQuestRowsHtml();
   el.querySelectorAll('[data-npc-task]').forEach(input=>input.onchange=()=>npcDone(input.dataset.npcTask));
 }
 // v6.0.53 王菲·菲式历练区块（主体性修行任务）

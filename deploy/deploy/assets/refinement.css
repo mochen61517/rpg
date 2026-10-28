@@ -28,3 +28,21 @@ html:root #monthPlanEdit .month-focus{border:1px solid var(--line);border-radius
 .memory-tabs{display:flex;gap:8px;margin:0 0 16px;padding:4px 0;flex-wrap:wrap}.memory-tabs button{border:1px solid transparent;background:transparent;color:var(--dim);border-radius:8px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}.memory-tabs button.on{background:var(--panel);border-color:var(--line);color:var(--txt);font-weight:600}.memory-tabs button:focus-visible{outline:2px solid var(--career);outline-offset:2px}#jr-memory-pane [hidden]{display:none!important}#jr-memory-pane details.memory-tab-content{border:0;background:none;margin:0;box-shadow:none;padding:0}#jr-memory-pane details.memory-tab-content>summary{display:none}#jr-memory-pane details.memory-tab-content>.panel{margin-top:0}
 
 #memoryEntry .future-letter-field{display:block;margin:12px 0 7px;font-size:13px;color:var(--dim)}#flEditTitle,#memoryEntry #flEditText{box-sizing:border-box;display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--txt);font:inherit;padding:10px 12px}#memoryEntry #flEditText{min-height:140px;line-height:1.7;resize:vertical}.fl-item-body{white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* Weekly commissions adapt to the available panel width. */
+#npcBox{container-type:inline-size}
+.npc-week-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;align-items:start}
+#npcBox .npc-week-grid .npc-person{min-width:0;margin:0;padding:14px;border-radius:12px}
+#npcBox .npc-week-grid .npc-person>header{gap:10px;margin-bottom:10px}
+#npcBox .npc-week-grid .npc-person>header>span{font-size:26px;flex-shrink:0}
+#npcBox .npc-week-grid .npc-person>header>div{min-width:0}
+#npcBox .npc-week-grid h3{font-size:17px;margin:0 0 4px}
+#npcBox .npc-week-grid header p{font-size:12px;line-height:1.5;margin:0 0 6px}
+#npcBox .npc-week-grid .npc-rel{font-size:11px;flex-wrap:wrap;gap:6px}
+#npcBox .npc-week-grid .npc-check{gap:8px;padding:10px 0;font-size:13px;align-items:start}
+#npcBox .npc-week-grid .npc-check>span{min-width:0;overflow-wrap:anywhere}
+#npcBox .npc-week-grid .npc-check small{font-size:11px;white-space:nowrap}
+#npcBox .npc-week-grid .clarity-fold{margin:8px 0 0}
+#npcBox .npc-week-grid .clarity-fold>summary{padding:8px 10px;font-size:12px}
+@container (min-width:1200px){.npc-week-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@container (max-width:560px){.npc-week-grid{grid-template-columns:minmax(0,1fr)}}
