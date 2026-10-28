@@ -4,3 +4,5 @@
 html[data-theme] .wr-stat,html[data-theme] .xpl-cat,html[data-theme] .st-stat{background:transparent;border:0;border-right:1px solid var(--line);border-radius:0;box-shadow:none;padding:6px 8px}html[data-theme] .wr-stat:last-child,html[data-theme] .xpl-cat:last-child,html[data-theme] .st-stat:last-child{border-right:0}.wr-stat b,.xpl-cat b,.st-stat b{font-size:16px!important;color:var(--txt)!important}
 .dash-key-summary{grid-template-columns:1.6fr repeat(3,1fr)}.dash-key-summary .dks-card:not(:first-child){background:transparent;box-shadow:none}.dash-key-summary .dks-card:not(:first-child) .dks-value{font-size:22px}
 @media(max-width:650px){.track-row summary{grid-template-columns:minmax(0,1fr) auto;gap:5px 10px}.track-row .track-total{grid-column:1/-1;padding-left:20px}.track-feature{min-width:0;flex-basis:100%}#longPracticeBox .track-overview-head{flex-wrap:wrap}.dash-key-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.track-category{margin-top:22px}.track-category>h3{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--txt)}
