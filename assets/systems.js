@@ -1693,10 +1693,7 @@ function renderNotifications(){
 }
 function navBadgeCount(page){
   if(page==='short'||page==='action'||page==='current'){
-    let c=0;
-    if(S.npc && S.npc.week && S.npc.week!==S.npc.seenWeek && S.npc.active && S.npc.active.length) c++;
-    c += (S.myJianghu||[]).filter(function(e){return !e.done;}).length;
-    return c;
+    return shortTaskBadgeData().total;
   }
   if(page==='map') return letterUnread();
   if(page==='growth'){ if(!S.bonds) return 0; return S.bonds.blessRead!==todayStr()?1:0; }

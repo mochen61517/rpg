@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const source=fs.readFileSync('assets/systems.js','utf8');
+const ctx=vm.createContext({S:{myJianghu:[]},Date});
+for(const [start,end] of [['function navBadgeCount(','function renderNavBadges('],['function shortTaskBadgeData(','function renderShortTaskBadges(']])vm.runInContext(source.slice(source.indexOf(start),source.indexOf(end)),ctx);
+const count=()=>vm.runInContext("navBadgeCount('short')",ctx),now=Date.now();
+ctx.S.myJianghu=Array.from({length:4},()=>({done:false,deadline:now-1000}));
+assert.equal(count(),0);
+ctx.S.myJianghu.push({done:false,deadline:now+60000},{done:true,deadline:now+60000});
+assert.equal(count(),1);
+ctx.S.npc={week:'new',seenWeek:'old',active:['npc']};assert.equal(count(),2);
+ctx.S.npc.seenWeek='new';assert.equal(count(),1);
+assert.equal(ctx.S.myJianghu.length,6);
+console.log('PASS: expired and completed claims excluded; active claims and unread NPC reminders retained; history unchanged.');
