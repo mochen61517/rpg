@@ -2847,7 +2847,7 @@ function renderCore(){
     </div>`;
   const _un=S.ach.map((a,i)=>a.un?_achCard(a,i):null).filter(Boolean);
   const _lk=S.ach.map((a,i)=>(!a.un && !a.hidden)?_achCard(a,i):null).filter(Boolean);
-  document.getElementById('achsUnlocked').innerHTML=_un.join('')||'<div class="hint">尚无解锁的印记，开始修行吧。</div>';
+  if(document.getElementById('achsUnlocked')) document.getElementById('achsUnlocked').innerHTML=_un.join('')||'<div class="hint">尚无解锁的印记，开始修行吧。</div>';
   const _al=document.getElementById('achsLocked'); if(_al) _al.innerHTML=_lk.join('')||'<div class="hint">皆已点亮 ✨</div>';
   document.getElementById('pushToken').value=S.pushToken||'';
   renderSettingsHistory();

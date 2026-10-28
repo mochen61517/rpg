@@ -47,8 +47,6 @@ function setupRefinement(){
     if(!section){section=document.createElement('section');section.id='growthSubjectivity';growth.querySelector('.lvl-bar')?.after(section);}
     section.innerHTML=subjectivityCard();
   }
-  const ach=document.getElementById('achsUnlocked')?.closest('.panel');
-  if(ach){ach.classList.add('compact-achievements');const title=ach.querySelector('h2');if(title)title.textContent='已解锁成就';}
   const tasks=document.querySelector('#st-action-pane .today-task-panel');if(tasks)document.getElementById('st-action-pane').append(tasks);
   document.getElementById('activeCommissions')?.remove();
 }
